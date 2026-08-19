@@ -312,6 +312,50 @@ class Placement {
 	}
 
 	/**
+	 * Where a bar can be hooked, in words a shop owner can choose between.
+	 *
+	 * A raw hook name is meaningless to the person deciding where their videos
+	 * go, and the list of hooks that actually exist is long and mostly wrong.
+	 * These are the positions worth offering; a developer who wants another one
+	 * adds it through `ocs_placement_hooks`.
+	 *
+	 * @return array<string,string> Hook => label.
+	 */
+	public static function hooks() {
+		return (array) apply_filters(
+			'ocs_placement_hooks',
+			array(
+				'manual'                                => __( 'Nowhere automatic — I will place it myself', 'oc-story' ),
+				'wp_body_open'                          => __( 'Very top of the page, above everything', 'oc-story' ),
+				'woocommerce_before_main_content'       => __( 'Above the page content', 'oc-story' ),
+				'woocommerce_after_main_content'        => __( 'Below the page content', 'oc-story' ),
+				'woocommerce_before_shop_loop'          => __( 'Above the product grid', 'oc-story' ),
+				'woocommerce_after_shop_loop'           => __( 'Below the product grid', 'oc-story' ),
+				'woocommerce_before_single_product'     => __( 'Product page — above everything', 'oc-story' ),
+				'woocommerce_single_product_summary'    => __( 'Product page — beside the price and button', 'oc-story' ),
+				'woocommerce_after_single_product_summary' => __( 'Product page — below the description', 'oc-story' ),
+				'get_footer'                            => __( 'Just before the footer', 'oc-story' ),
+			)
+		);
+	}
+
+	/**
+	 * The scopes, labelled.
+	 *
+	 * @return array<string,string>
+	 */
+	public static function scopes() {
+		return array(
+			'site'     => __( 'Every page of the site', 'oc-story' ),
+			'home'     => __( 'The home page only', 'oc-story' ),
+			'pages'    => __( 'Only the pages I choose', 'oc-story' ),
+			'products' => __( 'Product pages', 'oc-story' ),
+			'terms'    => __( 'Products in certain categories', 'oc-story' ),
+			'tagged'   => __( 'Product pages — showing the videos that tag that product', 'oc-story' ),
+		);
+	}
+
+	/**
 	 * Does this placement apply to the current request?
 	 *
 	 * Pure logic. The context is a plain array so that routing can be tested

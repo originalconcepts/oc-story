@@ -49,8 +49,23 @@ class Menu {
 			array( $studio, 'render' )
 		);
 
+		$placements = new PlacementsPage();
+
+		$placements_hook = add_submenu_page(
+			self::SLUG,
+			__( 'Where it shows', 'oc-story' ),
+			__( 'Where it shows', 'oc-story' ),
+			'manage_woocommerce',
+			PlacementsPage::SLUG,
+			array( $placements, 'render' )
+		);
+
 		if ( $hook ) {
 			add_action( 'load-' . $hook, array( $studio, 'on_load' ) );
+		}
+
+		if ( $placements_hook ) {
+			add_action( 'load-' . $placements_hook, array( $placements, 'on_load' ) );
 		}
 	}
 }

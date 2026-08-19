@@ -81,6 +81,8 @@ final class Plugin {
 			'assets'      => \OCS\Display\Assets::class,
 			'injector'    => \OCS\Display\Injector::class,
 			'shortcode'   => \OCS\Display\Shortcode::class,
+			'block'       => \OCS\Display\Block::class,
+			'elementor'   => \OCS\Display\Elementor::class,
 
 			// REST (milestones 2-7).
 			'rest'        => \OCS\Rest\Routes::class,

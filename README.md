@@ -24,8 +24,8 @@ engine. See [PLAN.md](PLAN.md) for the full design and the build order.
 | 2 | Upload pipeline — on-device encoding, chunked upload | done, gate passed on desktop |
 | 3 | Studio — the upload and tagging screen | done |
 | 4 | Player and the circles bar | done |
-| 5 | Placement injection — the placements screen, block, Elementor | next |
-| 6 | Slider and product-page surfaces |  |
+| 5 | Placement injection — the placements screen, block, Elementor | done |
+| 6 | Slider and product-page surfaces | next |
 | 7 | Analytics and revenue attribution |  |
 | 8 | RTL, translations, accessibility, release |  |
 

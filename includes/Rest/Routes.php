@@ -34,6 +34,8 @@ class Routes {
 		$controllers = array(
 			\OCS\Rest\StoriesController::class,
 			\OCS\Rest\ProductsController::class,
+			\OCS\Rest\PlacementsController::class,
+			\OCS\Rest\LookupController::class,
 			\OCS\Rest\UploadController::class,
 		);
 

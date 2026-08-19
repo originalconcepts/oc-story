@@ -363,3 +363,44 @@
  * dark mode. If WordPress ever ships a real admin dark scheme, this follows it
  * through the admin's own body classes, not through the OS.
  */
+
+/* ------------------------------------------------------------- placements */
+
+.ocs-editor__body--wide { grid-template-columns: minmax(0, 1fr) minmax(0, 320px); }
+
+.ocs-devices { display: grid; gap: 12px; }
+
+.ocs-device {
+	border: 1px solid var(--ocs-line);
+	border-radius: var(--ocs-radius);
+	padding: 12px;
+}
+
+.ocs-device > strong { display: block; font-weight: 500; margin-block-end: 8px; }
+.ocs-device .ocs-field { margin-block-end: 12px; }
+
+.ocs-check { display: flex; align-items: center; gap: 8px; margin-block-end: 12px; }
+.ocs-check input { margin: 0; }
+
+.ocs-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-block-end: 10px; }
+
+.ocs-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	border: 1px solid var(--ocs-line);
+	border-radius: 999px;
+	padding: 3px 6px 3px 10px;
+	font: inherit;
+	font-size: 13px;
+	background: var(--ocs-bg);
+	color: inherit;
+	cursor: pointer;
+}
+
+.ocs-chip--on { border-color: var(--ocs-accent); color: var(--ocs-accent); }
+.ocs-chip .ocs-btn { padding: 0 4px; line-height: 1; }
+
+@media (max-width: 782px) {
+	.ocs-editor__body--wide { grid-template-columns: minmax(0, 1fr); }
+}

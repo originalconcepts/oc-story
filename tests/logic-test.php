@@ -135,6 +135,19 @@ check( 'coerces a checkbox string', $p['desktop']['labels'] === true );
 check( 'falls back to a known alignment', $p['mobile']['align'] === 'start' );
 check( 'falls back to a known story mode', $p['stories']['mode'] === 'all' );
 
+echo "\nPlacement choices\n";
+$scopes = \OCS\Model\Placement::scopes();
+$labelled = true;
+foreach ( \OCS\Model\Placement::SCOPES as $scope ) {
+	if ( empty( $scopes[ $scope ] ) ) { $labelled = false; }
+}
+check( 'every scope is offered in words', $labelled );
+check( 'no scope is offered that the engine cannot route', count( $scopes ) === count( \OCS\Model\Placement::SCOPES ) );
+
+$hooks = \OCS\Model\Placement::hooks();
+check( 'manual placement is offered', isset( $hooks['manual'] ) );
+check( 'the position list is short enough to choose from', count( $hooks ) <= 12 );
+
 echo "\nPlacement routing\n";
 $m = '\OCS\Model\Placement::matches';
 $home    = array( 'is_front' => true, 'post_id' => 2 );
