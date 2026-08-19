@@ -1,6 +1,6 @@
 <?php
 /**
- * The circles bar.
+ * Videos on the product page.
  *
  * @package OC_Story
  */
@@ -10,14 +10,14 @@ namespace OCS\Surfaces;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * The row of circles at the top of a page.
+ * "Videos with this product" — the surface that does the actual selling.
  *
- * This is the surface the plugin is judged on, and it carries the whole
- * front-end budget: a poster, a caption and nothing else. No video is
- * referenced here at all — a visitor who never taps a circle downloads not one
- * byte of it.
+ * A shopper on a product page has already decided what they are interested in;
+ * a thirty-second clip of someone using it is the last thing between them and
+ * the button. It renders nothing at all when no video tags the product, rather
+ * than an empty heading, because an empty section reads as a broken shop.
  */
-class Circles extends AbstractSurface {
+class ProductBlock extends AbstractSurface {
 
 	/**
 	 * Machine id.
@@ -25,7 +25,7 @@ class Circles extends AbstractSurface {
 	 * @return string
 	 */
 	public function get_id() {
-		return 'circles';
+		return 'product';
 	}
 
 	/**
@@ -34,21 +34,21 @@ class Circles extends AbstractSurface {
 	 * @return string
 	 */
 	public function get_label() {
-		return __( 'Story circles', 'oc-story' );
+		return __( 'Videos on the product page', 'oc-story' );
 	}
 
 	/**
-	 * Anywhere.
+	 * Product pages only.
 	 *
 	 * @param array $context Request context.
 	 * @return bool
 	 */
 	public function supports( array $context ) {
-		return true;
+		return ! empty( $context['is_product'] );
 	}
 
 	/**
-	 * Render the bar.
+	 * Render.
 	 *
 	 * @param array $stories   Stories.
 	 * @param array $placement Placement.
@@ -64,25 +64,15 @@ class Circles extends AbstractSurface {
 		$inline = $this->payload_tag( $visible, $placement['id'] );
 
 		return $this->template(
-			'circles.php',
+			'slider.php',
 			array(
 				'stories'   => $visible,
 				'placement' => $placement,
 				'inline'    => $inline,
 				'src'       => '' === $inline ? $this->payload_src( $visible ) : '',
-				'style'     => $this->style_vars( $placement ),
-				'surface'   => $this,
+				'style'     => $this->card_vars( $placement ),
+				'heading'   => (string) apply_filters( 'ocs_product_block_heading', __( 'See it in action', 'oc-story' ) ),
 			)
 		);
-	}
-
-	/**
-	 * Public so the template can reach it.
-	 *
-	 * @param array $placement Placement.
-	 * @return string
-	 */
-	public function vars( array $placement ) {
-		return $this->style_vars( $placement );
 	}
 }

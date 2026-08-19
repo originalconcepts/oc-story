@@ -1,0 +1,4 @@
+.ocs-surface--product{margin:28px 0;clear:both}
+.ocs-surface--product .ocs-slider__heading{font-size:16px}
+.ocs-surface--product .ocs-card{width:min(var(--ocs-card),150px)}
+@media (max-width:781px){.ocs-surface--product .ocs-card{width:min(var(--ocs-card-mobile),130px)}}

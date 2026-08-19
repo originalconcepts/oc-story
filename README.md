@@ -25,8 +25,8 @@ engine. See [PLAN.md](PLAN.md) for the full design and the build order.
 | 3 | Studio — the upload and tagging screen | done |
 | 4 | Player and the circles bar | done |
 | 5 | Placement injection — the placements screen, block, Elementor | done |
-| 6 | Slider and product-page surfaces | next |
-| 7 | Analytics and revenue attribution |  |
+| 6 | Slider and product-page surfaces | done |
+| 7 | Analytics and revenue attribution | next |
 | 8 | RTL, translations, accessibility, release |  |
 
 ### The gate
@@ -54,7 +54,9 @@ trusting the numbers on one.
 
 | asset | size | budget |
 |---|---|---|
-| `bar.css` (inlined) | 1,595 raw | 2,048 |
+| `surface-circles.css` (inlined) | 1,595 raw | 2,048 |
+| `surface-slider.css` (inlined) | 2,238 raw | 2,560 |
+| `surface-product.css` (inlined) | 272 raw | 1,024 |
 | `bar.js` (initial) | 2,039 gzip | 4,096 |
 | `player.js` (on first tap) | 3,636 gzip | 16,384 |
 | `player.css` (on first tap) | 1,159 gzip | 5,120 |

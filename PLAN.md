@@ -375,7 +375,7 @@ Hard numbers. A build that misses one of these is not shippable.
 
 | Asset | Budget | How |
 |---|---|---|
-| Critical CSS (circles) | **≤ 2.0 KB** inlined | `wp_add_inline_style`, zero extra requests |
+| Critical CSS | **≤ 2.0 KB** per surface, inlined | only the surfaces actually on the page |
 | `bar.js` | **≤ 4.0 KB** gzip, `defer` | tap listener and `import()` only |
 | `player.js` | **≤ 16 KB** gzip | dynamic chunk, first tap only |
 | `player.css` | **≤ 5 KB** gzip | ships with the chunk |
@@ -419,6 +419,13 @@ landscape video through a pipeline built for phones.
 are throttled hard in a background tab, and the studio is exactly the screen
 someone starts and switches away from. Measured cost of getting this wrong: 68.8 ms
 per frame instead of 3 ms. The codecs were never the bottleneck; the waiting was.
+
+**No autoplaying previews in the slider.** Every competing plugin plays muted
+loops in the grid, and it is the single fastest way to break the budget above:
+six cards in view is six video downloads before anyone has asked for one. The
+card shows a poster, a duration and a product count. If this is ever added it
+belongs behind a setting that is off by default and a separate chunk that only
+loads when it is on.
 
 **faststart is not optional.** An MP4 with the moov atom at the end forces mobile
 Safari to fetch the whole file before the first frame. It looks fine on desktop

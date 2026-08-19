@@ -45,6 +45,12 @@ require OCS_PATH . 'includes/Model/Placement.php';
 require OCS_PATH . 'includes/Media/Probe.php';
 require OCS_PATH . 'includes/Media/ChunkedUpload.php';
 require OCS_PATH . 'includes/Media/Poster.php';
+require OCS_PATH . 'includes/Surfaces/SurfaceInterface.php';
+require OCS_PATH . 'includes/Surfaces/AbstractSurface.php';
+require OCS_PATH . 'includes/Surfaces/Circles.php';
+require OCS_PATH . 'includes/Surfaces/Slider.php';
+require OCS_PATH . 'includes/Surfaces/ProductBlock.php';
+require OCS_PATH . 'includes/Surfaces/SurfaceManager.php';
 
 $pass = 0; $fail = 0;
 function check( $label, $condition ) {
@@ -134,6 +140,27 @@ check( 'clamps an undersized circle', $p['mobile']['size'] === 40 );
 check( 'coerces a checkbox string', $p['desktop']['labels'] === true );
 check( 'falls back to a known alignment', $p['mobile']['align'] === 'start' );
 check( 'falls back to a known story mode', $p['stories']['mode'] === 'all' );
+
+echo "\nSurfaces\n";
+$surfaces = \OCS\Surfaces\SurfaceManager::all();
+check( 'circles, slider and product block are all registered', count( $surfaces ) === 3 );
+
+$named = true;
+foreach ( $surfaces as $id => $surface ) {
+	if ( $id !== $surface->get_id() || '' === $surface->get_label() ) { $named = false; }
+}
+check( 'every surface knows its own id and has a label', $named );
+
+check(
+	'the product block only offers itself on a product page',
+	false === $surfaces['product']->supports( array( 'is_product' => false ) )
+		&& true === $surfaces['product']->supports( array( 'is_product' => true ) )
+);
+check( 'the slider goes anywhere', true === $surfaces['slider']->supports( array() ) );
+check(
+	'placement validation accepts exactly the registered surfaces',
+	\OCS\Model\Placement::SURFACES === \OCS\Surfaces\SurfaceManager::ids()
+);
 
 echo "\nPlacement choices\n";
 $scopes = \OCS\Model\Placement::scopes();

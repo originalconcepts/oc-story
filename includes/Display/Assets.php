@@ -23,11 +23,11 @@ defined( 'ABSPATH' ) || exit;
 class Assets {
 
 	/**
-	 * Cached critical CSS.
+	 * Cached critical CSS, keyed by the set of surfaces it covers.
 	 *
-	 * @var string|null
+	 * @var array<string,string>
 	 */
-	private static $critical = null;
+	private static $critical = array();
 
 	/**
 	 * Constructor.
@@ -42,7 +42,17 @@ class Assets {
 	 * Load nothing unless something renders.
 	 */
 	public function maybe_enqueue() {
-		if ( ! Injector::anything() && ! $this->has_shortcode() && ! apply_filters( 'ocs_force_assets', false ) ) {
+		if ( $this->has_shortcode() ) {
+			// A shortcode runs during `the_content`, long after this. Which
+			// surface it will ask for is not knowable yet, so all of them are
+			// covered — a few hundred bytes, on the minority of pages that use
+			// one, rather than a bar with no styling.
+			foreach ( \OCS\Surfaces\SurfaceManager::ids() as $id ) {
+				Injector::need( $id );
+			}
+		}
+
+		if ( ! Injector::anything() && ! apply_filters( 'ocs_force_assets', false ) ) {
 			return;
 		}
 
@@ -127,15 +137,30 @@ class Assets {
 	 * @return string
 	 */
 	protected function critical_css() {
-		if ( null === self::$critical ) {
-			$file = OCS_PATH . 'assets/css/bar.css';
+		$surfaces = Injector::surfaces();
 
-			self::$critical = is_readable( $file )
-				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_get_contents
-				? (string) file_get_contents( $file )
-				: '';
+		if ( ! $surfaces ) {
+			$surfaces = array( 'circles' );
 		}
 
-		return self::$critical;
+		sort( $surfaces );
+		$key = implode( ',', $surfaces );
+
+		if ( ! isset( self::$critical[ $key ] ) ) {
+			$css = '';
+
+			foreach ( $surfaces as $id ) {
+				$file = OCS_PATH . 'assets/css/surface-' . sanitize_key( $id ) . '.css';
+
+				if ( is_readable( $file ) ) {
+					// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_get_contents
+					$css .= (string) file_get_contents( $file );
+				}
+			}
+
+			self::$critical[ $key ] = $css;
+		}
+
+		return self::$critical[ $key ];
 	}
 }

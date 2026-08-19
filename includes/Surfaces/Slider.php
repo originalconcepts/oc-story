@@ -1,6 +1,6 @@
 <?php
 /**
- * The circles bar.
+ * The video slider.
  *
  * @package OC_Story
  */
@@ -10,14 +10,14 @@ namespace OCS\Surfaces;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * The row of circles at the top of a page.
+ * A scrollable row of tall video cards — the shape UGC takes on a shop's home
+ * page or a landing page, where a row of small circles would be too quiet.
  *
- * This is the surface the plugin is judged on, and it carries the whole
- * front-end budget: a poster, a caption and nothing else. No video is
- * referenced here at all — a visitor who never taps a circle downloads not one
- * byte of it.
+ * Same library, same player, same payload as the circles. What differs is
+ * eighty lines of markup and a stylesheet, which is the whole argument for
+ * surfaces being an interface rather than three features.
  */
-class Circles extends AbstractSurface {
+class Slider extends AbstractSurface {
 
 	/**
 	 * Machine id.
@@ -25,7 +25,7 @@ class Circles extends AbstractSurface {
 	 * @return string
 	 */
 	public function get_id() {
-		return 'circles';
+		return 'slider';
 	}
 
 	/**
@@ -34,7 +34,7 @@ class Circles extends AbstractSurface {
 	 * @return string
 	 */
 	public function get_label() {
-		return __( 'Story circles', 'oc-story' );
+		return __( 'Video slider', 'oc-story' );
 	}
 
 	/**
@@ -48,7 +48,7 @@ class Circles extends AbstractSurface {
 	}
 
 	/**
-	 * Render the bar.
+	 * Render.
 	 *
 	 * @param array $stories   Stories.
 	 * @param array $placement Placement.
@@ -64,25 +64,15 @@ class Circles extends AbstractSurface {
 		$inline = $this->payload_tag( $visible, $placement['id'] );
 
 		return $this->template(
-			'circles.php',
+			'slider.php',
 			array(
 				'stories'   => $visible,
 				'placement' => $placement,
 				'inline'    => $inline,
 				'src'       => '' === $inline ? $this->payload_src( $visible ) : '',
-				'style'     => $this->style_vars( $placement ),
-				'surface'   => $this,
+				'style'     => $this->card_vars( $placement ),
+				'heading'   => '',
 			)
 		);
-	}
-
-	/**
-	 * Public so the template can reach it.
-	 *
-	 * @param array $placement Placement.
-	 * @return string
-	 */
-	public function vars( array $placement ) {
-		return $this->style_vars( $placement );
 	}
 }

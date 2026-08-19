@@ -120,6 +120,53 @@ abstract class AbstractSurface implements SurfaceInterface {
 	}
 
 	/**
+	 * Stories with something playable in them.
+	 *
+	 * A circle or a card that opens onto nothing is worse than a shorter row,
+	 * so a story whose every slide has lost its file is dropped here rather
+	 * than rendered and discovered on tap.
+	 *
+	 * @param array $stories Stories.
+	 * @return array
+	 */
+	protected function playable( array $stories ) {
+		$keep = array();
+
+		foreach ( $this->payload( $stories ) as $story ) {
+			$keep[] = (int) $story['i'];
+		}
+
+		$out = array();
+		foreach ( $stories as $story ) {
+			if ( in_array( (int) $story['id'], $keep, true ) ) {
+				$out[] = $story;
+			}
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Card sizing for the slider surfaces.
+	 *
+	 * The placement's size means a circle's diameter for the bar and a card's
+	 * width here, so the same two numbers keep meaning "how big, on each kind
+	 * of screen" without a second pair of settings to explain.
+	 *
+	 * @param array $placement Placement.
+	 * @return string
+	 */
+	protected function card_vars( array $placement ) {
+		return sprintf(
+			'--ocs-card:%dpx;--ocs-card-mobile:%dpx;--ocs-align:%s;--ocs-align-mobile:%s',
+			max( 100, (int) $placement['desktop']['size'] * 2 ),
+			max( 100, (int) $placement['mobile']['size'] * 2 ),
+			'start' === $placement['desktop']['align'] ? 'flex-start' : ( 'end' === $placement['desktop']['align'] ? 'flex-end' : 'center' ),
+			'start' === $placement['mobile']['align'] ? 'flex-start' : ( 'end' === $placement['mobile']['align'] ? 'flex-end' : 'center' )
+		);
+	}
+
+	/**
 	 * Per-device layout as custom properties, so one markup serves everyone.
 	 *
 	 * Desktop and mobile ship together and CSS picks. Branching in PHP would

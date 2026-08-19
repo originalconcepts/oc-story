@@ -38,6 +38,13 @@ class Injector {
 	protected static $anything = false;
 
 	/**
+	 * Surface ids that will render on this request.
+	 *
+	 * @var array<string,bool>
+	 */
+	protected static $surfaces = array();
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -71,6 +78,11 @@ class Injector {
 			$this->active[] = $placement;
 			self::$anything = true;
 
+			// Only the stylesheet for a surface that is actually on the page
+			// gets inlined. A shop running circles alone should never carry the
+			// slider's CSS in the HTML of every page.
+			self::$surfaces[ $placement['surface'] ] = true;
+
 			add_action(
 				$placement['hook'],
 				function () use ( $placement, $context ) {
@@ -89,6 +101,26 @@ class Injector {
 	 */
 	public static function anything() {
 		return self::$anything;
+	}
+
+	/**
+	 * Surfaces rendering on this request.
+	 *
+	 * @return string[]
+	 */
+	public static function surfaces() {
+		return array_keys( self::$surfaces );
+	}
+
+	/**
+	 * Ask for a surface's assets even though no placement hooked it — a
+	 * shortcode, a block or an Elementor widget on a page the router skipped.
+	 *
+	 * @param string $id Surface id.
+	 */
+	public static function need( $id ) {
+		self::$surfaces[ $id ] = true;
+		self::$anything        = true;
 	}
 
 	/**
