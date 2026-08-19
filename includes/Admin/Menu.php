@@ -67,5 +67,20 @@ class Menu {
 		if ( $placements_hook ) {
 			add_action( 'load-' . $placements_hook, array( $placements, 'on_load' ) );
 		}
+
+		$settings = new SettingsPage();
+
+		$settings_hook = add_submenu_page(
+			self::SLUG,
+			__( 'Settings', 'oc-story' ),
+			__( 'Settings', 'oc-story' ),
+			'manage_woocommerce',
+			SettingsPage::SLUG,
+			array( $settings, 'render' )
+		);
+
+		if ( $settings_hook ) {
+			add_action( 'load-' . $settings_hook, array( $settings, 'on_load' ) );
+		}
 	}
 }

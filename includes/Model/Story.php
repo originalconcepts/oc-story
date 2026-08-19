@@ -515,17 +515,24 @@ class Story {
 
 		$thumbnail = get_post_thumbnail_id( $post->ID );
 
+		// The circle image falls back to the first slide's poster, so a story
+		// always has one without the owner being asked for it.
+		$circle_id = $thumbnail ? (int) $thumbnail : ( isset( $slides[0]['poster'] ) ? (int) $slides[0]['poster'] : 0 );
+
+		// A circle is at most 160 CSS pixels across; serving it the full
+		// 540x960 poster spends ~40KB to paint ~10KB. WordPress already made
+		// the smaller rendition when the poster was uploaded — 'medium' is
+		// ~300px on its long edge, which covers a retina circle exactly.
+		$thumb = $circle_id ? (string) wp_get_attachment_image_url( $circle_id, 'medium' ) : '';
+
 		return array(
 			'id'         => (int) $post->ID,
 			'title'      => $post->post_title,
 			'status'     => $post->post_status,
 			'menu_order' => (int) $post->menu_order,
 			'poster'     => (int) $thumbnail,
-			// The circle image falls back to the first slide's poster, so a story
-			// always has one without the owner being asked for it.
-			'poster_url' => $thumbnail
-				? (string) wp_get_attachment_url( $thumbnail )
-				: ( isset( $out[0]['poster_url'] ) ? $out[0]['poster_url'] : '' ),
+			'poster_url' => $circle_id ? (string) wp_get_attachment_url( $circle_id ) : '',
+			'thumb_url'  => '' !== $thumb ? $thumb : ( $circle_id ? (string) wp_get_attachment_url( $circle_id ) : '' ),
 			'slides'     => $out,
 		);
 	}

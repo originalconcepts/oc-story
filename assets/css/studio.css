@@ -174,6 +174,7 @@
 }
 
 .ocs-stage {
+	position: relative;
 	background: #000;
 	border-radius: var(--ocs-radius);
 	overflow: hidden;
@@ -181,6 +182,44 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+}
+
+/* Pins use physical left/top on purpose: the video frame never mirrors in
+   RTL, so neither do coordinates on it. */
+.ocs-stage__pin {
+	position: absolute;
+	z-index: 2;
+	width: 28px;
+	height: 28px;
+	margin: -14px 0 0 -14px;
+	border-radius: 50%;
+	border: 2px solid #fff;
+	background: var(--ocs-accent);
+	color: #fff;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1;
+	display: grid;
+	place-items: center;
+	cursor: grab;
+	touch-action: none;
+	box-shadow: 0 1px 6px rgba(0, 0, 0, .45);
+	padding: 0;
+}
+
+.ocs-stage__pin:active { cursor: grabbing; }
+
+.ocs-stage__hint {
+	position: absolute;
+	bottom: 6px;
+	inset-inline: 8px;
+	z-index: 2;
+	margin: 0;
+	text-align: center;
+	font-size: 11px;
+	color: #fff;
+	text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
+	pointer-events: none;
 }
 
 .ocs-stage video { width: 100%; height: 100%; object-fit: contain; display: block; }
@@ -308,6 +347,24 @@
 }
 
 .ocs-tag__name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.ocs-tag__pin {
+	width: 26px;
+	height: 26px;
+	border-radius: 50%;
+	border: 1px dashed var(--ocs-line);
+	display: grid;
+	place-items: center;
+	font-size: 12px;
+	padding: 0;
+}
+
+.ocs-tag__pin.is-on {
+	border-style: solid;
+	border-color: var(--ocs-accent);
+	background: var(--ocs-accent);
+	color: #fff;
+}
 
 /* progress and messages */
 

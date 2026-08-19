@@ -58,7 +58,7 @@ class Assets {
 
 		wp_register_style( 'ocs-bar', false, array(), OCS_VERSION );
 		wp_enqueue_style( 'ocs-bar' );
-		wp_add_inline_style( 'ocs-bar', $this->critical_css() );
+		wp_add_inline_style( 'ocs-bar', $this->critical_css() . $this->theme_vars() );
 
 		wp_enqueue_script( 'ocs-bar', OCS_URL . 'assets/js/bar.js', array(), OCS_VERSION, true );
 
@@ -83,6 +83,40 @@ class Assets {
 			) . ';',
 			'before'
 		);
+	}
+
+	/**
+	 * The shop's ring colours as custom-property overrides.
+	 *
+	 * Same philosophy as OC Reviews: everything visual is a variable, so a
+	 * jeweller and a butcher both install this and it looks like theirs.
+	 * Nothing is emitted when the defaults are untouched.
+	 *
+	 * @return string
+	 */
+	protected function theme_vars() {
+		$style = (string) Settings::get( 'ring_style', 'gradient' );
+		$vars  = array();
+
+		if ( 'solid' === $style ) {
+			$ring = sanitize_hex_color( (string) Settings::get( 'ring_color', '' ) );
+			if ( $ring ) {
+				$vars[] = '--ocs-ring:' . $ring;
+			}
+		} elseif ( 'none' === $style ) {
+			$vars[] = '--ocs-ring:transparent';
+		}
+
+		$seen = sanitize_hex_color( (string) Settings::get( 'ring_seen_color', '' ) );
+		if ( $seen && '#c7c7c7' !== $seen ) {
+			$vars[] = '--ocs-seen:' . $seen;
+		}
+
+		if ( ! $vars ) {
+			return '';
+		}
+
+		return '.ocs-bar{' . implode( ';', $vars ) . '}';
 	}
 
 	/**

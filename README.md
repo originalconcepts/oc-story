@@ -26,6 +26,7 @@ engine. See [PLAN.md](PLAN.md) for the full design and the build order.
 | 4 | Player and the circles bar | done |
 | 5 | Placement injection — the placements screen, block, Elementor | done |
 | 6 | Slider and product-page surfaces | done |
+| 6.5 | Hardening — price invalidation, sized posters, settings screen, frame pins | done |
 | 7 | Analytics and revenue attribution | next |
 | 8 | RTL, translations, accessibility, release |  |
 

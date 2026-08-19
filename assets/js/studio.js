@@ -373,6 +373,71 @@ function removeSlide() {
 	setState( { slide: Math.max( 0, state.slide - 1 ), dirty: true } );
 }
 
+/* ------------------------------------------------------------------- pins */
+
+/**
+ * Dragging a tag onto the frame.
+ *
+ * The coordinates are fractions of the video frame, left-origin and physical:
+ * the frame itself never mirrors in RTL, so neither do they. Listeners sit on
+ * the document rather than using pointer capture, so a finger that wanders off
+ * the pin mid-drag keeps dragging instead of dropping.
+ */
+let dragging = null;
+
+function startPinDrag( event, product, pin ) {
+	const stage = pin.closest( '.ocs-stage' );
+
+	if ( ! stage ) {
+		return;
+	}
+
+	event.preventDefault();
+	dragging = { product, pin, rect: stage.getBoundingClientRect() };
+}
+
+document.addEventListener( 'pointermove', ( e ) => {
+	if ( ! dragging ) {
+		return;
+	}
+
+	const x = Math.min( 1, Math.max( 0, ( e.clientX - dragging.rect.left ) / dragging.rect.width ) );
+	const y = Math.min( 1, Math.max( 0, ( e.clientY - dragging.rect.top ) / dragging.rect.height ) );
+
+	dragging.product.x = Math.round( x * 10000 ) / 10000;
+	dragging.product.y = Math.round( y * 10000 ) / 10000;
+
+	// The DOM is moved directly during the drag; one render at the drop is
+	// enough, and re-rendering per move would tear the pointer off the pin.
+	dragging.pin.style.left = x * 100 + '%';
+	dragging.pin.style.top = y * 100 + '%';
+} );
+
+document.addEventListener( 'pointerup', () => {
+	if ( dragging ) {
+		dragging = null;
+		setState( { dirty: true } );
+	}
+} );
+
+function stagePins( slide ) {
+	const pinned = ( slide.products || [] ).filter( ( p ) => null !== p.x && null !== p.y );
+
+	return el( 'div', { class: 'ocs-stage__pins' }, pinned.map( ( product, index ) => {
+		const pin = el( 'button', {
+			class: 'ocs-stage__pin',
+			type: 'button',
+			title: product.name || '',
+			text: String( index + 1 ),
+			style: 'left:' + product.x * 100 + '%;top:' + product.y * 100 + '%',
+		} );
+
+		pin.addEventListener( 'pointerdown', ( e ) => startPinDrag( e, product, pin ) );
+
+		return pin;
+	} ) );
+}
+
 /* ----------------------------------------------------------------- render */
 
 function noteBar() {
@@ -518,19 +583,37 @@ function productPanel() {
 		] ),
 	] ) ) );
 
-	const tags = el( 'div', { class: 'ocs-tags' }, slide.products.length ? slide.products.map( ( product ) => el( 'div', { class: 'ocs-tag' }, [
-		product.thumb
-			? el( 'img', { class: 'ocs-thumb', src: product.thumb, alt: '' } )
-			: el( 'span', { class: 'ocs-thumb' } ),
-		el( 'span', { class: 'ocs-tag__name', text: product.name } ),
-		el( 'button', {
-			class: 'ocs-btn ocs-btn--ghost',
-			type: 'button',
-			text: '×',
-			'aria-label': t.close,
-			onClick: () => untagProduct( product.id ),
-		} ),
-	] ) ) : [ el( 'p', { class: 'ocs-hint', text: t.noneTagged } ) ] );
+	const tags = el( 'div', { class: 'ocs-tags' }, slide.products.length ? slide.products.map( ( product, index ) => {
+		const pinned = null !== product.x && null !== product.y;
+
+		return el( 'div', { class: 'ocs-tag' }, [
+			product.thumb
+				? el( 'img', { class: 'ocs-thumb', src: product.thumb, alt: '' } )
+				: el( 'span', { class: 'ocs-thumb' } ),
+			el( 'span', { class: 'ocs-tag__name', text: product.name } ),
+			el( 'button', {
+				class: 'ocs-btn ocs-btn--ghost ocs-tag__pin' + ( pinned ? ' is-on' : '' ),
+				type: 'button',
+				text: pinned ? String( index + 1 ) : '+',
+				title: pinned ? t.unpin : t.pin,
+				'aria-label': pinned ? t.unpin : t.pin,
+				'aria-pressed': pinned ? 'true' : 'false',
+				onClick: () => {
+					// Placing drops the pin mid-frame; dragging does the rest.
+					product.x = pinned ? null : 0.5;
+					product.y = pinned ? null : 0.5;
+					setState( { dirty: true } );
+				},
+			} ),
+			el( 'button', {
+				class: 'ocs-btn ocs-btn--ghost',
+				type: 'button',
+				text: '×',
+				'aria-label': t.close,
+				onClick: () => untagProduct( product.id ),
+			} ),
+		] );
+	} ) : [ el( 'p', { class: 'ocs-hint', text: t.noneTagged } ) ] );
 
 	// Order matters here. Tagged products sit directly under their own label,
 	// and the search box comes last with its results hanging off it. The other
@@ -596,6 +679,8 @@ function editorView() {
 								preload: 'metadata',
 							} )
 							: null,
+						slide ? stagePins( slide ) : null,
+						slide && slide.products.some( ( p ) => null !== p.x ) ? el( 'p', { class: 'ocs-stage__hint', text: t.pinHint } ) : null,
 					] ),
 					el( 'div', { class: 'ocs-field', style: 'margin-block-start:12px' }, [
 						el( 'label', { text: t.slides } ),

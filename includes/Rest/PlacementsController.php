@@ -100,7 +100,7 @@ class PlacementsController {
 			$clean[ $sanitized['id'] ] = $sanitized;
 		}
 
-		update_option( Placement::OPTION, array_values( $clean ), false );
+		update_option( Placement::OPTION, array_values( $clean ), true );
 		Placement::flush();
 
 		// Rendered bars are cached against the placement they came from, so a

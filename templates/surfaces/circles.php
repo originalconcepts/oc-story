@@ -36,7 +36,7 @@ $ocs_max            = max( (int) $placement['desktop']['max'], (int) $placement[
 				break;
 			}
 
-			$ocs_poster = $ocs_story['poster_url'];
+			$ocs_poster = ! empty( $ocs_story['thumb_url'] ) ? $ocs_story['thumb_url'] : $ocs_story['poster_url'];
 			$ocs_title  = $ocs_story['title'];
 			?>
 			<button

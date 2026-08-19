@@ -166,7 +166,10 @@ class Placement {
 	 */
 	protected static function persist( array $all ) {
 		self::$cache = $all;
-		update_option( self::OPTION, array_values( $all ), false );
+		// Autoloaded on purpose: this option is read by the router on every
+		// front-end request, and it is a few hundred bytes. Not autoloading it
+		// costs a database query per page to save nothing.
+		update_option( self::OPTION, array_values( $all ), true );
 	}
 
 	/**

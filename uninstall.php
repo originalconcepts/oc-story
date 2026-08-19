@@ -27,7 +27,7 @@ foreach ( array( 'slide_product', 'stats_daily', 'uploads' ) as $ocs_table ) {
 }
 
 // Options.
-foreach ( array( 'ocs_settings', 'ocs_db_version', 'ocs_placements' ) as $ocs_option ) {
+foreach ( array( 'ocs_settings', 'ocs_db_version', 'ocs_placements', 'ocs_stories_version' ) as $ocs_option ) {
 	delete_option( $ocs_option );
 }
 

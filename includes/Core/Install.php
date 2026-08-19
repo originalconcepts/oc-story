@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
 class Install {
 
 	const DB_VERSION_OPTION = 'ocs_db_version';
-	const DB_VERSION        = 1;
+	const DB_VERSION        = 2;
 
 	/**
 	 * Every table we own, without the prefix. Used by create and by uninstall.
@@ -86,6 +86,16 @@ class Install {
 		}
 		self::create_tables();
 		Settings::install_defaults();
+
+		// v2: the placements option became autoloaded — it is read on every
+		// front-end request. update_option() does not change the autoload flag
+		// of an unchanged value, so it is re-added.
+		if ( $stored < 2 ) {
+			$placements = get_option( \OCS\Model\Placement::OPTION, array() );
+			delete_option( \OCS\Model\Placement::OPTION );
+			add_option( \OCS\Model\Placement::OPTION, $placements, '', true );
+		}
+
 		update_option( self::DB_VERSION_OPTION, self::DB_VERSION );
 	}
 
