@@ -86,14 +86,18 @@ class Poster {
 			return new \WP_Error( 'ocs_poster_invalid', __( 'That poster image could not be read.', 'oc-story' ), array( 'status' => 415 ) );
 		}
 
+		// wp_handle_sideload() takes its file by reference, so it must be a
+		// variable — a literal array here is a fatal, not a notice.
+		$sideload_file = array(
+			'name'     => $filename,
+			'type'     => $mime,
+			'tmp_name' => $tmp,
+			'error'    => 0,
+			'size'     => strlen( $bytes ),
+		);
+
 		$sideload = wp_handle_sideload(
-			array(
-				'name'     => $filename,
-				'type'     => $mime,
-				'tmp_name' => $tmp,
-				'error'    => 0,
-				'size'     => strlen( $bytes ),
-			),
+			$sideload_file,
 			array(
 				'test_form' => false,
 				'action'    => 'ocs_upload',

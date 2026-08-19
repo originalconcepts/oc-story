@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.1.1
+Stable tag: 0.1.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,10 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.1.2 =
+* Fixed a fatal error when saving the poster image during the first upload
+  from a phone.
 
 = 0.1.1 =
 * A video that is already compressed is no longer re-encoded. The first

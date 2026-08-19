@@ -71,7 +71,10 @@ async function api( path, init = {} ) {
 	const body = await response.json().catch( () => null );
 
 	if ( ! response.ok ) {
-		const error = new Error( ( body && body.message ) || t.failed );
+		// WordPress wraps fatal errors in HTML paragraphs; strip the markup so
+		// the note bar shows words rather than tags.
+		const raw = ( body && body.message ) || t.failed;
+		const error = new Error( String( raw ).replace( /<[^>]*>/g, ' ' ).replace( /\s+/g, ' ' ).trim() );
 		error.code = body && body.code;
 		throw error;
 	}
