@@ -21,8 +21,8 @@ engine. See [PLAN.md](PLAN.md) for the full design and the build order.
 | # | Milestone | State |
 |---|---|---|
 | 1 | Skeleton — bootstrap, schema, settings, post type, placements | done |
-| 2 | Upload pipeline — on-device encoding, chunked upload | next |
-| 3 | Studio — the upload and tagging screen |  |
+| 2 | Upload pipeline — on-device encoding, chunked upload | code done, **awaiting the device test** |
+| 3 | Studio — the upload and tagging screen | next |
 | 4 | Player and the circles bar |  |
 | 5 | Placement injection — hooks, shortcode, block, Elementor |  |
 | 6 | Slider and product-page surfaces |  |
@@ -32,6 +32,23 @@ engine. See [PLAN.md](PLAN.md) for the full design and the build order.
 Milestone 2 is the gate: if on-device encoding does not hold up on a real
 mid-range Android, the storage decision changes and everything downstream changes
 with it. It gets tested on hardware before milestone 3 starts.
+
+### Running the gate
+
+`tests/encoder-test.html` is that test. Open it on a phone, pick a video from the
+camera roll, and read the numbers: compression ratio, encode time against clip
+length, and — the one that matters — whether the browser plays back the file our
+own muxer wrote.
+
+It has to be served over HTTP, because ES modules do not load from `file://`.
+On a dev site with the plugin checked out from git:
+
+```
+https://your-dev-site.test/wp-content/plugins/oc-story/tests/encoder-test.html
+```
+
+The `tests` directory is excluded from the distributed zip, so this never ships
+to a client site.
 
 ## Installing on a client site
 

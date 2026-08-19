@@ -31,3 +31,21 @@ jobs:
 
       - name: Run the logic test harness
         run: php tests/logic-test.php
+
+  js:
+    runs-on: ubuntu-latest
+    name: JavaScript
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # The MP4 muxer and demuxer are pure byte layout, so they can be round
+      # tripped without a browser. Whether a phone decodes the result is what
+      # tests/encoder-test.html answers, on the phone.
+      - name: Round trip the MP4 muxer
+        run: node tests/mp4-test.mjs

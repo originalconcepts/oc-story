@@ -11,6 +11,7 @@ define( 'OCS_PATH', dirname( __DIR__ ) . '/' );
 define( 'DAY_IN_SECONDS', 86400 );
 define( 'HOUR_IN_SECONDS', 3600 );
 define( 'MINUTE_IN_SECONDS', 60 );
+define( 'MB_IN_BYTES', 1048576 );
 
 $GLOBALS['ocs_options'] = array();
 
@@ -41,6 +42,9 @@ require OCS_PATH . 'includes/Core/Settings.php';
 require OCS_PATH . 'includes/Core/Features.php';
 require OCS_PATH . 'includes/Model/Story.php';
 require OCS_PATH . 'includes/Model/Placement.php';
+require OCS_PATH . 'includes/Media/Probe.php';
+require OCS_PATH . 'includes/Media/ChunkedUpload.php';
+require OCS_PATH . 'includes/Media/Poster.php';
 
 $pass = 0; $fail = 0;
 function check( $label, $condition ) {
@@ -152,6 +156,50 @@ check( 'tagged scope skips a page', $m( array( 'scope' => 'tagged' ), $page ) ==
 check( 'exclusion beats a site-wide scope', $m( array( 'scope' => 'site', 'exclude' => array( 99 ) ), $page ) === false );
 check( 'exclusion beats a product match', $m( array( 'scope' => 'products', 'exclude' => array( 812 ) ), $product ) === false );
 check( 'an unknown scope matches nothing', $m( array( 'scope' => 'sideways' ), $page ) === false );
+
+echo "\nServer limits\n";
+$b = '\OCS\Media\Probe::ini_bytes';
+check( 'megabytes', $b( '8M' ) === 8388608 );
+check( 'kilobytes', $b( '512K' ) === 524288 );
+check( 'gigabytes', $b( '2G' ) === 2147483648 );
+check( 'bare bytes', $b( '128' ) === 128 );
+check( 'unlimited reads as no opinion', $b( '-1' ) === 0 );
+check( 'empty reads as no opinion', $b( '' ) === 0 );
+check( 'nonsense reads as no opinion', $b( 'lots' ) === 0 );
+
+echo "\nChunk sizing\n";
+$c = '\OCS\Media\Probe::chunk_size_for';
+check( 'a generous server keeps the preferred size', $c( 8388608, 2097152 ) === 2097152 );
+check( 'a tight server drops below its own limit', $c( 2097152, 2097152 ) === 1677721 );
+check( 'a very tight server drops further', $c( 1048576, 2097152 ) === 838860 );
+check( 'an unlimited server keeps the preferred size', $c( 0, 2097152 ) === 2097152 );
+check( 'never goes below 256KB', $c( 262144, 2097152 ) === 262144 );
+check( 'never goes above 8MB', $c( 0, 99999999 ) === 8388608 );
+check( 'a missing preference falls back', $c( 0, 0 ) === 2097152 );
+
+echo "\nChunk accounting\n";
+$e = '\OCS\Media\ChunkedUpload::expected_chunk_length';
+check( 'a full chunk', $e( 0, 1000, 2500 ) === 1000 );
+check( 'the remainder in the last chunk', $e( 2, 1000, 2500 ) === 500 );
+check( 'an exact fit has no short chunk', $e( 0, 1000, 1000 ) === 1000 );
+check( 'past the end is nothing', $e( 3, 1000, 2500 ) === 0 );
+check( 'a negative index is nothing', $e( -1, 1000, 2500 ) === 0 );
+check( 'a zero chunk size is nothing', $e( 0, 0, 2500 ) === 0 );
+
+$m = '\OCS\Media\ChunkedUpload::missing';
+check( 'finds the hole', $m( '1101' ) === array( 2 ) );
+check( 'a complete map has no holes', $m( '1111' ) === array() );
+check( 'an empty map has no holes', $m( '' ) === array() );
+
+echo "\nPoster data URLs\n";
+$d = '\OCS\Media\Poster::decode_data_url';
+$good = $d( 'data:image/webp;base64,' . base64_encode( 'RIFF' ) );
+check( 'decodes a data url', is_array( $good ) && 'RIFF' === $good['bytes'] );
+check( 'reads the mime type', is_array( $good ) && 'image/webp' === $good['mime'] );
+check( 'rejects a plain url', null === $d( 'https://example.com/a.webp' ) );
+check( 'rejects an empty payload', null === $d( 'data:image/webp;base64,' ) );
+check( 'rejects invalid base64', null === $d( 'data:image/webp;base64,!!!!' ) );
+check( 'rejects an empty string', null === $d( '' ) );
 
 echo "\n" . ( $fail ? "FAILED: $fail" : "All $pass checks passed" ) . "\n";
 exit( $fail ? 1 : 0 );

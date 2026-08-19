@@ -77,9 +77,6 @@ final class Plugin {
 			// Data layer.
 			'story_hooks' => \OCS\Model\StoryHooks::class,
 
-			// Media pipeline (milestone 2).
-			'uploads'     => \OCS\Media\ChunkedUpload::class,
-
 			// Display (milestones 4-6).
 			'assets'      => \OCS\Display\Assets::class,
 			'injector'    => \OCS\Display\Injector::class,
