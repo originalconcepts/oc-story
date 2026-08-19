@@ -335,17 +335,29 @@ async function reorder( ids ) {
 
 let searchTimer = null;
 
+/**
+ * Redraw only the results list, in place.
+ *
+ * Typing must never trigger a full render: replacing the DOM replaces the
+ * input mid-word, which throws the keyboard focus out after the first letter.
+ * The panel re-registers this painter on every render, so it always points at
+ * the list currently on screen.
+ */
+let paintResults = () => {};
+
 function searchProducts( term ) {
 	clearTimeout( searchTimer );
 
 	if ( term.trim().length < 2 ) {
-		setState( { results: [] } );
+		state.results = [];
+		paintResults();
 		return;
 	}
 
 	searchTimer = setTimeout( async () => {
 		try {
-			setState( { results: await api( '/admin/products?search=' + encodeURIComponent( term ) ) } );
+			state.results = await api( '/admin/products?search=' + encodeURIComponent( term ) );
+			paintResults();
 		} catch ( e ) {
 			fail( e );
 		}
@@ -577,15 +589,22 @@ function productPanel() {
 		onInput: ( e ) => searchProducts( e.target.value ),
 	} );
 
-	const results = el( 'ul', { class: 'ocs-results' }, state.results.map( ( product ) => el( 'li', {}, [
-		el( 'button', { class: 'ocs-result', type: 'button', onClick: () => tagProduct( product ) }, [
-			product.thumb
-				? el( 'img', { class: 'ocs-thumb', src: product.thumb, alt: '' } )
-				: el( 'span', { class: 'ocs-thumb' } ),
-			el( 'span', { class: 'ocs-result__name', text: product.name } ),
-			el( 'span', { class: 'ocs-result__price', text: product.price } ),
-		] ),
-	] ) ) );
+	const results = el( 'ul', { class: 'ocs-results' } );
+
+	const buildResults = () => {
+		results.replaceChildren( ...state.results.map( ( product ) => el( 'li', {}, [
+			el( 'button', { class: 'ocs-result', type: 'button', onClick: () => tagProduct( product ) }, [
+				product.thumb
+					? el( 'img', { class: 'ocs-thumb', src: product.thumb, alt: '' } )
+					: el( 'span', { class: 'ocs-thumb' } ),
+				el( 'span', { class: 'ocs-result__name', text: product.name } ),
+				el( 'span', { class: 'ocs-result__price', text: product.price } ),
+			] ),
+		] ) ) );
+	};
+
+	buildResults();
+	paintResults = buildResults;
 
 	const tags = el( 'div', { class: 'ocs-tags' }, slide.products.length ? slide.products.map( ( product, index ) => {
 		const pinned = null !== product.x && null !== product.y;

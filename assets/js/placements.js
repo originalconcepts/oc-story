@@ -168,12 +168,23 @@
 
 	var timers = {};
 
+	// One painter per lookup field, re-registered on every render. Typing must
+	// only ever redraw the results list: a full render replaces the input
+	// mid-word and throws the keyboard focus out after the first letter.
+	var resultPainters = {};
+
+	function paintResults( key ) {
+		if ( resultPainters[ key ] ) {
+			resultPainters[ key ]();
+		}
+	}
+
 	function search( key, type, term ) {
 		clearTimeout( timers[ key ] );
 
 		if ( term.trim().length < 2 ) {
 			state.results[ key ] = [];
-			render();
+			paintResults( key );
 			return;
 		}
 
@@ -183,7 +194,7 @@
 				rows.forEach( function ( row ) {
 					state.names[ type + ':' + row.id ] = row.name;
 				} );
-				render();
+				paintResults( key );
 			} ).catch( function () {} );
 		}, 250 );
 	}
@@ -272,7 +283,26 @@
 	}
 
 	function lookupField( key, kind, ids, onAdd, onRemove ) {
-		var results = state.results[ key ] || [];
+		var list = el( 'ul', { class: 'ocs-results' } );
+
+		var build = function () {
+			var rows = ( state.results[ key ] || [] ).map( function ( row ) {
+				return el( 'li', {}, [
+					el( 'button', {
+						class: 'ocs-result',
+						type: 'button',
+						onClick: function () {
+							onAdd( row.id );
+						},
+					}, [ el( 'span', { class: 'ocs-result__name', text: row.name } ) ] ),
+				] );
+			} );
+
+			list.replaceChildren.apply( list, rows );
+		};
+
+		build();
+		resultPainters[ key ] = build;
 
 		return field(
 			kind.label,
@@ -287,17 +317,7 @@
 							search( key, kind.type, e.target.value );
 						},
 					} ),
-					el( 'ul', { class: 'ocs-results' }, results.map( function ( row ) {
-						return el( 'li', {}, [
-							el( 'button', {
-								class: 'ocs-result',
-								type: 'button',
-								onClick: function () {
-									onAdd( row.id );
-								},
-							}, [ el( 'span', { class: 'ocs-result__name', text: row.name } ) ] ),
-						] );
-					} ) ),
+					list,
 				] ),
 			] )
 		);

@@ -213,6 +213,13 @@ video frame never mirrors, so x/y are physical, left-origin, everywhere.
 light whatever the OS says; honouring `prefers-color-scheme` puts dark cards on
 a light page for everyone working at night.
 
+**Typing must never trigger a full render.** The admin screens redraw by
+replacing the DOM, and replacing an input mid-word throws the phone keyboard
+out after the first letter — George hit exactly this on day one. Search fields
+therefore paint their results list in place through a re-registered painter
+closure, and only selections re-render. Any new live-typed control must follow
+the same rule.
+
 **The status pill and the publish button are separate controls.** One control
 that reads "Live" and toggles when pressed looks like a label until it is too
 late.
