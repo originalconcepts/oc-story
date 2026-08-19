@@ -111,11 +111,33 @@ class Products {
 
 		return array(
 			'id'    => $product->get_id(),
-			'name'  => $product->get_name(),
+			'name'  => html_entity_decode( wp_strip_all_tags( $product->get_name() ), ENT_QUOTES, 'UTF-8' ),
 			'sku'   => $product->get_sku(),
-			'price' => wp_strip_all_tags( $product->get_price_html() ),
+			'price' => self::price_text( $product ),
 			'url'   => $product->get_permalink(),
 			'thumb' => $image_id ? (string) wp_get_attachment_image_url( $image_id, 'woocommerce_thumbnail' ) : '',
 		);
+	}
+
+	/**
+	 * The price as plain text a card can print.
+	 *
+	 * Not get_price_html(): on a sale product that carries the crossed-out old
+	 * price, the new one, and two screen-reader sentences — and stripping its
+	 * tags leaves the whole speech plus raw entities on the card. A card wants
+	 * the number the shopper pays, so it is built from the actual price and
+	 * decoded down to text (the currency sign arrives as an entity).
+	 *
+	 * @param \WC_Product $product Product.
+	 * @return string
+	 */
+	protected static function price_text( $product ) {
+		$amount = $product->get_price();
+
+		if ( '' === $amount || null === $amount || ! function_exists( 'wc_price' ) ) {
+			return '';
+		}
+
+		return html_entity_decode( wp_strip_all_tags( wc_price( $amount ) ), ENT_QUOTES, 'UTF-8' );
 	}
 }

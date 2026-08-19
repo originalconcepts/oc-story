@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.1.3
+Stable tag: 0.1.4
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,11 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.1.4 =
+* Product cards now show the price as a clean number. Sale products were
+  showing the full price markup — old price, new price and the screen-reader
+  sentences — as raw text.
 
 = 0.1.3 =
 * Fixed the product search losing keyboard focus after the first letter, in
