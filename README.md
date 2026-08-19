@@ -14,9 +14,10 @@ By [Original Concepts](https://originalconcepts.co.il).
 
 ## Status
 
-**0.1.0 — in development.** Milestone 1 of 8 is in place: the plugin skeleton,
-schema, settings, feature map, the story post type and the placement rules
-engine. See [PLAN.md](PLAN.md) for the full design and the build order.
+**0.1.0.** All eight build milestones are complete; see the table below and
+[DEVELOPERS.md](DEVELOPERS.md) for what was built and why. The one open item
+before installing on a client site: run `tests/encoder-test.html` on a real
+phone (see "Running the gate" below).
 
 | # | Milestone | State |
 |---|---|---|
@@ -28,7 +29,7 @@ engine. See [PLAN.md](PLAN.md) for the full design and the build order.
 | 6 | Slider and product-page surfaces | done |
 | 6.5 | Hardening — price invalidation, sized posters, settings screen, frame pins | done |
 | 7 | Analytics and revenue attribution | done |
-| 8 | RTL, translations, accessibility, release | next |
+| 8 | RTL, translations, accessibility, release | done |
 
 ### The gate
 

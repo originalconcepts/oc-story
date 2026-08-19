@@ -359,6 +359,34 @@ function onKey( e ) {
 		return;
 	}
 
+	// The player is a modal, so Tab must cycle inside it. Without this, focus
+	// walks off into the page underneath — invisible behind the overlay but
+	// still operable, which is the worst of both.
+	if ( 'Tab' === e.key ) {
+		const focusable = Array.from( ui.root.querySelectorAll( 'button, a[href]' ) )
+			.filter( ( node ) => ! node.hidden && null !== node.offsetParent );
+
+		if ( ! focusable.length ) {
+			return;
+		}
+
+		const first = focusable[ 0 ];
+		const last = focusable[ focusable.length - 1 ];
+		const active = document.activeElement;
+
+		if ( ! ui.root.contains( active ) ) {
+			e.preventDefault();
+			first.focus();
+		} else if ( e.shiftKey && active === first ) {
+			e.preventDefault();
+			last.focus();
+		} else if ( ! e.shiftKey && active === last ) {
+			e.preventDefault();
+			first.focus();
+		}
+		return;
+	}
+
 	if ( 'Escape' === e.key ) {
 		close();
 	} else if ( 'ArrowRight' === e.key ) {

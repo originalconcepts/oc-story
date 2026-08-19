@@ -1,0 +1,780 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: OC Story 0.1.0\n"
+"POT-Creation-Date: 2026-08-19 20:34+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Domain: oc-story\n"
+"Language: he_IL\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: includes/Admin/Studio.php
+msgid "%1$s became %2$s"
+msgstr "%1$s הפך ל‑%2$s"
+
+#: includes/Admin/InsightsPage.php
+msgid "%d days"
+msgstr "%d ימים"
+
+#: includes/Admin/InsightsPage.php
+msgid "%d%%"
+msgstr "%d%%"
+
+#: includes/Rest/LookupController.php
+msgid "(no title)"
+msgstr "(ללא כותרת)"
+
+#: includes/Admin/InsightsPage.php
+msgid "A sale is credited to a story when the shopper tapped its product within the last %d days. Change the window under Settings."
+msgstr "מכירה נזקפת לסטורי כשהלקוח נגע במוצר שלו ב‑%d הימים האחרונים. את החלון משנים בהגדרות."
+
+#: includes/Core/Features.php
+msgid "A/B testing"
+msgstr "בדיקות A/B"
+
+#: includes/Model/Placement.php
+msgid "Above the page content"
+msgstr "מעל תוכן העמוד"
+
+#: includes/Model/Placement.php
+msgid "Above the product grid"
+msgstr "מעל רשת המוצרים"
+
+#: includes/Admin/PlacementsPage.php
+msgid "Active"
+msgstr "פעיל"
+
+#: includes/Admin/PlacementsPage.php
+msgid "Add a place"
+msgstr "הוסף מקום"
+
+#: includes/Admin/PlacementsPage.php
+msgid "Add a place and choose which pages it appears on."
+msgstr "הוסף מקום ובחר באילו עמודים הוא יופיע."
+
+#: includes/Admin/Studio.php
+msgid "Add a video, tag the products in it, and publish. That is the whole thing."
+msgstr "מעלים סרטון, מתייגים את המוצרים שבו, ומפרסמים. זה כל הסיפור."
+
+#: includes/Admin/Studio.php
+msgid "Add video"
+msgstr "הוסף וידאו"
+
+#: includes/Admin/InsightsPage.php
+msgid "Added to cart"
+msgstr "הוספות לסל"
+
+#: includes/Admin/PlacementsPage.php
+msgid "Alignment"
+msgstr "יישור"
+
+#: includes/Admin/PlacementsPage.php
+msgid "All of them"
+msgstr "כולם"
+
+#: includes/Admin/SettingsPage.php
+msgid "Analytics"
+msgstr "אנליטיקס"
+
+#: includes/Core/Features.php
+msgid "Automatic captions"
+msgstr "כתוביות אוטומטיות"
+
+#: includes/Admin/SettingsPage.php
+msgid "Balanced (recommended)"
+msgstr "מאוזן (מומלץ)"
+
+#: includes/Model/Placement.php
+msgid "Below the page content"
+msgstr "מתחת לתוכן העמוד"
+
+#: includes/Model/Placement.php
+msgid "Below the product grid"
+msgstr "מתחת לרשת המוצרים"
+
+#: includes/Admin/PlacementsPage.php includes/Admin/Studio.php includes/Display/ElementorWidget.php
+msgid "Caption under the circle"
+msgstr "כיתוב מתחת לעיגול"
+
+#: includes/Admin/PlacementsPage.php
+msgid "Categories"
+msgstr "קטגוריות"
+
+#: includes/Admin/PlacementsPage.php
+msgid "Centre"
+msgstr "מרכז"
+
+#: includes/Admin/SettingsPage.php
+msgid "Circle ring"
+msgstr "טבעת העיגול"
+
+#: includes/Admin/PlacementsPage.php includes/Display/ElementorWidget.php
+msgid "Circle size"
+msgstr "גודל העיגול"
+
+#: includes/Admin/Studio.php includes/Display/Assets.php
+msgid "Close"
+msgstr "סגור"
+
+#: includes/Admin/SettingsPage.php
+msgid "Compact — smallest files"
+msgstr "חסכוני — הקבצים הקטנים ביותר"
+
+#: includes/Admin/Studio.php
+msgid "Compressing on your device…"
+msgstr "דוחס על המכשיר שלך…"
+
+#: includes/Admin/SettingsPage.php
+msgid "Continue to the next story"
+msgstr "המשך לסטורי הבא"
+
+#: includes/Core/Updater.php
+msgid "Could not create a temporary file for the update."
+msgstr "לא ניתן ליצור קובץ זמני לעדכון."
+
+#: includes/Core/Updater.php
+msgid "Could not download the update from GitHub (HTTP %d)."
+msgstr "לא ניתן להוריד את העדכון מ‑GitHub‏ (HTTP %d)."
+
+#: includes/Admin/SettingsPage.php
+msgid "Count views, taps and revenue"
+msgstr "ספירת צפיות, נגיעות והכנסות"
+
+#: includes/Admin/SettingsPage.php
+msgid "Credit a sale to a story for, in days"
+msgstr "לזקוף מכירה לסטורי במשך, בימים"
+
+#: includes/Admin/SettingsPage.php
+msgid "Data"
+msgstr "נתונים"
+
+#: includes/Admin/SettingsPage.php
+msgid "Delete stories and settings on uninstall"
+msgstr "מחיקת סטוריז והגדרות בהסרת התוסף"
+
+#: includes/Admin/Studio.php
+msgid "Delete story"
+msgstr "מחק סטורי"
+
+#: includes/Admin/Studio.php
+msgid "Delete this story? The video stays in your media library."
+msgstr "למחוק את הסטורי? הסרטון נשאר בספריית המדיה שלך."
+
+#: includes/Admin/Studio.php
+msgid "Draft"
+msgstr "טיוטה"
+
+#: includes/Admin/Studio.php
+msgid "Drag a pin to where the product appears."
+msgstr "גרור נקודה למקום שבו המוצר מופיע."
+
+#: includes/Admin/Studio.php
+msgid "Drag to reorder"
+msgstr "גרור כדי לסדר מחדש"
+
+#: includes/Admin/PlacementsPage.php
+msgid "End"
+msgstr "לסוף"
+
+#: includes/Model/Placement.php
+msgid "Every page of the site"
+msgstr "כל עמודי האתר"
+
+#: includes/Admin/InsightsPage.php
+msgid "Everything together"
+msgstr "הכל יחד"
+
+#: includes/Core/Features.php
+msgid "External video hosting"
+msgstr "אחסון וידאו חיצוני"
+
+#: includes/Core/Features.php
+msgid "Floating video bubble"
+msgstr "בועת וידאו צפה"
+
+#: includes/Admin/PlacementsPage.php
+msgid "Home page circles"
+msgstr "עיגולים בדף הבית"
+
+#: includes/Admin/PlacementsPage.php
+msgid "How it looks"
+msgstr "איך זה נראה"
+
+#: includes/Admin/PlacementsPage.php
+msgid "How many at most"
+msgstr "כמה לכל היותר"
+
+#: includes/Admin/SettingsPage.php
+msgid "If the plugin is ever removed"
+msgstr "אם התוסף יוסר אי פעם"
+
+#: includes/Admin/Menu.php
+msgid "Insights"
+msgstr "תובנות"
+
+#: includes/Model/Placement.php
+msgid "Just before the footer"
+msgstr "רגע לפני הפוטר"
+
+#: includes/Admin/SettingsPage.php
+msgid "Largest upload, in megabytes"
+msgstr "העלאה מקסימלית, במגה־בייט"
+
+#: includes/Display/ElementorWidget.php
+msgid "Leave empty to show them all."
+msgstr "השאר ריק כדי להציג את כולם."
+
+#: includes/Admin/Studio.php
+msgid "Live"
+msgstr "חי"
+
+#: includes/Admin/Studio.php
+msgid "Loading the studio…"
+msgstr "טוען את הסטודיו…"
+
+#: includes/Admin/PlacementsPage.php
+msgid "Loading…"
+msgstr "טוען…"
+
+#: includes/Admin/SettingsPage.php
+msgid "Longest slide, in seconds"
+msgstr "אורך סרטון מקסימלי, בשניות"
+
+#: includes/Admin/SettingsPage.php
+msgid "Look"
+msgstr "מראה"
+
+#: includes/Admin/SettingsPage.php
+msgid "Measurement"
+msgstr "מדידה"
+
+#: includes/Core/Features.php
+msgid "More than one placement"
+msgstr "יותר ממיקום אחד"
+
+#: includes/Admin/Studio.php
+msgid "Move to draft"
+msgstr "החזר לטיוטה"
+
+#: includes/Admin/PlacementsPage.php
+msgid "Name this, for yourself"
+msgstr "תן לזה שם, בשבילך"
+
+#: includes/Admin/Studio.php
+msgid "New story"
+msgstr "סטורי חדש"
+
+#: includes/Display/Assets.php
+msgid "Next"
+msgstr "הבא"
+
+#: includes/Admin/Studio.php
+msgid "No products tagged yet."
+msgstr "עוד לא תויגו מוצרים."
+
+#: includes/Admin/SettingsPage.php
+msgid "No ring"
+msgstr "בלי טבעת"
+
+#: includes/Admin/Studio.php
+msgid "No stories yet"
+msgstr "אין עדיין סטוריז"
+
+#: includes/Admin/Studio.php
+msgid "Nothing found"
+msgstr "לא נמצא כלום"
+
+#: includes/Admin/InsightsPage.php
+msgid "Nothing measured yet. Numbers appear here once shoppers start watching."
+msgstr "עוד אין מה למדוד. המספרים יופיעו כאן כשלקוחות יתחילו לצפות."
+
+#: includes/Model/Placement.php
+msgid "Nowhere automatic — I will place it myself"
+msgstr "בלי מיקום אוטומטי — אמקם בעצמי"
+
+#: includes/Admin/Menu.php includes/Display/ElementorWidget.php
+msgid "OC Story"
+msgstr "OC Story"
+
+#: includes/Admin/InsightsPage.php
+msgid "OC Story insights"
+msgstr "OC Story — תובנות"
+
+#: includes/Core/Plugin.php
+msgid "OC Story requires WooCommerce to be installed and active."
+msgstr "‏OC Story דורש ש‑WooCommerce יהיה מותקן ופעיל."
+
+#: includes/Admin/SettingsPage.php
+msgid "OC Story settings"
+msgstr "OC Story — הגדרות"
+
+#: includes/Admin/PlacementsPage.php
+msgid "On a computer"
+msgstr "במחשב"
+
+#: includes/Admin/PlacementsPage.php
+msgid "On a phone"
+msgstr "בנייד"
+
+#: includes/Admin/SettingsPage.php
+msgid "One colour"
+msgstr "צבע אחד"
+
+#: includes/Admin/Studio.php
+msgid "Only the first %d seconds are used."
+msgstr "רק %d השניות הראשונות בשימוש."
+
+#: includes/Admin/PlacementsPage.php
+msgid "Only the ones I choose"
+msgstr "רק אלה שאבחר"
+
+#: includes/Model/Placement.php
+msgid "Only the pages I choose"
+msgstr "רק העמודים שאבחר"
+
+#: includes/Display/ElementorWidget.php
+msgid "Only these stories (IDs, comma separated)"
+msgstr "רק הסטוריז האלה (מזהים, מופרדים בפסיק)"
+
+#: includes/Admin/InsightsPage.php
+msgid "Opens"
+msgstr "פתיחות"
+
+#: includes/Admin/InsightsPage.php
+msgid "Orders"
+msgstr "הזמנות"
+
+#: includes/Admin/PlacementsPage.php
+msgid "Pages"
+msgstr "עמודים"
+
+#: includes/Admin/InsightsPage.php
+msgid "Pages that showed stories in this period: %s"
+msgstr "עמודים שהציגו סטוריז בתקופה הזו: %s"
+
+#: includes/Admin/Studio.php
+msgid "Place on the frame"
+msgstr "מקם על הפריים"
+
+#: includes/Admin/SettingsPage.php
+msgid "Player"
+msgstr "נגן"
+
+#: includes/Display/Assets.php
+msgid "Previous"
+msgstr "הקודם"
+
+#: includes/Core/Features.php
+msgid "Product page videos"
+msgstr "סרטונים בדף מוצר"
+
+#: includes/Model/Placement.php
+msgid "Product page — above everything"
+msgstr "דף מוצר — מעל הכל"
+
+#: includes/Model/Placement.php
+msgid "Product page — below the description"
+msgstr "דף מוצר — מתחת לתיאור"
+
+#: includes/Model/Placement.php
+msgid "Product page — beside the price and button"
+msgstr "דף מוצר — ליד המחיר והכפתור"
+
+#: includes/Model/Placement.php
+msgid "Product pages"
+msgstr "דפי מוצר"
+
+#: includes/Model/Placement.php
+msgid "Product pages — showing the videos that tag that product"
+msgstr "דפי מוצר — עם הסרטונים שמתייגים את המוצר שבמסך"
+
+#: includes/Admin/InsightsPage.php
+msgid "Product taps"
+msgstr "נגיעות במוצר"
+
+#: includes/Admin/PlacementsPage.php includes/Admin/SettingsPage.php
+msgid "Products"
+msgstr "מוצרים"
+
+#: includes/Model/Placement.php
+msgid "Products in certain categories"
+msgstr "מוצרים בקטגוריות מסוימות"
+
+#: includes/Admin/Studio.php
+msgid "Products in this video"
+msgstr "מוצרים בסרטון הזה"
+
+#: includes/Admin/Studio.php
+msgid "Publish"
+msgstr "פרסם"
+
+#: includes/Admin/SettingsPage.php
+msgid "Quality"
+msgstr "איכות"
+
+#: includes/Admin/PlacementsPage.php
+msgid "Remove"
+msgstr "הסר"
+
+#: includes/Admin/Studio.php
+msgid "Remove from the frame"
+msgstr "הסר מהפריים"
+
+#: includes/Admin/Studio.php
+msgid "Remove this video"
+msgstr "הסר את הסרטון"
+
+#: includes/Core/Features.php
+msgid "Reports and insights"
+msgstr "דוחות ותובנות"
+
+#: includes/Admin/InsightsPage.php
+msgid "Revenue"
+msgstr "הכנסה"
+
+#: includes/Core/Features.php
+msgid "Revenue attribution"
+msgstr "שיוך הכנסות"
+
+#: includes/Admin/SettingsPage.php
+msgid "Ring after watching"
+msgstr "טבעת אחרי צפייה"
+
+#: includes/Admin/SettingsPage.php
+msgid "Ring colour"
+msgstr "צבע הטבעת"
+
+#: includes/Admin/PlacementsPage.php includes/Admin/Studio.php
+msgid "Save"
+msgstr "שמור"
+
+#: includes/Admin/PlacementsPage.php includes/Admin/Studio.php
+msgid "Saved"
+msgstr "נשמר"
+
+#: includes/Admin/SettingsPage.php
+msgid "Saved."
+msgstr "נשמר."
+
+#: includes/Admin/PlacementsPage.php includes/Admin/Studio.php
+msgid "Saving…"
+msgstr "שומר…"
+
+#: includes/Core/Features.php
+msgid "Scheduled publishing"
+msgstr "פרסום מתוזמן"
+
+#: includes/Surfaces/ProductBlock.php
+msgid "See it in action"
+msgstr "רואים את זה בפעולה"
+
+#: includes/Core/Updater.php
+msgid "See the release notes on GitHub."
+msgstr "ראה את הערות הגרסה ב‑GitHub."
+
+#: includes/Admin/Menu.php
+msgid "Settings"
+msgstr "הגדרות"
+
+#: includes/Admin/SettingsPage.php
+msgid "Sharp — larger files"
+msgstr "חד — קבצים גדולים יותר"
+
+#: includes/Core/Updater.php
+msgid "Shoppable video and stories for WooCommerce: Instagram-style circles, sliders and product-page video with tagged products."
+msgstr "וידאו קניה וסטוריז לווקומרס: עיגולים בסגנון אינסטגרם, סליידרים ווידאו בדפי מוצר עם מוצרים מתויגים."
+
+#: includes/Admin/PlacementsPage.php
+msgid "Show it"
+msgstr "הצג"
+
+#: includes/Admin/SettingsPage.php
+msgid "Show tagged products over the video"
+msgstr "הצגת מוצרים מתויגים מעל הסרטון"
+
+#: includes/Media/ChunkedUpload.php
+msgid "Some of the video did not arrive. Retry the missing pieces."
+msgstr "חלק מהסרטון לא הגיע. נסה שוב את החלקים החסרים."
+
+#: includes/Admin/PlacementsPage.php
+msgid "Start"
+msgstr "להתחלה"
+
+#: includes/Admin/PlacementsPage.php
+msgid "Start typing…"
+msgstr "התחל להקליד…"
+
+#: includes/Model/Story.php
+msgid "Stories"
+msgstr "סטוריז"
+
+#: includes/Admin/InsightsPage.php includes/Model/Story.php
+msgid "Story"
+msgstr "סטורי"
+
+#: includes/Display/ElementorWidget.php includes/Surfaces/Circles.php
+msgid "Story circles"
+msgstr "עיגולי סטורי"
+
+#: includes/Admin/SettingsPage.php
+msgid "Story gradient"
+msgstr "גרדיאנט של סטורי"
+
+#: includes/Media/Poster.php
+msgid "Story poster"
+msgstr "פוסטר של סטורי"
+
+#: includes/Admin/Menu.php includes/Admin/Studio.php
+msgid "Studio"
+msgstr "סטודיו"
+
+#: includes/Media/ChunkedUpload.php
+msgid "That chunk is outside the upload."
+msgstr "החלק הזה מחוץ לגבולות ההעלאה."
+
+#: includes/Media/ChunkedUpload.php
+msgid "That chunk was not the size we expected. Retry it."
+msgstr "החלק הזה לא בגודל שציפינו לו. נסה שוב."
+
+#: includes/Admin/PlacementsPage.php includes/Admin/Studio.php
+msgid "That did not work"
+msgstr "זה לא עבד"
+
+#: includes/Media/ChunkedUpload.php
+msgid "That file is not a video we can use."
+msgstr "הקובץ הזה אינו וידאו שאפשר להשתמש בו."
+
+#: includes/Admin/Studio.php
+msgid "That file is too large to upload here."
+msgstr "הקובץ גדול מדי להעלאה כאן."
+
+#: includes/Media/ChunkedUpload.php
+msgid "That file type is not a video we can use."
+msgstr "סוג הקובץ הזה אינו וידאו שאפשר להשתמש בו."
+
+#: includes/Media/Poster.php
+msgid "That poster image could not be read."
+msgstr "לא ניתן לקרוא את תמונת הפוסטר."
+
+#: includes/Media/Poster.php
+msgid "That poster image type is not supported."
+msgstr "סוג תמונת הפוסטר אינו נתמך."
+
+#: includes/Model/Story.php includes/Rest/StoriesController.php
+msgid "That story does not exist."
+msgstr "הסטורי הזה לא קיים."
+
+#: includes/Media/ChunkedUpload.php
+msgid "That upload belongs to someone else."
+msgstr "ההעלאה הזו שייכת למישהו אחר."
+
+#: includes/Media/ChunkedUpload.php
+msgid "That upload session has expired."
+msgstr "פג תוקפה של ההעלאה הזו."
+
+#: includes/Media/ChunkedUpload.php
+msgid "That upload session is not valid."
+msgstr "ההעלאה הזו אינה תקינה."
+
+#: includes/Media/ChunkedUpload.php
+msgid "That video is larger than the %dMB limit. Trim it or lower the quality and try again."
+msgstr "הסרטון גדול ממגבלת ‎%dMB. קצר אותו או הורד את האיכות ונסה שוב."
+
+#: includes/Media/ChunkedUpload.php
+msgid "That video is too large to upload from this server."
+msgstr "הסרטון גדול מדי להעלאה מהשרת הזה."
+
+#: includes/Media/ChunkedUpload.php
+msgid "The chunk was empty."
+msgstr "החלק שהגיע היה ריק."
+
+#: includes/Media/ChunkedUpload.php
+msgid "The chunk was not written in full. Retry it."
+msgstr "החלק לא נכתב במלואו. נסה שוב."
+
+#: includes/Admin/SettingsPage.php
+msgid "The colour applies when the ring is one colour."
+msgstr "הצבע חל כשהטבעת בצבע אחד."
+
+#: includes/Media/ChunkedUpload.php
+msgid "The file size is missing."
+msgstr "גודל הקובץ חסר."
+
+#: includes/Model/Placement.php
+msgid "The home page only"
+msgstr "דף הבית בלבד"
+
+#: includes/Admin/PlacementsPage.php
+msgid "The ones tagged to the product on screen"
+msgstr "אלה שמתויגים למוצר שבמסך"
+
+#: includes/Media/ChunkedUpload.php
+msgid "The partial upload is gone. Start again."
+msgstr "ההעלאה החלקית אבדה. התחל מחדש."
+
+#: includes/Media/Poster.php
+msgid "The poster could not be added to the media library."
+msgstr "לא ניתן להוסיף את הפוסטר לספריית המדיה."
+
+#: includes/Media/Poster.php
+msgid "The poster image was empty."
+msgstr "תמונת הפוסטר הייתה ריקה."
+
+#: includes/Media/Poster.php
+msgid "The poster image was too large."
+msgstr "תמונת הפוסטר גדולה מדי."
+
+#: includes/Media/ChunkedUpload.php
+msgid "The server could not create a temporary file for the upload."
+msgstr "השרת לא הצליח ליצור קובץ זמני להעלאה."
+
+#: includes/Media/ChunkedUpload.php
+msgid "The server could not create the upload directory."
+msgstr "השרת לא הצליח ליצור את תיקיית ההעלאות."
+
+#: includes/Media/Poster.php
+msgid "The server could not store the poster image."
+msgstr "השרת לא הצליח לשמור את תמונת הפוסטר."
+
+#: includes/Media/ChunkedUpload.php
+msgid "The server could not write the upload."
+msgstr "השרת לא הצליח לכתוב את ההעלאה."
+
+#: includes/Core/Updater.php
+msgid "The update package was empty."
+msgstr "חבילת העדכון הייתה ריקה."
+
+#: includes/Media/ChunkedUpload.php
+msgid "The upload could not be started."
+msgstr "לא ניתן להתחיל את ההעלאה."
+
+#: includes/Media/ChunkedUpload.php
+msgid "The upload did not match its declared size."
+msgstr "ההעלאה לא תאמה את הגודל שהוצהר."
+
+#: includes/Media/LocalSource.php
+msgid "The uploaded file could not be found."
+msgstr "הקובץ שהועלה לא נמצא."
+
+#: includes/Media/LocalSource.php
+msgid "The video could not be added to the media library."
+msgstr "לא ניתן להוסיף את הסרטון לספריית המדיה."
+
+#: includes/Admin/PlacementsPage.php
+msgid "The videos are not showing anywhere yet"
+msgstr "הסרטונים עוד לא מופיעים בשום מקום"
+
+#: includes/Admin/Studio.php
+msgid "This browser cannot compress video, so the file is uploaded as it is. It may be slow."
+msgstr "הדפדפן הזה לא יודע לדחוס וידאו, לכן הקובץ מועלה כמו שהוא. זה עלול להיות איטי."
+
+#: includes/Admin/Studio.php
+msgid "This device cannot open that video format (%s). Try sharing it through WhatsApp first, or record in \"Most Compatible\"."
+msgstr "המכשיר הזה לא מצליח לפתוח את פורמט הווידאו (%s). נסה לשתף אותו קודם דרך וואטסאפ, או לצלם במצב \"תאימות מרבית\"."
+
+#: includes/Media/LocalSource.php
+msgid "This site (media library)"
+msgstr "האתר הזה (ספריית המדיה)"
+
+#: includes/Admin/Studio.php
+msgid "Try again"
+msgstr "נסה שוב"
+
+#: includes/Admin/Studio.php
+msgid "Type a product name…"
+msgstr "הקלד שם מוצר…"
+
+#: includes/Admin/Studio.php
+msgid "Untitled story"
+msgstr "סטורי ללא שם"
+
+#: includes/Admin/Studio.php
+msgid "Uploading…"
+msgstr "מעלה…"
+
+#: includes/Admin/PlacementsPage.php
+msgid "Use the shortcode [oc_story] or the OC Story block wherever you want it."
+msgstr "השתמש בשורטקוד ‎[oc_story] או בבלוק OC Story בכל מקום שתרצה."
+
+#: includes/Model/Placement.php
+msgid "Very top of the page, above everything"
+msgstr "ראש העמוד, מעל הכל"
+
+#: includes/Admin/SettingsPage.php
+msgid "Video"
+msgstr "וידאו"
+
+#: includes/Core/Features.php includes/Surfaces/Slider.php
+msgid "Video slider"
+msgstr "סליידר וידאו"
+
+#: includes/Core/Features.php
+msgid "Video wall"
+msgstr "קיר וידאו"
+
+#: includes/Admin/Studio.php
+msgid "Videos"
+msgstr "סרטונים"
+
+#: includes/Admin/SettingsPage.php
+msgid "Videos and posters stay in the media library either way."
+msgstr "סרטונים ופוסטרים נשארים בספריית המדיה בכל מקרה."
+
+#: includes/Admin/SettingsPage.php
+msgid "Videos are compressed on your device before upload."
+msgstr "הסרטונים נדחסים על המכשיר שלך לפני ההעלאה."
+
+#: includes/Surfaces/ProductBlock.php
+msgid "Videos on the product page"
+msgstr "סרטונים בדף המוצר"
+
+#: includes/Display/Assets.php
+msgid "View product"
+msgstr "למוצר"
+
+#: templates/surfaces/circles.php
+msgid "Watch story"
+msgstr "צפה בסטורי"
+
+#: templates/surfaces/slider.php
+msgid "Watch video"
+msgstr "צפה בסרטון"
+
+#: includes/Admin/InsightsPage.php
+msgid "Watched to the end"
+msgstr "צפו עד הסוף"
+
+#: includes/Admin/SettingsPage.php
+msgid "When a story ends"
+msgstr "כשסטורי מסתיים"
+
+#: includes/Admin/Menu.php
+msgid "Where it shows"
+msgstr "איפה זה מופיע"
+
+#: includes/Admin/PlacementsPage.php
+msgid "Where on the page"
+msgstr "איפה בעמוד"
+
+#: includes/Admin/PlacementsPage.php
+msgid "Where the videos show"
+msgstr "איפה הסרטונים מופיעים"
+
+#: includes/Admin/PlacementsPage.php
+msgid "Which pages"
+msgstr "אילו עמודים"
+
+#: includes/Admin/PlacementsPage.php
+msgid "Which videos"
+msgstr "אילו סרטונים"
+
+#: includes/Admin/Studio.php
+msgid "views this week"
+msgstr "צפיות השבוע"
+
+#: templates/surfaces/slider.php
+msgid "%d product"
+msgid_plural "%d products"
+msgstr[0] "מוצר אחד"
+msgstr[1] "%d מוצרים"

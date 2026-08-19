@@ -50,4 +50,14 @@ WooCommerce 7.0 or newer.
 == Changelog ==
 
 = 0.1.0 =
-* In development.
+* First release: story circles, video slider and product-page videos.
+* Videos are compressed on the shopper's own device before upload, so the
+  plugin works on ordinary shared hosting with no ffmpeg and no external
+  services.
+* Products tagged per slide, with optional pins on the frame; several products
+  become a swipeable strip over the video.
+* Placement control per surface: whole site, home page, chosen pages, product
+  pages or categories — desktop and phone configured separately.
+* Insights: opens, completion, product taps, carts, orders and attributed
+  revenue per story.
+* Full RTL and Hebrew translation.

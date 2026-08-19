@@ -1,0 +1,778 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: OC Story 0.1.0\n"
+"POT-Creation-Date: 2026-08-19 20:34+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Domain: oc-story\n"
+
+#: includes/Admin/Studio.php
+msgid "%1$s became %2$s"
+msgstr ""
+
+#: includes/Admin/InsightsPage.php
+msgid "%d days"
+msgstr ""
+
+#: includes/Admin/InsightsPage.php
+msgid "%d%%"
+msgstr ""
+
+#: includes/Rest/LookupController.php
+msgid "(no title)"
+msgstr ""
+
+#: includes/Admin/InsightsPage.php
+msgid "A sale is credited to a story when the shopper tapped its product within the last %d days. Change the window under Settings."
+msgstr ""
+
+#: includes/Core/Features.php
+msgid "A/B testing"
+msgstr ""
+
+#: includes/Model/Placement.php
+msgid "Above the page content"
+msgstr ""
+
+#: includes/Model/Placement.php
+msgid "Above the product grid"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "Active"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "Add a place"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "Add a place and choose which pages it appears on."
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Add a video, tag the products in it, and publish. That is the whole thing."
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Add video"
+msgstr ""
+
+#: includes/Admin/InsightsPage.php
+msgid "Added to cart"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "Alignment"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "All of them"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Analytics"
+msgstr ""
+
+#: includes/Core/Features.php
+msgid "Automatic captions"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Balanced (recommended)"
+msgstr ""
+
+#: includes/Model/Placement.php
+msgid "Below the page content"
+msgstr ""
+
+#: includes/Model/Placement.php
+msgid "Below the product grid"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php includes/Admin/Studio.php includes/Display/ElementorWidget.php
+msgid "Caption under the circle"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "Categories"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "Centre"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Circle ring"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php includes/Display/ElementorWidget.php
+msgid "Circle size"
+msgstr ""
+
+#: includes/Admin/Studio.php includes/Display/Assets.php
+msgid "Close"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Compact — smallest files"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Compressing on your device…"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Continue to the next story"
+msgstr ""
+
+#: includes/Core/Updater.php
+msgid "Could not create a temporary file for the update."
+msgstr ""
+
+#: includes/Core/Updater.php
+msgid "Could not download the update from GitHub (HTTP %d)."
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Count views, taps and revenue"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Credit a sale to a story for, in days"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Data"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Delete stories and settings on uninstall"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Delete story"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Delete this story? The video stays in your media library."
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Draft"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Drag a pin to where the product appears."
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Drag to reorder"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "End"
+msgstr ""
+
+#: includes/Model/Placement.php
+msgid "Every page of the site"
+msgstr ""
+
+#: includes/Admin/InsightsPage.php
+msgid "Everything together"
+msgstr ""
+
+#: includes/Core/Features.php
+msgid "External video hosting"
+msgstr ""
+
+#: includes/Core/Features.php
+msgid "Floating video bubble"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "Home page circles"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "How it looks"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "How many at most"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "If the plugin is ever removed"
+msgstr ""
+
+#: includes/Admin/Menu.php
+msgid "Insights"
+msgstr ""
+
+#: includes/Model/Placement.php
+msgid "Just before the footer"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Largest upload, in megabytes"
+msgstr ""
+
+#: includes/Display/ElementorWidget.php
+msgid "Leave empty to show them all."
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Live"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Loading the studio…"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "Loading…"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Longest slide, in seconds"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Look"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Measurement"
+msgstr ""
+
+#: includes/Core/Features.php
+msgid "More than one placement"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Move to draft"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "Name this, for yourself"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "New story"
+msgstr ""
+
+#: includes/Display/Assets.php
+msgid "Next"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "No products tagged yet."
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "No ring"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "No stories yet"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Nothing found"
+msgstr ""
+
+#: includes/Admin/InsightsPage.php
+msgid "Nothing measured yet. Numbers appear here once shoppers start watching."
+msgstr ""
+
+#: includes/Model/Placement.php
+msgid "Nowhere automatic — I will place it myself"
+msgstr ""
+
+#: includes/Admin/Menu.php includes/Display/ElementorWidget.php
+msgid "OC Story"
+msgstr ""
+
+#: includes/Admin/InsightsPage.php
+msgid "OC Story insights"
+msgstr ""
+
+#: includes/Core/Plugin.php
+msgid "OC Story requires WooCommerce to be installed and active."
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "OC Story settings"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "On a computer"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "On a phone"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "One colour"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Only the first %d seconds are used."
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "Only the ones I choose"
+msgstr ""
+
+#: includes/Model/Placement.php
+msgid "Only the pages I choose"
+msgstr ""
+
+#: includes/Display/ElementorWidget.php
+msgid "Only these stories (IDs, comma separated)"
+msgstr ""
+
+#: includes/Admin/InsightsPage.php
+msgid "Opens"
+msgstr ""
+
+#: includes/Admin/InsightsPage.php
+msgid "Orders"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "Pages"
+msgstr ""
+
+#: includes/Admin/InsightsPage.php
+msgid "Pages that showed stories in this period: %s"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Place on the frame"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Player"
+msgstr ""
+
+#: includes/Display/Assets.php
+msgid "Previous"
+msgstr ""
+
+#: includes/Core/Features.php
+msgid "Product page videos"
+msgstr ""
+
+#: includes/Model/Placement.php
+msgid "Product page — above everything"
+msgstr ""
+
+#: includes/Model/Placement.php
+msgid "Product page — below the description"
+msgstr ""
+
+#: includes/Model/Placement.php
+msgid "Product page — beside the price and button"
+msgstr ""
+
+#: includes/Model/Placement.php
+msgid "Product pages"
+msgstr ""
+
+#: includes/Model/Placement.php
+msgid "Product pages — showing the videos that tag that product"
+msgstr ""
+
+#: includes/Admin/InsightsPage.php
+msgid "Product taps"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php includes/Admin/SettingsPage.php
+msgid "Products"
+msgstr ""
+
+#: includes/Model/Placement.php
+msgid "Products in certain categories"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Products in this video"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Publish"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Quality"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "Remove"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Remove from the frame"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Remove this video"
+msgstr ""
+
+#: includes/Core/Features.php
+msgid "Reports and insights"
+msgstr ""
+
+#: includes/Admin/InsightsPage.php
+msgid "Revenue"
+msgstr ""
+
+#: includes/Core/Features.php
+msgid "Revenue attribution"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Ring after watching"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Ring colour"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php includes/Admin/Studio.php
+msgid "Save"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php includes/Admin/Studio.php
+msgid "Saved"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Saved."
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php includes/Admin/Studio.php
+msgid "Saving…"
+msgstr ""
+
+#: includes/Core/Features.php
+msgid "Scheduled publishing"
+msgstr ""
+
+#: includes/Surfaces/ProductBlock.php
+msgid "See it in action"
+msgstr ""
+
+#: includes/Core/Updater.php
+msgid "See the release notes on GitHub."
+msgstr ""
+
+#: includes/Admin/Menu.php
+msgid "Settings"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Sharp — larger files"
+msgstr ""
+
+#: includes/Core/Updater.php
+msgid "Shoppable video and stories for WooCommerce: Instagram-style circles, sliders and product-page video with tagged products."
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "Show it"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Show tagged products over the video"
+msgstr ""
+
+#: includes/Media/ChunkedUpload.php
+msgid "Some of the video did not arrive. Retry the missing pieces."
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "Start"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "Start typing…"
+msgstr ""
+
+#: includes/Model/Story.php
+msgid "Stories"
+msgstr ""
+
+#: includes/Admin/InsightsPage.php includes/Model/Story.php
+msgid "Story"
+msgstr ""
+
+#: includes/Display/ElementorWidget.php includes/Surfaces/Circles.php
+msgid "Story circles"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Story gradient"
+msgstr ""
+
+#: includes/Media/Poster.php
+msgid "Story poster"
+msgstr ""
+
+#: includes/Admin/Menu.php includes/Admin/Studio.php
+msgid "Studio"
+msgstr ""
+
+#: includes/Media/ChunkedUpload.php
+msgid "That chunk is outside the upload."
+msgstr ""
+
+#: includes/Media/ChunkedUpload.php
+msgid "That chunk was not the size we expected. Retry it."
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php includes/Admin/Studio.php
+msgid "That did not work"
+msgstr ""
+
+#: includes/Media/ChunkedUpload.php
+msgid "That file is not a video we can use."
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "That file is too large to upload here."
+msgstr ""
+
+#: includes/Media/ChunkedUpload.php
+msgid "That file type is not a video we can use."
+msgstr ""
+
+#: includes/Media/Poster.php
+msgid "That poster image could not be read."
+msgstr ""
+
+#: includes/Media/Poster.php
+msgid "That poster image type is not supported."
+msgstr ""
+
+#: includes/Model/Story.php includes/Rest/StoriesController.php
+msgid "That story does not exist."
+msgstr ""
+
+#: includes/Media/ChunkedUpload.php
+msgid "That upload belongs to someone else."
+msgstr ""
+
+#: includes/Media/ChunkedUpload.php
+msgid "That upload session has expired."
+msgstr ""
+
+#: includes/Media/ChunkedUpload.php
+msgid "That upload session is not valid."
+msgstr ""
+
+#: includes/Media/ChunkedUpload.php
+msgid "That video is larger than the %dMB limit. Trim it or lower the quality and try again."
+msgstr ""
+
+#: includes/Media/ChunkedUpload.php
+msgid "That video is too large to upload from this server."
+msgstr ""
+
+#: includes/Media/ChunkedUpload.php
+msgid "The chunk was empty."
+msgstr ""
+
+#: includes/Media/ChunkedUpload.php
+msgid "The chunk was not written in full. Retry it."
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "The colour applies when the ring is one colour."
+msgstr ""
+
+#: includes/Media/ChunkedUpload.php
+msgid "The file size is missing."
+msgstr ""
+
+#: includes/Model/Placement.php
+msgid "The home page only"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "The ones tagged to the product on screen"
+msgstr ""
+
+#: includes/Media/ChunkedUpload.php
+msgid "The partial upload is gone. Start again."
+msgstr ""
+
+#: includes/Media/Poster.php
+msgid "The poster could not be added to the media library."
+msgstr ""
+
+#: includes/Media/Poster.php
+msgid "The poster image was empty."
+msgstr ""
+
+#: includes/Media/Poster.php
+msgid "The poster image was too large."
+msgstr ""
+
+#: includes/Media/ChunkedUpload.php
+msgid "The server could not create a temporary file for the upload."
+msgstr ""
+
+#: includes/Media/ChunkedUpload.php
+msgid "The server could not create the upload directory."
+msgstr ""
+
+#: includes/Media/Poster.php
+msgid "The server could not store the poster image."
+msgstr ""
+
+#: includes/Media/ChunkedUpload.php
+msgid "The server could not write the upload."
+msgstr ""
+
+#: includes/Core/Updater.php
+msgid "The update package was empty."
+msgstr ""
+
+#: includes/Media/ChunkedUpload.php
+msgid "The upload could not be started."
+msgstr ""
+
+#: includes/Media/ChunkedUpload.php
+msgid "The upload did not match its declared size."
+msgstr ""
+
+#: includes/Media/LocalSource.php
+msgid "The uploaded file could not be found."
+msgstr ""
+
+#: includes/Media/LocalSource.php
+msgid "The video could not be added to the media library."
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "The videos are not showing anywhere yet"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "This browser cannot compress video, so the file is uploaded as it is. It may be slow."
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "This device cannot open that video format (%s). Try sharing it through WhatsApp first, or record in \"Most Compatible\"."
+msgstr ""
+
+#: includes/Media/LocalSource.php
+msgid "This site (media library)"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Try again"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Type a product name…"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Untitled story"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Uploading…"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "Use the shortcode [oc_story] or the OC Story block wherever you want it."
+msgstr ""
+
+#: includes/Model/Placement.php
+msgid "Very top of the page, above everything"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Video"
+msgstr ""
+
+#: includes/Core/Features.php includes/Surfaces/Slider.php
+msgid "Video slider"
+msgstr ""
+
+#: includes/Core/Features.php
+msgid "Video wall"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "Videos"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Videos and posters stay in the media library either way."
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "Videos are compressed on your device before upload."
+msgstr ""
+
+#: includes/Surfaces/ProductBlock.php
+msgid "Videos on the product page"
+msgstr ""
+
+#: includes/Display/Assets.php
+msgid "View product"
+msgstr ""
+
+#: templates/surfaces/circles.php
+msgid "Watch story"
+msgstr ""
+
+#: templates/surfaces/slider.php
+msgid "Watch video"
+msgstr ""
+
+#: includes/Admin/InsightsPage.php
+msgid "Watched to the end"
+msgstr ""
+
+#: includes/Admin/SettingsPage.php
+msgid "When a story ends"
+msgstr ""
+
+#: includes/Admin/Menu.php
+msgid "Where it shows"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "Where on the page"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "Where the videos show"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "Which pages"
+msgstr ""
+
+#: includes/Admin/PlacementsPage.php
+msgid "Which videos"
+msgstr ""
+
+#: includes/Admin/Studio.php
+msgid "views this week"
+msgstr ""
+
+#: templates/surfaces/slider.php
+msgid "%d product"
+msgid_plural "%d products"
+msgstr[0] ""
+msgstr[1] ""
