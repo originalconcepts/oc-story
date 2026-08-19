@@ -85,6 +85,13 @@ class Story {
 		update_post_meta( $story_id, self::META_SLIDES, wp_json_encode( $clean ) );
 		self::sync_index( $story_id, $clean );
 
+		// The circle needs an image and the owner has not been asked for one, so
+		// the first slide's poster becomes it. Only when there is none already —
+		// a deliberate choice must survive the next edit.
+		if ( ! empty( $clean[0]['poster'] ) && ! get_post_thumbnail_id( $story_id ) ) {
+			set_post_thumbnail( $story_id, (int) $clean[0]['poster'] );
+		}
+
 		do_action( 'ocs_story_updated', $story_id, $clean );
 
 		return $clean;
@@ -322,6 +329,226 @@ class Story {
 		);
 
 		return array_map( 'intval', (array) $ids );
+	}
+
+	/**
+	 * Create a story.
+	 *
+	 * @param array $args Keys: title, status, slides.
+	 * @return int|\WP_Error Story ID.
+	 */
+	public static function create( array $args = array() ) {
+		$id = wp_insert_post(
+			array(
+				'post_type'   => self::POST_TYPE,
+				'post_title'  => self::clean_title( isset( $args['title'] ) ? $args['title'] : '' ),
+				'post_status' => self::clean_status( isset( $args['status'] ) ? $args['status'] : 'draft' ),
+				'menu_order'  => self::next_order(),
+			),
+			true
+		);
+
+		if ( is_wp_error( $id ) ) {
+			return $id;
+		}
+
+		if ( isset( $args['slides'] ) && is_array( $args['slides'] ) ) {
+			self::set_slides( $id, $args['slides'] );
+		}
+
+		return (int) $id;
+	}
+
+	/**
+	 * Update a story. Only the keys present are touched.
+	 *
+	 * @param int   $story_id Story ID.
+	 * @param array $args     Keys: title, status, slides, poster.
+	 * @return int|\WP_Error
+	 */
+	public static function update( $story_id, array $args ) {
+		$story_id = (int) $story_id;
+
+		if ( self::POST_TYPE !== get_post_type( $story_id ) ) {
+			return new \WP_Error( 'ocs_not_a_story', __( 'That story does not exist.', 'oc-story' ), array( 'status' => 404 ) );
+		}
+
+		$post = array( 'ID' => $story_id );
+
+		if ( array_key_exists( 'title', $args ) ) {
+			$post['post_title'] = self::clean_title( $args['title'] );
+		}
+		if ( array_key_exists( 'status', $args ) ) {
+			$post['post_status'] = self::clean_status( $args['status'] );
+		}
+
+		if ( count( $post ) > 1 ) {
+			$result = wp_update_post( $post, true );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+		}
+
+		if ( array_key_exists( 'slides', $args ) && is_array( $args['slides'] ) ) {
+			self::set_slides( $story_id, $args['slides'] );
+		}
+
+		if ( array_key_exists( 'poster', $args ) ) {
+			$poster = (int) $args['poster'];
+			if ( $poster ) {
+				set_post_thumbnail( $story_id, $poster );
+			} else {
+				delete_post_thumbnail( $story_id );
+			}
+		}
+
+		return $story_id;
+	}
+
+	/**
+	 * A story as the studio and the player want it: slides with playback URLs
+	 * and products resolved, and never a stored price.
+	 *
+	 * @param int|\WP_Post $story Story ID or post.
+	 * @return array|null
+	 */
+	public static function to_array( $story ) {
+		$post = get_post( $story );
+
+		if ( ! $post || self::POST_TYPE !== $post->post_type ) {
+			return null;
+		}
+
+		$slides = self::slides( $post->ID );
+
+		// One lookup for every product across every slide, not one per slide.
+		$ids = array();
+		foreach ( $slides as $slide ) {
+			foreach ( $slide['products'] as $product ) {
+				$ids[] = $product['id'];
+			}
+		}
+		$catalogue = Products::summaries( $ids );
+
+		$out = array();
+		foreach ( $slides as $slide ) {
+			$source = \OCS\Media\SourceManager::get( $slide['source'] );
+
+			$products = array();
+			foreach ( $slide['products'] as $product ) {
+				if ( ! isset( $catalogue[ $product['id'] ] ) ) {
+					continue;
+				}
+				$products[] = array_merge(
+					$catalogue[ $product['id'] ],
+					array(
+						'x' => $product['x'],
+						'y' => $product['y'],
+					)
+				);
+			}
+
+			$out[] = array(
+				'id'         => $slide['id'],
+				'source'     => $slide['source'],
+				'ref'        => $slide['ref'],
+				'url'        => $source->get_playback_url( $slide['ref'] ),
+				'poster'     => $slide['poster'],
+				'poster_url' => $slide['poster'] ? (string) wp_get_attachment_url( $slide['poster'] ) : '',
+				'w'          => $slide['w'],
+				'h'          => $slide['h'],
+				'duration'   => $slide['duration'],
+				'products'   => $products,
+				'cta'        => $slide['cta'],
+			);
+		}
+
+		$thumbnail = get_post_thumbnail_id( $post->ID );
+
+		return array(
+			'id'         => (int) $post->ID,
+			'title'      => $post->post_title,
+			'status'     => $post->post_status,
+			'menu_order' => (int) $post->menu_order,
+			'poster'     => (int) $thumbnail,
+			// The circle image falls back to the first slide's poster, so a story
+			// always has one without the owner being asked for it.
+			'poster_url' => $thumbnail
+				? (string) wp_get_attachment_url( $thumbnail )
+				: ( isset( $out[0]['poster_url'] ) ? $out[0]['poster_url'] : '' ),
+			'slides'     => $out,
+		);
+	}
+
+	/**
+	 * Where a new story goes in the bar: first.
+	 *
+	 * New content is the reason someone opens a story bar at all, so a new story
+	 * leads rather than landing at the end of the row where nobody scrolls.
+	 *
+	 * @return int
+	 */
+	protected static function next_order() {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$lowest = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT MIN(menu_order) FROM {$wpdb->posts} WHERE post_type = %s AND post_status != 'trash'",
+				self::POST_TYPE
+			)
+		);
+
+		return null === $lowest ? 0 : ( (int) $lowest - 1 );
+	}
+
+	/**
+	 * Story titles are shown under a circle, so they are short by definition.
+	 *
+	 * @param string $title Raw title.
+	 * @return string
+	 */
+	public static function clean_title( $title ) {
+		$title = trim( wp_strip_all_tags( (string) $title ) );
+
+		return mb_substr( $title, 0, 60 );
+	}
+
+	/**
+	 * Only two statuses mean anything here.
+	 *
+	 * @param string $status Raw status.
+	 * @return string
+	 */
+	public static function clean_status( $status ) {
+		return 'publish' === $status ? 'publish' : 'draft';
+	}
+
+	/**
+	 * Apply a new order to a list of stories in one pass.
+	 *
+	 * @param int[] $ids Story IDs, in the order they should appear.
+	 * @return int How many rows were moved.
+	 */
+	public static function reorder( array $ids ) {
+		global $wpdb;
+
+		$moved = 0;
+
+		foreach ( array_values( array_filter( array_map( 'absint', $ids ) ) ) as $position => $id ) {
+			if ( self::POST_TYPE !== get_post_type( $id ) ) {
+				continue;
+			}
+
+			// wp_update_post() here would fire the full save cycle for every
+			// card the owner dragged past. This only ever touches menu_order.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->update( $wpdb->posts, array( 'menu_order' => $position ), array( 'ID' => $id ), array( '%d' ), array( '%d' ) );
+			clean_post_cache( $id );
+			++$moved;
+		}
+
+		return $moved;
 	}
 
 	/**

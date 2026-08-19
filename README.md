@@ -22,8 +22,8 @@ engine. See [PLAN.md](PLAN.md) for the full design and the build order.
 |---|---|---|
 | 1 | Skeleton — bootstrap, schema, settings, post type, placements | done |
 | 2 | Upload pipeline — on-device encoding, chunked upload | done, gate passed on desktop |
-| 3 | Studio — the upload and tagging screen | next |
-| 4 | Player and the circles bar |  |
+| 3 | Studio — the upload and tagging screen | done |
+| 4 | Player and the circles bar | next |
 | 5 | Placement injection — hooks, shortcode, block, Elementor |  |
 | 6 | Slider and product-page surfaces |  |
 | 7 | Analytics and revenue attribution |  |

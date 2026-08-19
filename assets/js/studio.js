@@ -1,0 +1,660 @@
+/**
+ * The studio.
+ *
+ * One screen: the stories a shop has, and the editor for one of them. It is
+ * plain modules and plain DOM — no framework, no build step — because the
+ * interesting engineering in this plugin is the video pipeline and the
+ * storefront budget, and neither is helped by a bundler in the admin.
+ *
+ * The flow it is built around is video first: a shop owner has a clip and wants
+ * it on the site. So "new story" opens the camera roll straight away, and the
+ * caption and the products are asked for afterwards, over the footage.
+ */
+
+import { encode, isSupported } from './encoder.js';
+import { upload } from './uploader.js';
+
+const cfg = window.ocsStudio || {};
+const t = cfg.i18n || {};
+
+/* ------------------------------------------------------------------ utils */
+
+function el( tag, attrs = {}, children = [] ) {
+	const node = document.createElement( tag );
+
+	for ( const [ key, value ] of Object.entries( attrs ) ) {
+		if ( 'class' === key ) {
+			node.className = value;
+		} else if ( 'text' === key ) {
+			node.textContent = value;
+		} else if ( 'html' === key ) {
+			node.innerHTML = value;
+		} else if ( key.startsWith( 'on' ) ) {
+			node.addEventListener( key.slice( 2 ).toLowerCase(), value );
+		} else if ( false !== value && null !== value && undefined !== value ) {
+			node.setAttribute( key, value );
+		}
+	}
+
+	for ( const child of [].concat( children ) ) {
+		if ( child ) {
+			node.append( child );
+		}
+	}
+
+	return node;
+}
+
+function sprintf( template, ...args ) {
+	let index = 0;
+	return String( template ).replace( /%(\d+\$)?[sd]/g, ( match, position ) => {
+		const at = position ? parseInt( position, 10 ) - 1 : index++;
+		return undefined === args[ at ] ? match : args[ at ];
+	} );
+}
+
+function mb( bytes ) {
+	return ( bytes / 1048576 ).toFixed( 1 ) + 'MB';
+}
+
+async function api( path, init = {} ) {
+	const response = await fetch( cfg.api.root.replace( /\/$/, '' ) + path, {
+		credentials: 'same-origin',
+		...init,
+		headers: {
+			'X-WP-Nonce': cfg.api.nonce,
+			...( init.body ? { 'Content-Type': 'application/json' } : {} ),
+			...( init.headers || {} ),
+		},
+	} );
+
+	const body = await response.json().catch( () => null );
+
+	if ( ! response.ok ) {
+		const error = new Error( ( body && body.message ) || t.failed );
+		error.code = body && body.code;
+		throw error;
+	}
+
+	return body;
+}
+
+/**
+ * Ask for a video file. Resolves to null when the picker is dismissed.
+ *
+ * @return {Promise<?File>}
+ */
+function pickVideo() {
+	return new Promise( ( resolve ) => {
+		const input = el( 'input', { type: 'file', accept: 'video/*', style: 'display:none' } );
+		input.addEventListener( 'change', () => {
+			resolve( input.files[ 0 ] || null );
+			input.remove();
+		} );
+		document.body.append( input );
+		input.click();
+	} );
+}
+
+/* ------------------------------------------------------------------ state */
+
+const state = {
+	stories: [],
+	editing: null,
+	slide: 0,
+	busy: null,
+	progress: 0,
+	note: null,
+	results: [],
+	dirty: false,
+};
+
+const root = document.getElementById( 'ocs-studio' );
+
+function setState( patch ) {
+	Object.assign( state, patch );
+	render();
+}
+
+function fail( error ) {
+	let message = error && error.message ? error.message : String( error );
+
+	if ( 'ocs_no_decoder' === message ) {
+		message = sprintf( t.noDecoder, error.codec || '?' );
+	} else if ( 'ocs_no_webcodecs' === message || 'ocs_no_h264_encoder' === message ) {
+		message = t.noEncoder;
+	} else if ( message.startsWith( 'ocs_mp4_codec_' ) ) {
+		message = sprintf( t.noDecoder, message.replace( 'ocs_mp4_codec_', '' ) );
+	}
+
+	setState( { busy: null, progress: 0, note: { kind: 'error', text: message } } );
+}
+
+/* ------------------------------------------------------------------ media */
+
+/**
+ * Compress a picked file and upload it, returning a slide.
+ *
+ * Compression is best-effort by design. A browser too old for WebCodecs still
+ * gets to publish — it just uploads what it has and waits longer — because
+ * "your browser is unsupported" is not an answer a shop owner can act on.
+ *
+ * @param {File} file Picked file.
+ * @return {Promise<Object>} A slide.
+ */
+async function ingest( file ) {
+	let payload = file;
+	let poster = '';
+	let width = 0;
+	let height = 0;
+	let duration = 0;
+	let note = null;
+
+	if ( cfg.encode.enabled && isSupported() ) {
+		setState( { busy: t.compressing, progress: 0, note: null } );
+
+		const result = await encode(
+			file,
+			{
+				maxSide: cfg.encode.maxSide,
+				bitrate: cfg.encode.bitrate,
+				fps: cfg.encode.fps,
+				maxSeconds: cfg.limits.maxSeconds,
+			},
+			( value ) => setState( { progress: value * 0.7 } )
+		);
+
+		payload = result.blob;
+		poster = result.poster || '';
+		width = result.width;
+		height = result.height;
+		duration = result.duration;
+		note = sprintf( t.shrank, mb( result.sourceBytes ), mb( result.bytes ) );
+	} else {
+		if ( file.size > cfg.limits.maxBytes ) {
+			throw new Error( t.tooLarge );
+		}
+		setState( { note: { kind: 'info', text: t.noEncoder } } );
+	}
+
+	setState( { busy: t.uploading } );
+
+	const uploaded = await upload( payload, {
+		api: cfg.api,
+		filename: file.name.replace( /\.[^.]+$/, '' ) + '.mp4',
+		poster,
+		width,
+		height,
+		duration,
+		onProgress: ( value ) => setState( { progress: 0.7 + value * 0.3 } ),
+	} );
+
+	setState( {
+		busy: null,
+		progress: 0,
+		note: note ? { kind: 'info', text: note } : null,
+	} );
+
+	return {
+		id: '',
+		source: uploaded.source,
+		ref: uploaded.ref,
+		url: uploaded.url,
+		poster: uploaded.poster,
+		poster_url: uploaded.poster_url,
+		w: uploaded.w,
+		h: uploaded.h,
+		duration: uploaded.duration,
+		products: [],
+		cta: { text: '', url: '' },
+	};
+}
+
+/* ------------------------------------------------------------------ verbs */
+
+async function load() {
+	try {
+		setState( { stories: await api( '/admin/stories' ) } );
+	} catch ( e ) {
+		fail( e );
+	}
+}
+
+async function newStory() {
+	const file = await pickVideo();
+	if ( ! file ) {
+		return;
+	}
+
+	try {
+		const slide = await ingest( file );
+		const story = await api( '/admin/stories', {
+			method: 'POST',
+			body: JSON.stringify( { title: '', status: 'draft', slides: [ trim( slide ) ] } ),
+		} );
+
+		state.stories.unshift( story );
+		setState( { editing: story, slide: 0, dirty: false } );
+	} catch ( e ) {
+		fail( e );
+	}
+}
+
+async function addSlide() {
+	const file = await pickVideo();
+	if ( ! file ) {
+		return;
+	}
+
+	try {
+		const slide = await ingest( file );
+		state.editing.slides.push( slide );
+		setState( { slide: state.editing.slides.length - 1, dirty: true } );
+	} catch ( e ) {
+		fail( e );
+	}
+}
+
+/**
+ * Reduce a slide to what the server stores. Names and prices are resolved on
+ * every read and must never travel back.
+ *
+ * @param {Object} slide Slide.
+ * @return {Object}
+ */
+function trim( slide ) {
+	return {
+		id: slide.id || '',
+		source: slide.source,
+		ref: slide.ref,
+		poster: slide.poster,
+		w: slide.w,
+		h: slide.h,
+		duration: slide.duration,
+		products: ( slide.products || [] ).map( ( p ) => ( { id: p.id, x: p.x, y: p.y } ) ),
+		cta: slide.cta || { text: '', url: '' },
+	};
+}
+
+async function save() {
+	const story = state.editing;
+	if ( ! story ) {
+		return;
+	}
+
+	setState( { busy: t.saving } );
+
+	try {
+		const saved = await api( '/admin/stories/' + story.id, {
+			method: 'POST',
+			body: JSON.stringify( {
+				title: story.title,
+				status: story.status,
+				slides: story.slides.map( trim ),
+			} ),
+		} );
+
+		const index = state.stories.findIndex( ( s ) => s.id === saved.id );
+		if ( index > -1 ) {
+			state.stories[ index ] = saved;
+		}
+
+		setState( { editing: saved, busy: null, dirty: false, note: { kind: 'info', text: t.saved } } );
+	} catch ( e ) {
+		fail( e );
+	}
+}
+
+async function destroy() {
+	const story = state.editing;
+	if ( ! story || ! window.confirm( t.confirmDelete ) ) {
+		return;
+	}
+
+	try {
+		await api( '/admin/stories/' + story.id, { method: 'DELETE' } );
+		setState( {
+			stories: state.stories.filter( ( s ) => s.id !== story.id ),
+			editing: null,
+		} );
+	} catch ( e ) {
+		fail( e );
+	}
+}
+
+async function reorder( ids ) {
+	try {
+		await api( '/admin/stories/reorder', { method: 'POST', body: JSON.stringify( { ids } ) } );
+	} catch ( e ) {
+		fail( e );
+	}
+}
+
+let searchTimer = null;
+
+function searchProducts( term ) {
+	clearTimeout( searchTimer );
+
+	if ( term.trim().length < 2 ) {
+		setState( { results: [] } );
+		return;
+	}
+
+	searchTimer = setTimeout( async () => {
+		try {
+			setState( { results: await api( '/admin/products?search=' + encodeURIComponent( term ) ) } );
+		} catch ( e ) {
+			fail( e );
+		}
+	}, 250 );
+}
+
+function tagProduct( product ) {
+	const slide = state.editing.slides[ state.slide ];
+
+	if ( slide.products.some( ( p ) => p.id === product.id ) ) {
+		return;
+	}
+
+	slide.products.push( { ...product, x: null, y: null } );
+	setState( { results: [], dirty: true } );
+}
+
+function untagProduct( id ) {
+	const slide = state.editing.slides[ state.slide ];
+	slide.products = slide.products.filter( ( p ) => p.id !== id );
+	setState( { dirty: true } );
+}
+
+function removeSlide() {
+	const story = state.editing;
+
+	story.slides.splice( state.slide, 1 );
+	setState( { slide: Math.max( 0, state.slide - 1 ), dirty: true } );
+}
+
+/* ----------------------------------------------------------------- render */
+
+function noteBar() {
+	if ( state.busy ) {
+		return el( 'div', { class: 'ocs-note ocs-note--busy' }, [
+			el( 'div', { text: state.busy } ),
+			el( 'div', { class: 'ocs-progress' }, [
+				el( 'span', { style: 'inline-size:' + Math.round( state.progress * 100 ) + '%' } ),
+			] ),
+		] );
+	}
+
+	if ( state.note ) {
+		return el( 'div', {
+			class: 'ocs-note' + ( 'error' === state.note.kind ? ' ocs-note--error' : '' ),
+			text: state.note.text,
+		} );
+	}
+
+	return null;
+}
+
+function storyCard( story, index ) {
+	const card = el( 'button', {
+		class: 'ocs-card',
+		type: 'button',
+		draggable: 'true',
+		title: t.dragHint,
+		onClick: () => setState( { editing: story, slide: 0, dirty: false, note: null } ),
+	}, [
+		story.poster_url
+			? el( 'img', { class: 'ocs-card__poster', src: story.poster_url, alt: '', loading: 'lazy' } )
+			: el( 'div', { class: 'ocs-card__poster' } ),
+		el( 'div', { class: 'ocs-card__body' }, [
+			el( 'div', { class: 'ocs-card__title', text: story.title || cfg.labels.untitled } ),
+			el( 'div', { class: 'ocs-card__meta' }, [
+				el( 'span', {
+					class: 'ocs-pill' + ( 'publish' === story.status ? ' ocs-pill--live' : '' ),
+					text: 'publish' === story.status ? t.published : t.draft,
+				} ),
+				el( 'span', { text: story.slides.length + ' · ' + t.slides } ),
+			] ),
+		] ),
+	] );
+
+	card.dataset.index = index;
+
+	card.addEventListener( 'dragstart', ( e ) => {
+		e.dataTransfer.setData( 'text/plain', String( index ) );
+		card.dataset.dragging = '1';
+	} );
+	card.addEventListener( 'dragend', () => delete card.dataset.dragging );
+	card.addEventListener( 'dragover', ( e ) => {
+		e.preventDefault();
+		card.dataset.over = '1';
+	} );
+	card.addEventListener( 'dragleave', () => delete card.dataset.over );
+	card.addEventListener( 'drop', ( e ) => {
+		e.preventDefault();
+		delete card.dataset.over;
+
+		const from = parseInt( e.dataTransfer.getData( 'text/plain' ), 10 );
+		if ( Number.isNaN( from ) || from === index ) {
+			return;
+		}
+
+		const list = state.stories.slice();
+		list.splice( index, 0, list.splice( from, 1 )[ 0 ] );
+
+		setState( { stories: list } );
+		reorder( list.map( ( s ) => s.id ) );
+	} );
+
+	return card;
+}
+
+function listView() {
+	return el( 'div', {}, [
+		el( 'div', { class: 'ocs-head' }, [
+			el( 'h1', { text: t.studio } ),
+			el( 'button', {
+				class: 'ocs-btn ocs-btn--primary',
+				type: 'button',
+				disabled: !! state.busy,
+				text: t.newStory,
+				onClick: newStory,
+			} ),
+		] ),
+		noteBar(),
+		state.stories.length
+			? el( 'div', { class: 'ocs-grid' }, state.stories.map( storyCard ) )
+			: el( 'div', { class: 'ocs-empty' }, [
+				el( 'h2', { text: t.empty } ),
+				el( 'p', { text: t.emptyHint } ),
+			] ),
+	] );
+}
+
+function slideStrip() {
+	const story = state.editing;
+
+	const slides = story.slides.map( ( slide, index ) => el( 'button', {
+		class: 'ocs-slide',
+		type: 'button',
+		'aria-selected': index === state.slide ? 'true' : 'false',
+		style: slide.poster_url ? 'background-image:url(' + slide.poster_url + ')' : '',
+		onClick: () => setState( { slide: index, results: [] } ),
+	} ) );
+
+	slides.push( el( 'button', {
+		class: 'ocs-slide ocs-slide--add',
+		type: 'button',
+		text: '+',
+		title: t.addSlide,
+		disabled: !! state.busy,
+		onClick: addSlide,
+	} ) );
+
+	return el( 'div', { class: 'ocs-strip' }, slides );
+}
+
+function productPanel() {
+	const slide = state.editing.slides[ state.slide ];
+
+	if ( ! slide ) {
+		return null;
+	}
+
+	const search = el( 'input', {
+		class: 'ocs-input',
+		type: 'search',
+		placeholder: t.searchProducts,
+		onInput: ( e ) => searchProducts( e.target.value ),
+	} );
+
+	const results = el( 'ul', { class: 'ocs-results' }, state.results.map( ( product ) => el( 'li', {}, [
+		el( 'button', { class: 'ocs-result', type: 'button', onClick: () => tagProduct( product ) }, [
+			product.thumb
+				? el( 'img', { class: 'ocs-thumb', src: product.thumb, alt: '' } )
+				: el( 'span', { class: 'ocs-thumb' } ),
+			el( 'span', { class: 'ocs-result__name', text: product.name } ),
+			el( 'span', { class: 'ocs-result__price', text: product.price } ),
+		] ),
+	] ) ) );
+
+	const tags = el( 'div', { class: 'ocs-tags' }, slide.products.length ? slide.products.map( ( product ) => el( 'div', { class: 'ocs-tag' }, [
+		product.thumb
+			? el( 'img', { class: 'ocs-thumb', src: product.thumb, alt: '' } )
+			: el( 'span', { class: 'ocs-thumb' } ),
+		el( 'span', { class: 'ocs-tag__name', text: product.name } ),
+		el( 'button', {
+			class: 'ocs-btn ocs-btn--ghost',
+			type: 'button',
+			text: '×',
+			'aria-label': t.close,
+			onClick: () => untagProduct( product.id ),
+		} ),
+	] ) ) : [ el( 'p', { class: 'ocs-hint', text: t.noneTagged } ) ] );
+
+	// Order matters here. Tagged products sit directly under their own label,
+	// and the search box comes last with its results hanging off it. The other
+	// way round, the dropdown opens between the label and the list and the two
+	// become impossible to tell apart.
+	return el( 'div', { class: 'ocs-field' }, [
+		el( 'label', { text: t.products } ),
+		tags,
+		el( 'div', { class: 'ocs-search' }, [ search, results ] ),
+	] );
+}
+
+function editorView() {
+	const story = state.editing;
+	const slide = story.slides[ state.slide ];
+
+	return el( 'div', {}, [
+		el( 'div', { class: 'ocs-head' }, [
+			el( 'button', {
+				class: 'ocs-btn ocs-btn--ghost',
+				type: 'button',
+				text: '← ' + t.studio,
+				onClick: () => setState( { editing: null, note: null, results: [] } ),
+			} ),
+		] ),
+		noteBar(),
+		el( 'div', { class: 'ocs-editor' }, [
+			el( 'div', { class: 'ocs-editor__head' }, [
+				el( 'strong', { text: story.title || cfg.labels.untitled } ),
+				// State and action are separate on purpose. One control that
+				// reads "Live" and toggles when pressed cannot be read: it looks
+				// like a label until it is too late.
+				el( 'span', {
+					class: 'ocs-pill' + ( 'publish' === story.status ? ' ocs-pill--live' : '' ),
+					text: 'publish' === story.status ? t.published : t.draft,
+				} ),
+				el( 'button', {
+					class: 'ocs-btn',
+					type: 'button',
+					text: 'publish' === story.status ? t.unpublish : t.publish,
+					onClick: () => {
+						story.status = 'publish' === story.status ? 'draft' : 'publish';
+						setState( { dirty: true } );
+					},
+				} ),
+				el( 'button', {
+					class: 'ocs-btn ocs-btn--primary',
+					type: 'button',
+					disabled: !! state.busy,
+					text: state.dirty ? t.save : t.saved,
+					onClick: save,
+				} ),
+			] ),
+			el( 'div', { class: 'ocs-editor__body' }, [
+				el( 'div', {}, [
+					el( 'div', { class: 'ocs-stage' }, [
+						slide && slide.url
+							? el( 'video', {
+								src: slide.url,
+								poster: slide.poster_url || '',
+								controls: 'controls',
+								playsinline: 'playsinline',
+								preload: 'metadata',
+							} )
+							: null,
+					] ),
+					el( 'div', { class: 'ocs-field', style: 'margin-block-start:12px' }, [
+						el( 'label', { text: t.slides } ),
+						slideStrip(),
+					] ),
+				] ),
+				el( 'div', {}, [
+					el( 'div', { class: 'ocs-field' }, [
+						el( 'label', { for: 'ocs-title', text: t.title } ),
+						el( 'input', {
+							id: 'ocs-title',
+							class: 'ocs-input',
+							type: 'text',
+							maxlength: '60',
+							value: story.title,
+							onInput: ( e ) => {
+								story.title = e.target.value;
+								state.dirty = true;
+							},
+						} ),
+					] ),
+					productPanel(),
+					el( 'div', { class: 'ocs-actions' }, [
+						slide && story.slides.length > 1
+							? el( 'button', {
+								class: 'ocs-btn',
+								type: 'button',
+								text: t.deleteSlide,
+								onClick: removeSlide,
+							} )
+							: null,
+						el( 'button', {
+							class: 'ocs-btn ocs-btn--danger',
+							type: 'button',
+							text: t.delete,
+							onClick: destroy,
+						} ),
+					] ),
+				] ),
+			] ),
+		] ),
+	] );
+}
+
+function render() {
+	root.replaceChildren( state.editing ? editorView() : listView() );
+	root.removeAttribute( 'data-loading' );
+}
+
+/* ------------------------------------------------------------------- boot */
+
+// Leaving with unsaved edits loses a caption or a tag, never a video: the
+// upload is committed the moment it finishes, before anything is saved.
+window.addEventListener( 'beforeunload', ( e ) => {
+	if ( state.dirty ) {
+		e.preventDefault();
+		e.returnValue = '';
+	}
+} );
+
+render();
+load();

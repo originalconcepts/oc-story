@@ -157,6 +157,13 @@ check( 'exclusion beats a site-wide scope', $m( array( 'scope' => 'site', 'exclu
 check( 'exclusion beats a product match', $m( array( 'scope' => 'products', 'exclude' => array( 812 ) ), $product ) === false );
 check( 'an unknown scope matches nothing', $m( array( 'scope' => 'sideways' ), $page ) === false );
 
+echo "\nStory fields\n";
+check( 'strips tags from a title', \OCS\Model\Story::clean_title( '<b>קצביית דוד</b>' ) === 'קצביית דוד' );
+check( 'caps a title at 60 characters', mb_strlen( \OCS\Model\Story::clean_title( str_repeat( 'a', 200 ) ) ) === 60 );
+check( 'publish stays publish', \OCS\Model\Story::clean_status( 'publish' ) === 'publish' );
+check( 'anything else is a draft', \OCS\Model\Story::clean_status( 'pending' ) === 'draft' );
+check( 'a missing status is a draft', \OCS\Model\Story::clean_status( '' ) === 'draft' );
+
 echo "\nServer limits\n";
 $b = '\OCS\Media\Probe::ini_bytes';
 check( 'megabytes', $b( '8M' ) === 8388608 );

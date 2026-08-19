@@ -32,6 +32,8 @@ class Routes {
 	 */
 	public function register() {
 		$controllers = array(
+			\OCS\Rest\StoriesController::class,
+			\OCS\Rest\ProductsController::class,
 			\OCS\Rest\UploadController::class,
 		);
 
