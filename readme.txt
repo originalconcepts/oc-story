@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.1.0
+Stable tag: 0.1.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,15 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.1.1 =
+* A video that is already compressed is no longer re-encoded. The first
+  on-device test caught a 2.0MB clip growing to 2.3MB; an efficient H.264
+  source is now copied into our fast-start container untouched, which is
+  quicker and keeps its original quality.
+* When re-encoding is needed, the target bitrate never exceeds what the
+  source itself spends (with headroom for HEVC conversion), so output can
+  no longer be larger than input.
 
 = 0.1.0 =
 * First release: story circles, video slider and product-page videos.

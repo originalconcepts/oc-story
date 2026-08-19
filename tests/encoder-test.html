@@ -79,11 +79,12 @@ document.getElementById( 'file' ).addEventListener( 'change', async ( event ) =>
 		const ratio = result.sourceBytes / result.bytes;
 
 		out.innerHTML =
+			row( 'מסלול', 'copy' === result.mode ? 'הועתק כמו שהוא — היה כבר דחוס' : 'קודד מחדש', true ) +
 			row( 'מקור', mb( result.sourceBytes ) ) +
 			row( 'קודק המקור', result.sourceCodec ) +
 			row( 'מידות המקור', result.sourceWidth + '×' + result.sourceHeight + ( result.rotation ? ' (סיבוב ' + result.rotation + '°)' : '' ) ) +
-			row( 'אחרי קידוד', mb( result.bytes ), result.bytes < result.sourceBytes ) +
-			row( 'יחס דחיסה', ratio.toFixed( 1 ) + '×', ratio > 3 ) +
+			row( 'אחרי קידוד', mb( result.bytes ), result.bytes <= result.sourceBytes * 1.02 ) +
+			row( 'יחס דחיסה', ratio.toFixed( 1 ) + '×', 'copy' === result.mode ? ratio > 0.97 : ratio > 3 ) +
 			row( 'מידות', result.width + '×' + result.height ) +
 			row( 'אורך', result.duration + ' שניות' ) +
 			row( 'זמן קידוד', seconds.toFixed( 1 ) + ' שניות', seconds < result.duration * 2 ) +

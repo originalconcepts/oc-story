@@ -94,6 +94,14 @@ The browser does the transcode (`encoder.js` + `mp4.js`, studio only). This is
 the decision that makes the plugin viable on shared hosting. Facts you need
 before touching it:
 
+- **An already-efficient source is copied, not re-encoded.** The first
+  on-device gate run caught a 2.0MB 720p H.264 clip coming out at 2.3MB —
+  re-encoding an efficient source *up* to the target bitrate makes it bigger
+  and worse at once. `copyDecision()` (pure, harness-covered) routes H.264
+  sources that are upright, within the size cap and at-or-below our own
+  bitrate into a passthrough remux: same samples, our fast-start container,
+  poster via a throwaway `<video>` element. Everything else re-encodes, and
+  the encode bitrate is capped at what the source spends.
 - **An iPhone records HEVC** (`hvc1` in a QuickTime `.mov`) unless its owner
   changed a setting. The demuxer reads `avc1/avc3/hvc1/hev1` and derives the
   decoder string from `avcC`/`hvcC`. Output is always H.264 **Baseline** — no
@@ -248,4 +256,7 @@ anything else ships to a client); Bunny/Cloudflare Stream sources; the floating
 bubble and grid surfaces; JS translations for the block editor
 (`wp_set_script_translations` — PHP strings are fully translated, block
 inspector strings are not yet); captions; scheduled publish/retire; A/B on
-posters and titles.
+posters and titles. Also worth knowing: ES-module imports inside the studio
+(`studio.js` → `encoder.js` → `mp4.js`) carry no version query, so a browser
+may serve a stale cached module after an update until it revalidates — an
+import map or a version-stamped loader is the clean fix if it ever bites.

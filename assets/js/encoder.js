@@ -33,6 +33,124 @@ const DEFAULTS = {
 const QUEUE_DEPTH = 8;
 
 /**
+ * How long and how heavy the source is.
+ *
+ * @param {Object} video Demuxed video track.
+ * @param {number} fileBytes Whole-file size.
+ * @return {{duration: number, rate: number}} Seconds and bits per second.
+ */
+export function sourceStats( video, fileBytes ) {
+	const samples = video.samples || [];
+
+	if ( ! samples.length || ! video.timescale ) {
+		return { duration: 0, rate: Infinity };
+	}
+
+	const last = samples[ samples.length - 1 ];
+	const duration = ( last.dts + last.duration ) / video.timescale;
+
+	return {
+		duration,
+		rate: duration > 0 ? ( fileBytes * 8 ) / duration : Infinity,
+	};
+}
+
+/**
+ * Should this file be copied through instead of re-encoded?
+ *
+ * The gate test that found this: a 2.0MB H.264 clip, already 720p at 870kbps,
+ * came out of the encoder at 2.3MB — re-encoding an efficient source *up* to
+ * the target bitrate makes it bigger and worse at the same time. When the
+ * source is already what we would have produced, the only thing it actually
+ * needs is the container: our MP4 with the index first. So the samples are
+ * copied verbatim, exactly like the audio always was.
+ *
+ * Copy only when every condition holds; anything else re-encodes:
+ * H.264 (HEVC must be converted to play everywhere), no rotation (our muxer
+ * writes an upright matrix), within the size cap, and no heavier than what
+ * the encoder itself would emit — with headroom for the audio track.
+ *
+ * @param {Object} video     Demuxed video track.
+ * @param {number} fileBytes Whole-file size.
+ * @param {Object} settings  { maxSide, bitrate }.
+ * @return {boolean}
+ */
+export function copyDecision( video, fileBytes, settings ) {
+	if ( 'avc' !== video.family ) {
+		return false;
+	}
+
+	if ( ( video.rotation || 0 ) !== 0 ) {
+		return false;
+	}
+
+	if ( Math.max( video.width, video.height ) > settings.maxSide ) {
+		return false;
+	}
+
+	const stats = sourceStats( video, fileBytes );
+
+	if ( ! stats.duration ) {
+		return false;
+	}
+
+	return stats.rate <= settings.bitrate * 1.3 + 160000;
+}
+
+/**
+ * A poster frame via the browser's own decoder.
+ *
+ * The copy path never decodes anything, so the poster comes from a throwaway
+ * <video> element instead. Best effort: a failed poster is a fixable problem,
+ * a failed upload is not.
+ *
+ * @param {File|Blob} file    Source file.
+ * @param {string}    type    Image mime type.
+ * @param {number}    quality Quality 0..1.
+ * @return {Promise<string>} Data URL, or ''.
+ */
+function posterFromFile( file, type, quality ) {
+	return new Promise( ( resolve ) => {
+		const url = URL.createObjectURL( file );
+		const video = document.createElement( 'video' );
+
+		const done = ( poster ) => {
+			URL.revokeObjectURL( url );
+			video.removeAttribute( 'src' );
+			resolve( poster );
+		};
+
+		const timer = setTimeout( () => done( '' ), 8000 );
+
+		video.muted = true;
+		video.playsInline = true;
+		video.preload = 'auto';
+
+		video.addEventListener( 'loadeddata', () => {
+			video.currentTime = Math.min( 0.1, video.duration || 0.1 );
+		} );
+
+		video.addEventListener( 'seeked', async () => {
+			clearTimeout( timer );
+			try {
+				const { canvas, ctx } = makeCanvas( video.videoWidth, video.videoHeight );
+				ctx.drawImage( video, 0, 0 );
+				done( await canvasToDataUrl( canvas, type, quality ) );
+			} catch ( e ) {
+				done( '' );
+			}
+		} );
+
+		video.addEventListener( 'error', () => {
+			clearTimeout( timer );
+			done( '' );
+		} );
+
+		video.src = url;
+	} );
+}
+
+/**
  * Can this browser re-encode at all?
  *
  * @return {boolean}
@@ -202,10 +320,29 @@ export async function encode( file, options = {}, onProgress = () => {} ) {
 	const buffer = await file.arrayBuffer();
 	const source = demux( buffer );
 
+	if ( copyDecision( source.video, file.size, settings ) ) {
+		return copyThrough( file, source, settings, onProgress );
+	}
+
 	const rotation = source.video.rotation || 0;
 	const size = outputSize( source.video.width, source.video.height, rotation, settings.maxSide );
 
-	const config = await pickConfig( size.width, size.height, settings.bitrate, settings.fps );
+	// When nothing is being downscaled, spending more bits than the source
+	// does cannot add quality that is not there. HEVC gets headroom because
+	// H.264 needs more bits for the same picture.
+	const stats = sourceStats( source.video, file.size );
+	const downscaling = size.width < ( size.swapped ? source.video.height : source.video.width )
+		|| size.height < ( size.swapped ? source.video.width : source.video.height );
+
+	let bitrate = settings.bitrate;
+	if ( ! downscaling && isFinite( stats.rate ) ) {
+		bitrate = Math.min(
+			bitrate,
+			Math.max( 600000, Math.round( stats.rate * ( 'hevc' === source.video.family ? 1.6 : 1.05 ) ) )
+		);
+	}
+
+	const config = await pickConfig( size.width, size.height, bitrate, settings.fps );
 	if ( ! config ) {
 		throw new Error( 'ocs_no_h264_encoder' );
 	}
@@ -406,6 +543,7 @@ export async function encode( file, options = {}, onProgress = () => {} ) {
 	return {
 		blob,
 		poster,
+		mode: 'encode',
 		width: size.width,
 		height: size.height,
 		duration: Math.round( duration * 100 ) / 100,
@@ -415,5 +553,73 @@ export async function encode( file, options = {}, onProgress = () => {} ) {
 		sourceWidth: source.video.width,
 		sourceHeight: source.video.height,
 		rotation,
+	};
+}
+
+/**
+ * The copy path: same samples, our container.
+ *
+ * The video is already what the encoder would have produced, so the only work
+ * left is the part the source container got wrong — the index goes first, and
+ * anything past the length cap is trimmed. No codec is opened at all.
+ *
+ * @param {File|Blob} file       Source file.
+ * @param {Object}    source     Demuxed tracks.
+ * @param {Object}    settings   Encoder settings.
+ * @param {Function}  onProgress Called with 0..1.
+ * @return {Promise<Object>} Same shape as encode().
+ */
+async function copyThrough( file, source, settings, onProgress ) {
+	onProgress( 0.2 );
+
+	const limit = settings.maxSeconds * source.video.timescale;
+	const samples = source.video.samples.filter( ( sample ) => sample.dts < limit );
+
+	if ( ! samples.length ) {
+		throw new Error( 'ocs_encode_empty' );
+	}
+
+	let audio = null;
+	if ( source.audio && source.audio.samples.length && source.audio.description ) {
+		const audioLimit = settings.maxSeconds * source.audio.timescale;
+		const kept = source.audio.samples.filter( ( sample ) => sample.dts < audioLimit );
+
+		if ( kept.length ) {
+			audio = { ...source.audio, samples: kept };
+		}
+	}
+
+	const poster = await posterFromFile( file, settings.posterType, settings.posterQuality );
+	onProgress( 0.6 );
+
+	const blob = mux( {
+		video: {
+			width: source.video.width,
+			height: source.video.height,
+			timescale: source.video.timescale,
+			description: source.video.description,
+			samples,
+		},
+		audio,
+	} );
+
+	onProgress( 1 );
+
+	const last = samples[ samples.length - 1 ];
+	const duration = ( last.dts + last.duration ) / source.video.timescale;
+
+	return {
+		blob,
+		poster,
+		mode: 'copy',
+		width: source.video.width,
+		height: source.video.height,
+		duration: Math.round( duration * 100 ) / 100,
+		sourceBytes: file.size,
+		bytes: blob.size,
+		sourceCodec: source.video.codec,
+		sourceWidth: source.video.width,
+		sourceHeight: source.video.height,
+		rotation: 0,
 	};
 }

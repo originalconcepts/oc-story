@@ -259,6 +259,29 @@ const mainTier = new Uint8Array( [
 ] );
 check( 'reads the high tier flag', hevcCodecString( 'hvc1', mainTier ).indexOf( '.H93' ) > 0 );
 
+print( '\nCopy decision' );
+
+const { copyDecision, sourceStats } = await import( '../assets/js/encoder.js' );
+
+// 18 seconds of samples at a 1000-unit timescale.
+const lightSamples = Array.from( { length: 18 }, ( _, i ) => ( { dts: i * 1000, duration: 1000 } ) );
+const base = { family: 'avc', rotation: 0, width: 1280, height: 720, timescale: 1000, samples: lightSamples };
+const cfg = { maxSide: 1280, bitrate: 1500000 };
+
+// The exact case the phone gate caught: 2.0MB of already-efficient 720p H.264.
+check( 'copies the file the gate caught', true === copyDecision( base, 2000000, cfg ) );
+check( 'measures its rate', Math.round( sourceStats( base, 2000000 ).rate / 1000 ) === 889 );
+
+check( 'never copies HEVC', false === copyDecision( { ...base, family: 'hevc' }, 2000000, cfg ) );
+check( 'never copies a rotated clip', false === copyDecision( { ...base, rotation: 90 }, 2000000, cfg ) );
+check( 'never copies past the size cap', false === copyDecision( { ...base, width: 1920, height: 1080 }, 2000000, cfg ) );
+check( 'never copies a heavy source', false === copyDecision( base, 12000000, cfg ) );
+check( 'never copies an empty track', false === copyDecision( { ...base, samples: [] }, 2000000, cfg ) );
+
+const boundary = ( cfg.bitrate * 1.3 + 160000 ) * 18 / 8;
+check( 'copies right at the ceiling', true === copyDecision( base, Math.floor( boundary ), cfg ) );
+check( 're-encodes just past it', false === copyDecision( base, Math.ceil( boundary * 1.02 ), cfg ) );
+
 print( '\nOutput sizing' );
 
 const { outputSize } = await import( '../assets/js/encoder.js' );
