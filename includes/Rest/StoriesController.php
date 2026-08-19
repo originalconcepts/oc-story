@@ -156,11 +156,14 @@ class StoriesController {
 			)
 		);
 
+		$opens = \OCS\Model\Stats::opens_last_week();
+
 		$out = array();
 		foreach ( $posts as $post ) {
 			$story = Story::to_array( $post );
 			if ( $story ) {
-				$out[] = $story;
+				$story['views7d'] = isset( $opens[ $story['id'] ] ) ? $opens[ $story['id'] ] : 0;
+				$out[]            = $story;
 			}
 		}
 

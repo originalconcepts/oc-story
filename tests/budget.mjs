@@ -27,6 +27,9 @@ const BUDGET = [
 	// The only script the storefront loads before an interaction.
 	{ file: 'assets/js/bar.js', gzip: 4096, why: 'initial script' },
 
+	// Product pages only, and only when attribution is on.
+	{ file: 'assets/js/attr.js', gzip: 1024, why: 'attribution helper' },
+
 	// Imported on the first tap, never before.
 	{ file: 'assets/js/player.js', gzip: 16384, why: 'player chunk' },
 	{ file: 'assets/css/player.css', gzip: 5120, why: 'player stylesheet' },

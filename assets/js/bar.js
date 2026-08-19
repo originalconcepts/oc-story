@@ -19,6 +19,32 @@
 	var payloads = {};
 	var SEEN = 'ocs_seen';
 
+	// The event queue is shared with the player, which pushes into it and
+	// leaves the sending here — the bar is on the page whenever the player is,
+	// never the other way round.
+	var queue = window.__ocsQ = [];
+
+	function device() {
+		return window.matchMedia && matchMedia( '(max-width: 781px)' ).matches ? 'm' : 'd';
+	}
+
+	function flush() {
+		if ( ! queue.length || ! cfg.events || ! navigator.sendBeacon ) {
+			queue.length = 0;
+			return;
+		}
+
+		var batch = queue.splice( 0, 50 );
+
+		for ( var i = 0; i < batch.length; i++ ) {
+			if ( ! batch[ i ].d ) {
+				batch[ i ].d = device();
+			}
+		}
+
+		navigator.sendBeacon( cfg.events, JSON.stringify( batch ) );
+	}
+
 	function barOf( node ) {
 		return node.closest ? node.closest( '[data-ocs-bar]' ) : null;
 	}
@@ -141,6 +167,7 @@
 
 			parts[ 0 ].open( stories, index, {
 				cfg: cfg,
+				surface: bar.getAttribute( 'data-ocs-surface' ) || '',
 				onSeen: markSeen,
 			} );
 		} ).catch( function () {
@@ -172,4 +199,37 @@
 	} else {
 		setTimeout( paintSeen, 400 );
 	}
+
+	// Reach: one event per bar per pageview, counted when the bar has actually
+	// been scrolled into view rather than merely printed below the fold.
+	if ( cfg.events && window.IntersectionObserver ) {
+		var observer = new IntersectionObserver( function ( entries ) {
+			entries.forEach( function ( entry ) {
+				if ( ! entry.isIntersecting ) {
+					return;
+				}
+
+				observer.unobserve( entry.target );
+
+				queue.push( {
+					t: 'i',
+					s: 0,
+					f: entry.target.getAttribute( 'data-ocs-surface' ) || '',
+				} );
+			} );
+		}, { threshold: 0.4 } );
+
+		document.querySelectorAll( '[data-ocs-bar]' ).forEach( function ( bar ) {
+			observer.observe( bar );
+		} );
+	}
+
+	// One beacon as the page goes away, not a request per event. pagehide
+	// covers Safari, visibilitychange covers everything else.
+	addEventListener( 'pagehide', flush );
+	document.addEventListener( 'visibilitychange', function () {
+		if ( 'hidden' === document.visibilityState ) {
+			flush();
+		}
+	} );
 }() );

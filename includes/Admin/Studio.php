@@ -120,6 +120,7 @@ class Studio {
 			'unpin'          => __( 'Remove from the frame', 'oc-story' ),
 			'pinHint'        => __( 'Drag a pin to where the product appears.', 'oc-story' ),
 			'slides'         => __( 'Videos', 'oc-story' ),
+			'views7d'        => __( 'views this week', 'oc-story' ),
 			'publish'        => __( 'Publish', 'oc-story' ),
 			'unpublish'      => __( 'Move to draft', 'oc-story' ),
 			'published'      => __( 'Live', 'oc-story' ),

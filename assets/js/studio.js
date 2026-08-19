@@ -479,6 +479,7 @@ function storyCard( story, index ) {
 					text: 'publish' === story.status ? t.published : t.draft,
 				} ),
 				el( 'span', { text: story.slides.length + ' · ' + t.slides } ),
+				story.views7d > 0 ? el( 'span', { text: story.views7d + ' · ' + t.views7d } ) : null,
 			] ),
 		] ),
 	] );

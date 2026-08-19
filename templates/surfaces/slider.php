@@ -22,6 +22,7 @@ $ocs_labels = ( $placement['desktop']['labels'] ? '1' : '0' ) . ( $placement['mo
 <div
 	class="ocs-slider ocs-surface--<?php echo esc_attr( $placement['surface'] ); ?>"
 	data-ocs-bar="<?php echo esc_attr( $placement['id'] ); ?>"
+	data-ocs-surface="<?php echo esc_attr( $placement['surface'] ); ?>"
 	data-ocs-labels="<?php echo esc_attr( $ocs_labels ); ?>"
 	<?php if ( '' !== $src ) : ?>
 		data-ocs-src="<?php echo esc_url( $src ); ?>"

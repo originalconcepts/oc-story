@@ -76,6 +76,7 @@ final class Plugin {
 		$map = array(
 			// Data layer.
 			'story_hooks' => \OCS\Model\StoryHooks::class,
+			'attribution' => \OCS\Model\Attribution::class,
 
 			// Display (milestones 4-6).
 			'assets'      => \OCS\Display\Assets::class,

@@ -68,6 +68,15 @@ class Menu {
 			add_action( 'load-' . $placements_hook, array( $placements, 'on_load' ) );
 		}
 
+		add_submenu_page(
+			self::SLUG,
+			__( 'Insights', 'oc-story' ),
+			__( 'Insights', 'oc-story' ),
+			'manage_woocommerce',
+			InsightsPage::SLUG,
+			array( new InsightsPage(), 'render' )
+		);
+
 		$settings = new SettingsPage();
 
 		$settings_hook = add_submenu_page(

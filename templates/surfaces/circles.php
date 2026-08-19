@@ -22,6 +22,7 @@ $ocs_max            = max( (int) $placement['desktop']['max'], (int) $placement[
 <div
 	class="ocs-bar"
 	data-ocs-bar="<?php echo esc_attr( $placement['id'] ); ?>"
+	data-ocs-surface="<?php echo esc_attr( $placement['surface'] ); ?>"
 	data-ocs-labels="<?php echo esc_attr( $ocs_labels_desktop . $ocs_labels_mobile ); ?>"
 	<?php if ( '' !== $src ) : ?>
 		data-ocs-src="<?php echo esc_url( $src ); ?>"

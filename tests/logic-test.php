@@ -51,6 +51,8 @@ require OCS_PATH . 'includes/Surfaces/Circles.php';
 require OCS_PATH . 'includes/Surfaces/Slider.php';
 require OCS_PATH . 'includes/Surfaces/ProductBlock.php';
 require OCS_PATH . 'includes/Surfaces/SurfaceManager.php';
+require OCS_PATH . 'includes/Model/Stats.php';
+require OCS_PATH . 'includes/Model/Attribution.php';
 
 $pass = 0; $fail = 0;
 function check( $label, $condition ) {
@@ -247,6 +249,51 @@ check( 'rejects a plain url', null === $d( 'https://example.com/a.webp' ) );
 check( 'rejects an empty payload', null === $d( 'data:image/webp;base64,' ) );
 check( 'rejects invalid base64', null === $d( 'data:image/webp;base64,!!!!' ) );
 check( 'rejects an empty string', null === $d( '' ) );
+
+echo "\nEvent beacon normalisation\n";
+$surfaces = array( 'circles', 'slider', 'product' );
+$n = static function ( $batch ) use ( $surfaces ) {
+	return \OCS\Model\Stats::normalize_batch( $batch, $surfaces );
+};
+
+$rows = $n( array(
+	array( 't' => 'o', 's' => 11, 'f' => 'circles', 'd' => 'm' ),
+	array( 't' => 'o', 's' => 11, 'f' => 'circles', 'd' => 'm' ),
+	array( 't' => 'p', 's' => 11, 'l' => 's_9f2a3b4c', 'f' => 'circles', 'd' => 'm' ),
+) );
+check( 'aggregates duplicate events into one row', 2 === count( $rows ) );
+$first = array_values( $rows )[0];
+check( 'counts them', 2 === $first['counts']['opens'] );
+
+check( 'rejects a non-array body', array() === $n( 'DROP TABLE' ) );
+check( 'rejects an unknown event type', array() === $n( array( array( 't' => 'x', 's' => 1 ) ) ) );
+check( 'rejects an unknown surface', array() === $n( array( array( 't' => 'o', 's' => 1, 'f' => 'evil' ) ) ) );
+check( 'rejects a malformed slide id', array() === $n( array( array( 't' => 'p', 's' => 1, 'l' => '../../etc' ) ) ) );
+check( 'rejects a negative story', array() === $n( array( array( 't' => 'o', 's' => -5 ) ) ) );
+check( 'reach may use story zero', 1 === count( $n( array( array( 't' => 'i', 's' => 0, 'f' => 'circles' ) ) ) ) );
+check( 'nothing else may use story zero', array() === $n( array( array( 't' => 'o', 's' => 0 ) ) ) );
+check( 'an unknown device falls back to desktop', 'd' === array_values( $n( array( array( 't' => 'o', 's' => 1, 'd' => 'tv' ) ) ) )[0]['device'] );
+
+$big = array_fill( 0, 200, array( 't' => 'o', 's' => 7 ) );
+check( 'caps a batch at fifty', 50 === array_values( $n( $big ) )[0]['counts']['opens'] );
+
+echo "\nAttribution claims\n";
+$now  = 1700000000;
+$week = 7 * DAY_IN_SECONDS;
+$v = '\OCS\Model\Attribution::validate_claim';
+$good = json_encode( array( 'story' => 11, 'slide' => 's_9f2a3b4c', 'product' => 812, 'ts' => ( $now - 3600 ) * 1000 ) );
+
+$claim = $v( $good, 812, 0, $now, $week );
+check( 'accepts a fresh matching claim', is_array( $claim ) && 11 === $claim['story'] );
+check( 'keeps the timestamp in seconds', is_array( $claim ) && $claim['ts'] === $now - 3600 );
+check( 'accepts a variation match', is_array( $v( $good, 999, 812, $now, $week ) ) );
+check( 'rejects a claim for a different product', null === $v( $good, 55, 0, $now, $week ) );
+check( 'rejects a stale claim', null === $v( $good, 812, 0, $now + $week + 7200, $week ) );
+check( 'rejects a claim from the future', null === $v( json_encode( array( 'story' => 11, 'product' => 812, 'ts' => ( $now + 3600 ) * 1000 ) ), 812, 0, $now, $week ) );
+check( 'rejects garbage', null === $v( 'not json', 812, 0, $now, $week ) );
+check( 'rejects an oversized payload', null === $v( str_repeat( 'a', 300 ), 812, 0, $now, $week ) );
+check( 'rejects a malformed slide id', null === $v( json_encode( array( 'story' => 11, 'slide' => 'x', 'product' => 812, 'ts' => ( $now - 60 ) * 1000 ) ), 812, 0, $now, $week ) );
+check( 'rejects a missing story', null === $v( json_encode( array( 'product' => 812, 'ts' => ( $now - 60 ) * 1000 ) ), 812, 0, $now, $week ) );
 
 echo "\n" . ( $fail ? "FAILED: $fail" : "All $pass checks passed" ) . "\n";
 exit( $fail ? 1 : 0 );

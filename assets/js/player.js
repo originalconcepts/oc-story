@@ -9,6 +9,21 @@
 
 const RTL = () => 'rtl' === ( document.documentElement.getAttribute( 'dir' ) || '' ).toLowerCase();
 
+/**
+ * Hand an event to the bar's queue; the bar owns sending. If the queue is not
+ * there, analytics is off and the event simply evaporates.
+ *
+ * @param {string} type  Event type.
+ * @param {Object} extra Extra fields.
+ */
+function track( type, extra ) {
+	const queue = window.__ocsQ;
+
+	if ( queue && state ) {
+		queue.push( Object.assign( { t: type, s: story().i, f: state.surface }, extra || {} ) );
+	}
+}
+
 let ui = null;
 let state = null;
 
@@ -117,7 +132,10 @@ function paintProducts() {
 			text.append( el( 'b', '', { text: product.n } ), el( 'span', '', { text: product.p } ) );
 			card.append( text );
 
-			card.addEventListener( 'click', () => attribute( product ) );
+			card.addEventListener( 'click', () => {
+				attribute( product );
+				track( 'p', { l: slide().i } );
+			} );
 
 			return card;
 		} )
@@ -252,6 +270,7 @@ function go( direction ) {
 	state.si = nextStory;
 	state.qi = direction > 0 ? 0 : state.stories[ nextStory ].s.length - 1;
 	state.onSeen( story().i );
+	track( 'o' );
 	play();
 }
 
@@ -323,7 +342,14 @@ function bindGestures() {
 	} );
 
 	ui.video.addEventListener( 'timeupdate', paintProgress );
-	ui.video.addEventListener( 'ended', () => go( 1 ) );
+	ui.video.addEventListener( 'ended', () => {
+		// The last slide finishing on its own is the only thing counted as
+		// watching to the end — skipping ahead is interest, not completion.
+		if ( state && state.qi === story().s.length - 1 ) {
+			track( 'd' );
+		}
+		go( 1 );
+	} );
 
 	document.addEventListener( 'keydown', onKey );
 }
@@ -377,6 +403,7 @@ export function open( stories, index, ctx ) {
 		qi: 0,
 		muted: false,
 		cfg: ctx.cfg || {},
+		surface: ctx.surface || '',
 		onSeen: ctx.onSeen || function () {},
 		returnTo: document.activeElement,
 	};
@@ -386,6 +413,7 @@ export function open( stories, index, ctx ) {
 	ui.close.focus( { preventScroll: true } );
 
 	state.onSeen( story().i );
+	track( 'o' );
 	play();
 }
 

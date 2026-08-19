@@ -42,6 +42,23 @@ class Assets {
 	 * Load nothing unless something renders.
 	 */
 	public function maybe_enqueue() {
+		// Attribution has to work on a product page even when no surface
+		// renders there — the shopper arrived from a story somewhere else.
+		// One deferred script, ~400 bytes, product pages only.
+		if (
+			function_exists( 'is_product' ) && is_product()
+			&& Settings::is( 'analytics_enabled' ) && Settings::is( 'attribution_enabled' )
+		) {
+			wp_enqueue_script( 'ocs-attr', OCS_URL . 'assets/js/attr.js', array(), OCS_VERSION, true );
+			wp_add_inline_script(
+				'ocs-attr',
+				'window.ocsAttrCfg=' . wp_json_encode(
+					array( 'window' => \OCS\Model\Attribution::window_seconds() * 1000 )
+				) . ';',
+				'before'
+			);
+		}
+
 		if ( $this->has_shortcode() ) {
 			// A shortcode runs during `the_content`, long after this. Which
 			// surface it will ask for is not knowable yet, so all of them are
@@ -71,6 +88,7 @@ class Assets {
 				array(
 					'player' => OCS_URL . 'assets/js/player.js',
 					'css'    => OCS_URL . 'assets/css/player.css?v=' . OCS_VERSION,
+					'events' => Settings::is( 'analytics_enabled' ) ? rest_url( 'oc-story/v1/events' ) : '',
 					'ring'   => Settings::get( 'ring_style', 'gradient' ),
 					'next'   => Settings::is( 'advance_to_next_story' ),
 					'i18n'   => array(
