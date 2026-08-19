@@ -1,0 +1,21 @@
+# Paths excluded from the distributed plugin zip (dev-only).
+.git
+.github
+.gitignore
+.gitattributes
+.distignore
+.editorconfig
+bin
+build
+dist
+tests
+node_modules
+vendor/bin
+*.zip
+*.log
+.DS_Store
+Thumbs.db
+DEVELOPERS.md
+PLAN.md
+CHANGELOG.md
+README.md

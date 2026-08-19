@@ -1,0 +1,19 @@
+# Build artifacts
+/build/
+/dist/
+*.zip
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+
+# Local env / secrets
+.env
+*.local
