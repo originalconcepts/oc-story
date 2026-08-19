@@ -674,12 +674,18 @@ function editorView() {
 					text: 'publish' === story.status ? t.published : t.draft,
 				} ),
 				el( 'button', {
-					class: 'ocs-btn',
+					class: 'ocs-btn' + ( 'publish' === story.status ? '' : ' ocs-btn--primary' ),
 					type: 'button',
+					disabled: !! state.busy,
 					text: 'publish' === story.status ? t.unpublish : t.publish,
+					// Publishing IS the save. A button that says "publish" and
+					// quietly waits for a second button is how a story stays a
+					// draft while its owner is looking at the shop wondering
+					// where it is — which is exactly what happened.
 					onClick: () => {
 						story.status = 'publish' === story.status ? 'draft' : 'publish';
-						setState( { dirty: true } );
+						state.dirty = true;
+						save();
 					},
 				} ),
 				el( 'button', {
