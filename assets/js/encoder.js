@@ -17,7 +17,8 @@
 import { demux, mux } from './mp4.js';
 
 const DEFAULTS = {
-	height: 1280,
+	// A cap on the longest edge, whichever way the clip is oriented.
+	maxSide: 1280,
 	bitrate: 1500000,
 	fps: 30,
 	maxSeconds: 60,
@@ -89,13 +90,19 @@ async function pickConfig( width, height, bitrate, fps ) {
 /**
  * Output dimensions for a source, honouring its rotation.
  *
+ * The cap is on the **longest side**, not on the height. Capping the height
+ * would leave a 1920x1080 clip completely untouched — 1080 is already under a
+ * 1280 target — and quietly ship a landscape video at full size through a
+ * pipeline built for phones. Whichever way the clip is oriented, the long edge
+ * comes down to the target and the short edge follows.
+ *
  * Rounded to even numbers because H.264 chroma is subsampled and an odd
  * dimension is rejected outright by some encoders.
  *
- * @param {number} width    Source width.
- * @param {number} height   Source height.
+ * @param {number} width    Source coded width.
+ * @param {number} height   Source coded height.
  * @param {number} rotation Degrees.
- * @param {number} target   Target height for the short-side-up orientation.
+ * @param {number} target   Cap for the longest side.
  * @return {{width: number, height: number, swapped: boolean}}
  */
 export function outputSize( width, height, rotation, target ) {
@@ -106,9 +113,9 @@ export function outputSize( width, height, rotation, target ) {
 
 	// Never upscale. A 480p clip stays 480p rather than being inflated into a
 	// bigger file that looks exactly the same.
-	const scale = Math.min( 1, target / displayHeight );
+	const scale = Math.min( 1, target / Math.max( displayWidth, displayHeight ) );
 
-	const even = ( value ) => Math.max( 2, Math.round( value * scale / 2 ) * 2 );
+	const even = ( value ) => Math.max( 2, Math.round( ( value * scale ) / 2 ) * 2 );
 
 	return {
 		width: even( displayWidth ),
@@ -120,12 +127,25 @@ export function outputSize( width, height, rotation, target ) {
 /**
  * Wait until a codec queue has drained enough to accept more work.
  *
+ * Event-driven, not polled. A polled version looks equivalent and is not: timers
+ * are throttled hard in a background tab, and the studio is exactly the kind of
+ * screen someone starts and then switches away from. Waiting on `dequeue` is
+ * immune to that, and adds no latency of its own.
+ *
  * @param {Object} codec Encoder or decoder.
  * @param {string} key   Queue size property.
  */
 async function drain( codec, key ) {
 	while ( codec[ key ] > QUEUE_DEPTH ) {
-		await new Promise( ( resolve ) => setTimeout( resolve, 4 ) );
+		await new Promise( ( resolve ) => {
+			if ( typeof codec.addEventListener === 'function' ) {
+				codec.addEventListener( 'dequeue', resolve, { once: true } );
+				// A codec that never fires the event must not deadlock the loop.
+				setTimeout( resolve, 250 );
+				return;
+			}
+			setTimeout( resolve, 4 );
+		} );
 	}
 }
 
@@ -183,7 +203,7 @@ export async function encode( file, options = {}, onProgress = () => {} ) {
 	const source = demux( buffer );
 
 	const rotation = source.video.rotation || 0;
-	const size = outputSize( source.video.width, source.video.height, rotation, settings.height );
+	const size = outputSize( source.video.width, source.video.height, rotation, settings.maxSide );
 
 	const config = await pickConfig( size.width, size.height, settings.bitrate, settings.fps );
 	if ( ! config ) {
@@ -271,14 +291,34 @@ export async function encode( file, options = {}, onProgress = () => {} ) {
 		},
 	} );
 
-	decoder.configure( {
-		codec: 'avc1.' + [ ...source.video.description.slice( 1, 4 ) ]
-			.map( ( b ) => b.toString( 16 ).padStart( 2, '0' ) )
-			.join( '' ),
+	const decoderConfig = {
+		codec: source.video.codec,
 		description: source.video.description,
 		codedWidth: source.video.width,
 		codedHeight: source.video.height,
-	} );
+	};
+
+	// An iPhone records HEVC by default and a device without hardware HEVC
+	// decode cannot open it at all. Finding that out here gives the studio
+	// something true to say, instead of an empty output and no explanation.
+	try {
+		const support = await VideoDecoder.isConfigSupported( decoderConfig );
+		if ( ! support || ! support.supported ) {
+			const error = new Error( 'ocs_no_decoder' );
+			error.codec = source.video.codec;
+			throw error;
+		}
+	} catch ( e ) {
+		if ( 'ocs_no_decoder' === e.message ) {
+			throw e;
+		}
+		// isConfigSupported itself failing is the same answer.
+		const error = new Error( 'ocs_no_decoder' );
+		error.codec = source.video.codec;
+		throw error;
+	}
+
+	decoder.configure( decoderConfig );
 
 	for ( const sample of wanted ) {
 		if ( decodeError || encodeError ) {
@@ -371,5 +411,9 @@ export async function encode( file, options = {}, onProgress = () => {} ) {
 		duration: Math.round( duration * 100 ) / 100,
 		sourceBytes: file.size,
 		bytes: blob.size,
+		sourceCodec: source.video.codec,
+		sourceWidth: source.video.width,
+		sourceHeight: source.video.height,
+		rotation,
 	};
 }

@@ -170,6 +170,124 @@ function parseEsds( view, start, end ) {
 }
 
 /**
+ * The four-character type of the first sample entry, for error messages.
+ *
+ * @param {DataView} view File.
+ * @param {Object}   stsd Payload range of the stsd box.
+ * @return {string}
+ */
+function firstSampleEntryType( view, stsd ) {
+	let type = 'unknown';
+
+	walk( view, stsd.start + 8, stsd.end, ( boxType ) => {
+		if ( 'unknown' === type ) {
+			type = boxType;
+		}
+	} );
+
+	return type;
+}
+
+/**
+ * Codec string for an H.264 track, from its avcC.
+ *
+ * @param {string}     kind        Sample entry type.
+ * @param {Uint8Array} description avcC contents.
+ * @return {string}
+ */
+function avcCodecString( kind, description ) {
+	const hex = ( byte ) => byte.toString( 16 ).padStart( 2, '0' );
+
+	// avcC: version, profile, compatibility, level.
+	return kind + '.' + hex( description[ 1 ] ) + hex( description[ 2 ] ) + hex( description[ 3 ] );
+}
+
+/**
+ * Codec string for an HEVC track, from its hvcC.
+ *
+ * An iPhone records HEVC unless the owner has gone looking for the setting, so
+ * this is not an exotic path — it is the common one. The format is fiddly: the
+ * compatibility flags are written bit-reversed, and trailing zero constraint
+ * bytes are omitted.
+ *
+ * @param {string}     kind        Sample entry type.
+ * @param {Uint8Array} description hvcC contents.
+ * @return {string}
+ */
+export function hevcCodecString( kind, description ) {
+	const profileSpace = ( description[ 1 ] >> 6 ) & 0x03;
+	const tier = ( description[ 1 ] >> 5 ) & 0x01;
+	const profile = description[ 1 ] & 0x1f;
+
+	let compatibility = 0;
+	for ( let i = 0; i < 4; i++ ) {
+		compatibility = ( compatibility * 256 ) + description[ 2 + i ];
+	}
+
+	let reversed = 0;
+	for ( let i = 0; i < 32; i++ ) {
+		reversed = ( reversed * 2 ) + ( ( compatibility >>> i ) & 1 );
+	}
+
+	const parts = [
+		kind,
+		[ '', 'A', 'B', 'C' ][ profileSpace ] + profile,
+		reversed.toString( 16 ),
+		( tier ? 'H' : 'L' ) + description[ 12 ],
+	];
+
+	const constraints = [];
+	for ( let i = 6; i < 12; i++ ) {
+		constraints.push( description[ i ] );
+	}
+	while ( constraints.length && 0 === constraints[ constraints.length - 1 ] ) {
+		constraints.pop();
+	}
+
+	return parts.concat( constraints.map( ( byte ) => byte.toString( 16 ).toUpperCase() ) ).join( '.' );
+}
+
+/**
+ * Find the AudioSpecificConfig inside an mp4a sample entry.
+ *
+ * Where it lives depends on who wrote the file. An MP4 puts `esds` straight
+ * after a 28-byte entry. An iPhone writes QuickTime: a version-1 entry that is
+ * 44 bytes, with `esds` buried inside a `wave` atom. Miss this and every video
+ * recorded on an iPhone silently loses its sound.
+ *
+ * @param {DataView} view File.
+ * @param {Object}   mp4a Payload range of the mp4a box.
+ * @return {?Uint8Array}
+ */
+function findAudioConfig( view, mp4a ) {
+	// Version 0 entries end at 28; QuickTime version 1 adds four more longs.
+	const version = view.getUint16( mp4a.start + 8 );
+	const starts = version === 1 ? [ 44, 28, 64 ] : version === 2 ? [ 64, 28, 44 ] : [ 28, 44, 64 ];
+
+	for ( const start of starts ) {
+		const from = mp4a.start + start;
+		if ( from >= mp4a.end ) {
+			continue;
+		}
+
+		const direct = findBox( view, from, mp4a.end, 'esds' );
+		if ( direct ) {
+			return parseEsds( view, direct.start, direct.end );
+		}
+
+		const wave = findBox( view, from, mp4a.end, 'wave' );
+		if ( wave ) {
+			const nested = findBox( view, wave.start, wave.end, 'esds' );
+			if ( nested ) {
+				return parseEsds( view, nested.start, nested.end );
+			}
+		}
+	}
+
+	return null;
+}
+
+/**
  * Read the display rotation out of a tkhd matrix.
  *
  * A phone records landscape frames and marks the track "rotate 90". Ignore this
@@ -393,24 +511,50 @@ export function demux( buffer ) {
 		const samples = readSamples( view, stbl, timescale );
 
 		if ( handler === 'vide' && ! result.video ) {
-			const avc1 = findBox( view, stsd.start + 8, stsd.end, 'avc1' )
-				|| findBox( view, stsd.start + 8, stsd.end, 'avc3' );
-			if ( ! avc1 ) {
-				throw new Error( 'ocs_mp4_not_h264' );
+			// H.264 first because it is what we produce, then HEVC because it is
+			// what an iPhone records by default. Anything else we name in the
+			// error rather than failing anonymously.
+			const entries = {
+				avc1: 'avcC',
+				avc3: 'avcC',
+				hvc1: 'hvcC',
+				hev1: 'hvcC',
+			};
+
+			let sampleEntry = null;
+			let kind = '';
+
+			for ( const type of Object.keys( entries ) ) {
+				const candidate = findBox( view, stsd.start + 8, stsd.end, type );
+				if ( candidate ) {
+					sampleEntry = candidate;
+					kind = type;
+					break;
+				}
+			}
+
+			if ( ! sampleEntry ) {
+				throw new Error( 'ocs_mp4_codec_' + firstSampleEntryType( view, stsd ) );
 			}
 
 			// VisualSampleEntry is 78 bytes before the extension boxes begin.
-			const avcC = findBox( view, avc1.start + 78, avc1.end, 'avcC' );
-			if ( ! avcC ) {
-				throw new Error( 'ocs_mp4_no_avcc' );
+			const config = findBox( view, sampleEntry.start + 78, sampleEntry.end, entries[ kind ] );
+			if ( ! config ) {
+				throw new Error( 'ocs_mp4_no_decoder_config' );
 			}
+
+			const description = new Uint8Array( buffer, config.start, config.end - config.start );
 
 			result.video = {
 				timescale,
 				rotation: tkhd ? readRotation( view, tkhd ) : 0,
-				width: view.getUint16( avc1.start + 24 ),
-				height: view.getUint16( avc1.start + 26 ),
-				description: new Uint8Array( buffer, avcC.start, avcC.end - avcC.start ),
+				family: 'hvcC' === entries[ kind ] ? 'hevc' : 'avc',
+				codec: 'hvcC' === entries[ kind ]
+					? hevcCodecString( kind, description )
+					: avcCodecString( kind, description ),
+				width: view.getUint16( sampleEntry.start + 24 ),
+				height: view.getUint16( sampleEntry.start + 26 ),
+				description,
 				samples,
 			};
 			return;
@@ -423,15 +567,14 @@ export function demux( buffer ) {
 				return;
 			}
 
-			// AudioSampleEntry is 28 bytes before the extension boxes begin.
-			const esds = findBox( view, mp4a.start + 28, mp4a.end, 'esds' );
+			const config = findAudioConfig( view, mp4a );
 
 			result.audio = {
 				timescale,
 				channels: view.getUint16( mp4a.start + 16 ),
 				sampleSize: view.getUint16( mp4a.start + 18 ),
 				sampleRate: view.getUint32( mp4a.start + 24 ) >>> 16,
-				description: esds ? parseEsds( view, esds.start, esds.end ) : null,
+				description: config,
 				samples,
 			};
 		}

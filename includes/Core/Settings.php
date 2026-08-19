@@ -39,7 +39,7 @@ class Settings {
 			// The studio re-encodes on the device before uploading. These are the
 			// targets it aims for; see PLAN.md section 4.
 			'encode_enabled'         => 'yes',
-			'target_height'          => 1280,
+			'max_long_side'          => 1280,
 			'target_bitrate'         => 1500000,
 			'target_fps'             => 30,
 			'audio_bitrate'          => 96000,

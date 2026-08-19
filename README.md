@@ -21,7 +21,7 @@ engine. See [PLAN.md](PLAN.md) for the full design and the build order.
 | # | Milestone | State |
 |---|---|---|
 | 1 | Skeleton — bootstrap, schema, settings, post type, placements | done |
-| 2 | Upload pipeline — on-device encoding, chunked upload | code done, **awaiting the device test** |
+| 2 | Upload pipeline — on-device encoding, chunked upload | done, gate passed on desktop |
 | 3 | Studio — the upload and tagging screen | next |
 | 4 | Player and the circles bar |  |
 | 5 | Placement injection — hooks, shortcode, block, Elementor |  |
@@ -29,9 +29,24 @@ engine. See [PLAN.md](PLAN.md) for the full design and the build order.
 | 7 | Analytics and revenue attribution |  |
 | 8 | RTL, translations, accessibility, release |  |
 
-Milestone 2 is the gate: if on-device encoding does not hold up on a real
-mid-range Android, the storage decision changes and everything downstream changes
-with it. It gets tested on hardware before milestone 3 starts.
+### The gate
+
+Milestone 2 was the gate: if on-device encoding did not hold up, the storage
+decision changed and everything downstream changed with it.
+
+It has been run against three real files in desktop Chromium — a 1080p stock
+clip, a WhatsApp video, and a portrait iPhone `.mov`. All three re-encode, keep
+their audio, come out the right way up, and play back:
+
+| source | in | out | dimensions | speed |
+|---|---|---|---|---|
+| 1080p landscape H.264 | 7.1 MB | 1.28 MB | 1280×720 | 10× real time |
+| WhatsApp portrait H.264 | 5.97 MB | 1.66 MB | 636×848 | 10× real time |
+| iPhone HEVC, rotated 90° | 9.17 MB | 0.87 MB | 720×1280 | 9× real time |
+
+Still untested: a real phone. Desktop Chromium is not iOS Safari and is not a
+mid-range Android, and both matter. Run the page below on a handset before
+trusting the numbers on one.
 
 ### Running the gate
 

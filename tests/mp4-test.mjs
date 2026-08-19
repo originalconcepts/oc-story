@@ -170,6 +170,8 @@ check( 'reads the width', parsed.video.width === 720 );
 check( 'reads the height', parsed.video.height === 1280 );
 check( 'reads the timescale', parsed.video.timescale === TIMESCALE );
 check( 'reads rotation from the unity matrix', parsed.video.rotation === 0 );
+check( 'names the codec', parsed.video.codec === 'avc1.42e01f' );
+check( 'names the codec family', parsed.video.family === 'avc' );
 check( 'recovers every video sample', parsed.video.samples.length === FRAMES );
 check( 'recovers every audio sample', parsed.audio.samples.length === 30 );
 check( 'reads the audio sample rate', parsed.audio.sampleRate === AUDIO_TIMESCALE );
@@ -239,19 +241,40 @@ function throws( fn ) {
 check( 'rejects a file with no moov', throws( () => demux( new Uint8Array( [ 0, 0, 0, 8, 0x66, 0x74, 0x79, 0x70 ] ).buffer ) ) );
 check( 'rejects an empty buffer', throws( () => demux( new ArrayBuffer( 0 ) ) ) );
 
+print( '\nHEVC codec strings' );
+
+const { hevcCodecString } = await import( '../assets/js/mp4.js' );
+
+// The hvcC an iPhone actually writes: Main 10, level 4.0.
+const iphoneHvcC = new Uint8Array( [
+	0x01, 0x02, 0x20, 0x00, 0x00, 0x00, 0xb0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x78,
+] );
+check(
+	'derives the codec string an iPhone needs',
+	hevcCodecString( 'hvc1', iphoneHvcC ) === 'hvc1.2.4.L120.B0'
+);
+
+const mainTier = new Uint8Array( [
+	0x01, 0x21, 0x60, 0x00, 0x00, 0x00, 0x90, 0x00, 0x00, 0x00, 0x00, 0x00, 0x5d,
+] );
+check( 'reads the high tier flag', hevcCodecString( 'hvc1', mainTier ).indexOf( '.H93' ) > 0 );
+
 print( '\nOutput sizing' );
 
 const { outputSize } = await import( '../assets/js/encoder.js' );
 
 const upright = outputSize( 1080, 1920, 0, 1280 );
-check( 'scales an upright clip to the target height', upright.height === 1280 && upright.width === 720 );
+check( 'scales an upright clip to the cap', upright.height === 1280 && upright.width === 720 );
 
 const rotated = outputSize( 1920, 1080, 90, 1280 );
 check( 'treats a rotated clip as portrait', rotated.width === 720 && rotated.height === 1280 );
 check( 'flags the swap so the canvas can rotate', rotated.swapped === true );
 
 const landscape = outputSize( 1920, 1080, 0, 1280 );
-check( 'leaves a landscape clip landscape', landscape.width === 1920 && landscape.height === 1080 );
+check( 'caps a landscape clip on its long edge', landscape.width === 1280 && landscape.height === 720 );
+
+const square = outputSize( 1440, 1440, 0, 1280 );
+check( 'caps a square clip', square.width === 1280 && square.height === 1280 );
 
 const small = outputSize( 480, 854, 0, 1280 );
 check( 'never upscales', small.height === 854 && small.width === 480 );

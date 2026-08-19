@@ -139,7 +139,7 @@ class UploadController {
 				'has_ffmpeg'   => Probe::has_ffmpeg(),
 				'encode'       => array(
 					'enabled' => Settings::is( 'encode_enabled' ),
-					'height'  => (int) Settings::get( 'target_height', 1280 ),
+					'max_side' => (int) Settings::get( 'max_long_side', 1280 ),
 					'bitrate' => (int) Settings::get( 'target_bitrate', 1500000 ),
 					'fps'     => (int) Settings::get( 'target_fps', 30 ),
 					'audio'   => (int) Settings::get( 'audio_bitrate', 96000 ),

@@ -55,14 +55,14 @@ function check( $label, $condition ) {
 
 echo "\nSettings\n";
 check( 'boolean helper', \OCS\Core\Settings::is( 'analytics_enabled' ) === true );
-check( 'integer helper', \OCS\Core\Settings::int( 'target_height' ) === 1280 );
-check( 'integer helper clamps', \OCS\Core\Settings::int( 'target_height', 0, 720 ) === 720 );
-\OCS\Core\Settings::update( array( 'target_height' => 1920 ) );
-check( 'update persists', \OCS\Core\Settings::int( 'target_height' ) === 1920 );
+check( 'integer helper', \OCS\Core\Settings::int( 'max_long_side' ) === 1280 );
+check( 'integer helper clamps', \OCS\Core\Settings::int( 'max_long_side', 0, 720 ) === 720 );
+\OCS\Core\Settings::update( array( 'max_long_side' => 1920 ) );
+check( 'update persists', \OCS\Core\Settings::int( 'max_long_side' ) === 1920 );
 \OCS\Core\Settings::update( array( 'not_a_setting' => 'x' ) );
 check( 'unknown keys are not stored', \OCS\Core\Settings::get( 'not_a_setting' ) === null );
 check( 'unknown key returns the default', \OCS\Core\Settings::get( 'nope', 'fallback' ) === 'fallback' );
-\OCS\Core\Settings::update( array( 'target_height' => 1280 ) );
+\OCS\Core\Settings::update( array( 'max_long_side' => 1280 ) );
 
 echo "\nFeatures\n";
 check( 'ungated capability is always available', \OCS\Core\Features::has( 'circles' ) === true );

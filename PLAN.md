@@ -187,14 +187,24 @@ only one that can fail in a way we cannot work around.
 `assets/js/encoder.js`, loaded only inside the studio:
 
 1. `VideoDecoder` + `VideoEncoder` (WebCodecs) decode the source and re-encode to
-   H.264 `avc1.4D401F`, target height 1280, ~1.5 Mbps, 30 fps, AAC 96 kbps mono.
+   H.264 Baseline `avc1.42E01F` — no B-frames, so presentation order is decode
+   order and the muxer never reorders. The longest edge is capped at 1280 and
+   ~1.5 Mbps.
+   Sources are H.264 **or HEVC**: an iPhone records `hvc1` unless its owner has
+   gone looking for the setting, so HEVC input is the common case, not an exotic
+   one. Output is always H.264, which plays everywhere.
 2. An MP4 muxer writes the output with the **moov atom first** (`faststart`).
    Without it iOS Safari downloads the entire file before showing frame one, and
    `preload="none"` stops helping.
-3. Frame at `t = 0.1s` goes to a canvas → WebP → the poster.
-4. Result is uploaded in chunks.
+3. The audio track is **copied through, sample for sample** — phone audio is
+   already AAC at a bitrate we would not improve on. No `AudioEncoder` exists in
+   this pipeline at all.
+4. First decoded frame goes to a canvas → WebP → the poster.
+5. Result is uploaded in chunks.
 
-Typical: an 84 MB iPhone clip becomes 6–9 MB in about ten seconds on-device.
+Measured on desktop Chromium against three real files (see §11): 8 seconds of
+1080p re-encodes in 0.8s — about 10× real time. A 9.2 MB portrait iPhone HEVC
+clip came out at 0.87 MB, 720×1280, right way up, with its audio.
 
 **Fallback chain** when `VideoEncoder` is unavailable (~5% of traffic):
 server-side `ffmpeg` if `Media\Probe::has_ffmpeg()` finds it (own servers do),
@@ -390,6 +400,25 @@ A visitor who never taps a circle downloads not one byte of video.
 ---
 
 ## 11. Things that will bite you
+
+**An iPhone records HEVC, not H.264.** `hvc1` in a QuickTime-branded `.mov` is
+the default. A demuxer that only knows `avc1` rejects the single most common file
+a shop owner will ever hand it.
+
+**The AudioSpecificConfig is not where MP4 says it is.** An MP4 puts `esds`
+straight after a 28-byte `mp4a` entry. An iPhone writes a version-1 QuickTime
+entry, 44 bytes, with `esds` buried inside a `wave` atom. Looking in only the
+first place loses the sound on every iPhone video, silently.
+
+**Cap the longest edge, not the height.** Capping height leaves a 1920×1080 clip
+completely untouched — 1080 is already under a 1280 target — and ships a full-size
+landscape video through a pipeline built for phones.
+
+**Never poll for codec backpressure.** Waiting on the queue with
+`setTimeout` looks equivalent to waiting on the `dequeue` event and is not: timers
+are throttled hard in a background tab, and the studio is exactly the screen
+someone starts and switches away from. Measured cost of getting this wrong: 68.8 ms
+per frame instead of 3 ms. The codecs were never the bottleneck; the waiting was.
 
 **faststart is not optional.** An MP4 with the moov atom at the end forces mobile
 Safari to fetch the whole file before the first frame. It looks fine on desktop
