@@ -23,8 +23,8 @@ engine. See [PLAN.md](PLAN.md) for the full design and the build order.
 | 1 | Skeleton — bootstrap, schema, settings, post type, placements | done |
 | 2 | Upload pipeline — on-device encoding, chunked upload | done, gate passed on desktop |
 | 3 | Studio — the upload and tagging screen | done |
-| 4 | Player and the circles bar | next |
-| 5 | Placement injection — hooks, shortcode, block, Elementor |  |
+| 4 | Player and the circles bar | done |
+| 5 | Placement injection — the placements screen, block, Elementor | next |
 | 6 | Slider and product-page surfaces |  |
 | 7 | Analytics and revenue attribution |  |
 | 8 | RTL, translations, accessibility, release |  |
@@ -47,6 +47,20 @@ their audio, come out the right way up, and play back:
 Still untested: a real phone. Desktop Chromium is not iOS Safari and is not a
 mid-range Android, and both matter. Run the page below on a handset before
 trusting the numbers on one.
+
+### The front-end budget
+
+`tests/budget.mjs` enforces PLAN.md §10 in CI. Current headroom:
+
+| asset | size | budget |
+|---|---|---|
+| `bar.css` (inlined) | 1,595 raw | 2,048 |
+| `bar.js` (initial) | 2,039 gzip | 4,096 |
+| `player.js` (on first tap) | 3,636 gzip | 16,384 |
+| `player.css` (on first tap) | 1,159 gzip | 5,120 |
+
+A visitor who never taps a circle downloads the posters, two kilobytes of
+JavaScript, and no video at all.
 
 ### Running the gate
 

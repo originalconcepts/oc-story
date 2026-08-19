@@ -92,6 +92,8 @@ class Story {
 			set_post_thumbnail( $story_id, (int) $clean[0]['poster'] );
 		}
 
+		self::bump_version();
+
 		do_action( 'ocs_story_updated', $story_id, $clean );
 
 		return $clean;
@@ -393,6 +395,8 @@ class Story {
 			self::set_slides( $story_id, $args['slides'] );
 		}
 
+		self::bump_version();
+
 		if ( array_key_exists( 'poster', $args ) ) {
 			$poster = (int) $args['poster'];
 			if ( $poster ) {
@@ -403,6 +407,41 @@ class Story {
 		}
 
 		return $story_id;
+	}
+
+	/**
+	 * Several stories at once, resolving every product in a single query.
+	 *
+	 * The rule that governs display code: never look a product up inside a
+	 * loop. A bar with twelve circles must not become twelve queries.
+	 *
+	 * @param \WP_Post[] $posts Story posts.
+	 * @return array<int,array>
+	 */
+	public static function to_array_many( array $posts ) {
+		$slides = array();
+		$ids    = array();
+
+		foreach ( $posts as $post ) {
+			$slides[ $post->ID ] = self::slides( $post->ID );
+			foreach ( $slides[ $post->ID ] as $slide ) {
+				foreach ( $slide['products'] as $product ) {
+					$ids[] = $product['id'];
+				}
+			}
+		}
+
+		$catalogue = Products::summaries( $ids );
+
+		$out = array();
+		foreach ( $posts as $post ) {
+			$story = self::assemble( $post, $slides[ $post->ID ], $catalogue );
+			if ( $story ) {
+				$out[] = $story;
+			}
+		}
+
+		return $out;
 	}
 
 	/**
@@ -421,16 +460,27 @@ class Story {
 
 		$slides = self::slides( $post->ID );
 
-		// One lookup for every product across every slide, not one per slide.
 		$ids = array();
 		foreach ( $slides as $slide ) {
 			foreach ( $slide['products'] as $product ) {
 				$ids[] = $product['id'];
 			}
 		}
-		$catalogue = Products::summaries( $ids );
 
+		return self::assemble( $post, $slides, Products::summaries( $ids ) );
+	}
+
+	/**
+	 * Build the public shape from parts that have already been fetched.
+	 *
+	 * @param \WP_Post $post      Story post.
+	 * @param array    $slides    Normalised slides.
+	 * @param array    $catalogue Product summaries keyed by ID.
+	 * @return array
+	 */
+	protected static function assemble( $post, array $slides, array $catalogue ) {
 		$out = array();
+
 		foreach ( $slides as $slide ) {
 			$source = \OCS\Media\SourceManager::get( $slide['source'] );
 
@@ -478,6 +528,85 @@ class Story {
 				: ( isset( $out[0]['poster_url'] ) ? $out[0]['poster_url'] : '' ),
 			'slides'     => $out,
 		);
+	}
+
+	/**
+	 * The compact shape the player reads.
+	 *
+	 * Short keys on purpose: this travels in the HTML of every page a bar
+	 * appears on, and `poster_url` spelled out forty times is a real number.
+	 * Slides with nothing playable are dropped rather than rendered as a gap.
+	 *
+	 * @param array $stories Stories from to_array()/to_array_many().
+	 * @return array
+	 */
+	public static function to_payload( array $stories ) {
+		$out = array();
+
+		foreach ( $stories as $story ) {
+			$slides = array();
+
+			foreach ( $story['slides'] as $slide ) {
+				if ( '' === $slide['url'] ) {
+					continue;
+				}
+
+				$products = array();
+				foreach ( $slide['products'] as $product ) {
+					$products[] = array(
+						'i' => $product['id'],
+						'n' => $product['name'],
+						'p' => $product['price'],
+						'u' => $product['url'],
+						't' => $product['thumb'],
+						'x' => $product['x'],
+						'y' => $product['y'],
+					);
+				}
+
+				$slides[] = array(
+					'i'  => $slide['id'],
+					'u'  => $slide['url'],
+					'p'  => $slide['poster_url'],
+					'w'  => $slide['w'],
+					'h'  => $slide['h'],
+					'd'  => $slide['duration'],
+					'pr' => $products,
+				);
+			}
+
+			if ( ! $slides ) {
+				continue;
+			}
+
+			$out[] = array(
+				'i' => (int) $story['id'],
+				't' => $story['title'],
+				's' => $slides,
+			);
+		}
+
+		return $out;
+	}
+
+	/**
+	 * A counter that changes whenever anything a bar renders changes.
+	 *
+	 * Rendered bars are cached, and this is what expires them. Bumping one
+	 * option is cheaper and far more reliable than trying to work out which
+	 * placements a given story appears in.
+	 *
+	 * @return int
+	 */
+	public static function version() {
+		return (int) get_option( 'ocs_stories_version', 1 );
+	}
+
+	/**
+	 * Invalidate every cached bar.
+	 */
+	public static function bump_version() {
+		update_option( 'ocs_stories_version', self::version() + 1, true );
 	}
 
 	/**
@@ -547,6 +676,8 @@ class Story {
 			clean_post_cache( $id );
 			++$moved;
 		}
+
+		self::bump_version();
 
 		return $moved;
 	}

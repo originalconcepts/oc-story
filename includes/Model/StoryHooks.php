@@ -46,6 +46,7 @@ class StoryHooks {
 		}
 
 		Story::clear_index( $post_id );
+		Story::bump_version();
 	}
 
 	/**

@@ -49,3 +49,8 @@ jobs:
       # tests/encoder-test.html answers, on the phone.
       - name: Round trip the MP4 muxer
         run: node tests/mp4-test.mjs
+
+      # PLAN.md section 10 sets what the storefront may download. Checking it
+      # here is what stops the budget quietly becoming a paragraph.
+      - name: Check the front-end performance budget
+        run: node tests/budget.mjs

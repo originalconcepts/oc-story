@@ -1,0 +1,200 @@
+<?php
+/**
+ * Placing surfaces on the page.
+ *
+ * @package OC_Story
+ */
+
+namespace OCS\Display;
+
+use OCS\Model\Placement;
+use OCS\Model\Story;
+use OCS\Surfaces\SurfaceManager;
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Works out which placements apply to this request, and hooks only those.
+ *
+ * Evaluation happens once on `wp`, before anything renders, so a page with no
+ * placement on it registers nothing at all: no hooks, no query, no assets. That
+ * is what lets the plugin be installed on a shop and be genuinely absent from
+ * the pages it is not wanted on.
+ */
+class Injector {
+
+	/**
+	 * Placements that apply to this request.
+	 *
+	 * @var array<int,array>
+	 */
+	protected $active = array();
+
+	/**
+	 * Whether anything at all will render.
+	 *
+	 * @var bool
+	 */
+	protected static $anything = false;
+
+	/**
+	 * Constructor.
+	 */
+	public function __construct() {
+		add_action( 'wp', array( $this, 'route' ), 20 );
+	}
+
+	/**
+	 * Decide what renders where.
+	 */
+	public function route() {
+		if ( is_admin() || is_feed() || is_embed() ) {
+			return;
+		}
+
+		$context = self::context();
+
+		foreach ( Placement::all() as $placement ) {
+			if ( ! $placement['enabled'] || 'manual' === $placement['hook'] ) {
+				continue;
+			}
+
+			$surface = SurfaceManager::get( $placement['surface'] );
+			if ( ! $surface || ! $surface->supports( $context ) ) {
+				continue;
+			}
+
+			if ( ! Placement::matches( $placement['where'], $context ) ) {
+				continue;
+			}
+
+			$this->active[] = $placement;
+			self::$anything = true;
+
+			add_action(
+				$placement['hook'],
+				function () use ( $placement, $context ) {
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					echo self::render( $placement, $context );
+				},
+				(int) $placement['priority']
+			);
+		}
+	}
+
+	/**
+	 * Does anything render on this request?
+	 *
+	 * @return bool
+	 */
+	public static function anything() {
+		return self::$anything;
+	}
+
+	/**
+	 * The request, reduced to what the placement rules need.
+	 *
+	 * @return array
+	 */
+	public static function context() {
+		$product_id = 0;
+		$terms      = array();
+
+		if ( function_exists( 'is_product' ) && is_product() ) {
+			$product_id = (int) get_queried_object_id();
+			$terms      = wp_get_post_terms( $product_id, 'product_cat', array( 'fields' => 'ids' ) );
+		} elseif ( function_exists( 'is_product_category' ) && ( is_product_category() || is_product_tag() ) ) {
+			$terms = array( (int) get_queried_object_id() );
+		}
+
+		return array(
+			'is_front'   => is_front_page(),
+			'is_shop'    => function_exists( 'is_shop' ) && is_shop(),
+			'is_product' => (bool) $product_id,
+			'post_id'    => is_singular() ? (int) get_queried_object_id() : 0,
+			'product_id' => $product_id,
+			'term_ids'   => is_wp_error( $terms ) ? array() : array_map( 'intval', (array) $terms ),
+		);
+	}
+
+	/**
+	 * Render one placement, from cache when we can.
+	 *
+	 * The markup carries no nonce and nothing per-visitor, so one rendered bar
+	 * is correct for everyone who sees that page. The cache key holds a version
+	 * stamp that any story edit bumps, which is both simpler and more reliable
+	 * than working out which bars a given story appears in.
+	 *
+	 * @param array $placement Placement.
+	 * @param array $context   Request context.
+	 * @return string
+	 */
+	public static function render( array $placement, array $context ) {
+		$surface = SurfaceManager::get( $placement['surface'] );
+
+		if ( ! $surface ) {
+			return '';
+		}
+
+		$key = 'ocs_bar_' . md5(
+			wp_json_encode(
+				array(
+					$placement,
+					Story::version(),
+					'tagged' === $placement['stories']['mode'] ? $context['product_id'] : 0,
+					is_rtl(),
+				)
+			)
+		);
+
+		$cached = get_transient( $key );
+		if ( is_string( $cached ) ) {
+			return $cached;
+		}
+
+		$stories = self::stories_for( $placement, $context );
+		$html    = $stories ? $surface->render( $stories, $placement ) : '';
+
+		set_transient( $key, $html, 12 * HOUR_IN_SECONDS );
+
+		return $html;
+	}
+
+	/**
+	 * Which stories this placement shows.
+	 *
+	 * @param array $placement Placement.
+	 * @param array $context   Request context.
+	 * @return array
+	 */
+	protected static function stories_for( array $placement, array $context ) {
+		$mode  = $placement['stories']['mode'];
+		$limit = max( (int) $placement['desktop']['max'], (int) $placement['mobile']['max'] );
+
+		if ( 'selected' === $mode ) {
+			$posts = Story::published(
+				array(
+					'limit'   => $limit,
+					'include' => $placement['stories']['ids'],
+				)
+			);
+		} elseif ( 'tagged' === $mode ) {
+			$ids = $context['product_id'] ? Story::for_product( $context['product_id'], $limit ) : array();
+
+			if ( ! $ids ) {
+				return array();
+			}
+
+			$posts = Story::published(
+				array(
+					'limit'   => $limit,
+					'include' => $ids,
+				)
+			);
+		} else {
+			$posts = Story::published( array( 'limit' => $limit ) );
+		}
+
+		return $posts ? Story::to_array_many( $posts ) : array();
+	}
+}

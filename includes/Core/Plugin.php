@@ -90,6 +90,10 @@ final class Plugin {
 			$map['admin'] = \OCS\Admin\Menu::class;
 		}
 
+		// Placement validation has to know which surfaces actually exist, and
+		// the registry is the only thing that does.
+		add_filter( 'ocs_surface_ids', array( \OCS\Surfaces\SurfaceManager::class, 'ids' ) );
+
 		foreach ( $map as $key => $class ) {
 			if ( class_exists( $class ) ) {
 				$this->modules[ $key ] = new $class();

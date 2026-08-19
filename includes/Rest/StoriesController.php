@@ -22,6 +22,25 @@ class StoriesController {
 	public function register_routes() {
 		$ns = Routes::NAMESPACE_V1;
 
+		// Public, no nonce, safe to serve from a cache. It is only reached when
+		// a bar was too large to inline, and it exposes exactly what that bar
+		// would have carried in its own HTML anyway.
+		register_rest_route(
+			$ns,
+			'/stories',
+			array(
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'payload' ),
+				'permission_callback' => '__return_true',
+				'args'                => array(
+					'ids' => array(
+						'type'    => 'string',
+						'default' => '',
+					),
+				),
+			)
+		);
+
 		register_rest_route(
 			$ns,
 			'/admin/stories',
@@ -77,6 +96,44 @@ class StoriesController {
 				),
 			)
 		);
+	}
+
+	/**
+	 * The player payload for a set of published stories.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return \WP_REST_Response
+	 */
+	public function payload( $request ) {
+		$ids = array_slice(
+			array_values( array_filter( array_map( 'absint', explode( ',', (string) $request['ids'] ) ) ) ),
+			0,
+			50
+		);
+
+		if ( ! $ids ) {
+			return rest_ensure_response( array() );
+		}
+
+		$key    = 'ocs_payload_' . md5( implode( ',', $ids ) . '|' . Story::version() );
+		$cached = get_transient( $key );
+
+		if ( ! is_array( $cached ) ) {
+			$posts  = Story::published(
+				array(
+					'limit'   => count( $ids ),
+					'include' => $ids,
+				)
+			);
+			$cached = $posts ? Story::to_payload( Story::to_array_many( $posts ) ) : array();
+
+			set_transient( $key, $cached, 12 * HOUR_IN_SECONDS );
+		}
+
+		$response = rest_ensure_response( $cached );
+		$response->header( 'Cache-Control', 'public, max-age=300' );
+
+		return $response;
 	}
 
 	/**
