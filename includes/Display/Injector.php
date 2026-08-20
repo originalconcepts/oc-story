@@ -171,18 +171,29 @@ class Injector {
 				);
 			} else {
 				// No loop is coming, so no action inside the page will fire.
-				// wp_body_open was tried here first and put the bar above the
-				// site header, which looks broken. The whole page is buffered
-				// instead and the bar lands right after the header closes —
-				// the position a person means by "the top of the page".
+				// The page is buffered and the bar lands right after the header
+				// closes — the position a person means by "the top of the page".
+				//
+				// The bar is rendered HERE, at template_redirect, and only the
+				// finished string travels into the buffer callback. Rendering
+				// inside the callback is a fatal: PHP forbids ob_start() within
+				// an output-buffer handler, and the surface templates buffer.
+				// The first version made exactly that mistake, and it hid
+				// behind the render cache — every test hit a warm transient and
+				// returned a string without templating. The first cache miss
+				// after a version bump white-screened the whole site.
 				add_action(
 					'template_redirect',
 					function () use ( $emit ) {
-						ob_start(
-							function ( $html ) use ( $emit ) {
-								$bar = $emit();
+						$bar = $emit();
 
-								if ( '' === $bar || ! is_string( $html ) ) {
+						if ( '' === $bar ) {
+							return;
+						}
+
+						ob_start(
+							function ( $html ) use ( $bar ) {
+								if ( ! is_string( $html ) ) {
 									return $html;
 								}
 

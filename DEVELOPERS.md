@@ -227,6 +227,16 @@ storefront fetches by URL must too.
 zones cover the whole stage at z2; the sound toggle sat under them and every
 touch turned the page instead. If it can be tapped, give it z-index 5.
 
+**Never render inside an output-buffer callback.** PHP forbids `ob_start()`
+within a buffer handler, and the surface templates buffer — so the auto
+placement's after-the-header injection must render at `template_redirect` and
+splice only the finished string in its callback. The first version rendered in
+the callback and took the whole site down with a white screen. It passed every
+check first, which is the second lesson: **the render cache can validate a
+broken renderer.** A warm transient returned a string and skipped templating
+entirely; the fatal waited for the first cache miss after a version bump.
+Verifying anything cached means bumping the version first and testing cold.
+
 **Do not "fix" the play triangle for RTL.** A play control points right in
 every language; mirrored, it reads as rewind. Same for pin coordinates: the
 video frame never mirrors, so x/y are physical, left-origin, everywhere.
