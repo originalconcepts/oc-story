@@ -90,6 +90,9 @@ function build( cfg ) {
 	ahead.style.display = 'none';
 
 	// The variations sheet, hidden until a Buy needs choices.
+	const toast = el( 'div', 'ocsp__toast' );
+	toast.hidden = true;
+
 	const sheet = el( 'div', 'ocsp__sheet' );
 	sheet.hidden = true;
 	const sheetTitle = el( 'b', 'ocsp__sheet-title' );
@@ -103,10 +106,10 @@ function build( cfg ) {
 	sheetFoot.append( sheetPrice, sheetAdd );
 	sheet.append( sheetHead, sheetBody, sheetFoot );
 
-	stage.append( blur, image, video, pins, bars, top, unmute, prev, next, products, ahead, sheet );
+	stage.append( blur, image, video, pins, bars, top, unmute, prev, next, products, ahead, toast, sheet );
 	root.append( stage );
 
-	return { root, stage, blur, image, video, ahead, bars, title, close, unmute, prev, next, products, pins, sheet, sheetTitle, sheetClose, sheetBody, sheetPrice, sheetAdd };
+	return { root, stage, blur, image, video, ahead, bars, title, close, unmute, prev, next, products, pins, toast, sheet, sheetTitle, sheetClose, sheetBody, sheetPrice, sheetAdd };
 }
 
 /* ------------------------------------------------------------------ paint */
@@ -283,6 +286,21 @@ function api( path, init ) {
 	} );
 }
 
+let toastTimer = 0;
+
+function showToast( message ) {
+	if ( ! message ) {
+		return;
+	}
+
+	ui.toast.textContent = message;
+	ui.toast.hidden = false;
+	clearTimeout( toastTimer );
+	toastTimer = setTimeout( () => {
+		ui.toast.hidden = true;
+	}, 2800 );
+}
+
 function postCart( body, button ) {
 	const i18n = state.cfg.i18n || {};
 	const label = button.textContent;
@@ -303,8 +321,18 @@ function postCart( body, button ) {
 		button.textContent = i18n.added || 'Added';
 		button.classList.add( 'is-added' );
 		button.disabled = false;
+
+		// The header's mini cart updates on the spot when the theme listens
+		// for WooCommerce fragments; harmless when nothing does.
+		if ( window.jQuery ) {
+			window.jQuery( document.body ).trigger( 'wc_fragment_refresh' );
+		}
+
 		return true;
-	} ).catch( () => {
+	} ).catch( ( error ) => {
+		// WooCommerce's own words — "sold individually", "not enough stock" —
+		// not a shrug.
+		showToast( error && error.message );
 		button.textContent = i18n.unavailable || '—';
 		setTimeout( () => {
 			button.textContent = label;
@@ -332,7 +360,6 @@ function openSheet( product ) {
 	const i18n = state.cfg.i18n || {};
 
 	state.sheetFor = product;
-	pausePlayback();
 
 	ui.sheetTitle.textContent = product.n;
 	ui.sheetBody.replaceChildren( el( 'p', 'ocsp__sheet-wait', { text: '…' } ) );
@@ -389,23 +416,70 @@ function buildSheet( product, data ) {
 	ui.sheetBody.replaceChildren(
 		...data.attributes.map( ( attribute ) => {
 			const wrap = el( 'div', 'ocsp__opt-group' );
-			wrap.append( el( 'span', 'ocsp__opt-label', { text: attribute.label } ) );
+			const label = el( 'span', 'ocsp__opt-label', { text: attribute.label } );
+			const picked = el( 'b', 'ocsp__opt-picked' );
+			label.append( picked );
+			wrap.append( label );
 
 			// One option is not a choice. Pre-select it, so a product with a
 			// single colour is one tap from the cart instead of a quiz.
 			const lone = 1 === attribute.options.length;
+			const style = attribute.style || 'button';
+
+			const pick = ( option ) => {
+				chosen[ attribute.name ] = option.slug;
+				picked.textContent = ': ' + option.label;
+			};
+
+			if ( 'select' === style && ! lone ) {
+				// The theme shows a dropdown here, so the sheet does too.
+				const select = el( 'select', 'ocsp__opt-select' );
+				select.append( el( 'option', '', { value: '', text: '—' } ) );
+				attribute.options.forEach( ( option ) => {
+					select.append( el( 'option', '', { value: option.slug, text: option.label } ) );
+				} );
+
+				select.addEventListener( 'change', () => {
+					const option = attribute.options.find( ( o ) => o.slug === select.value );
+					if ( option ) {
+						pick( option );
+					} else {
+						delete chosen[ attribute.name ];
+						picked.textContent = '';
+					}
+					resolve();
+				} );
+
+				wrap.append( select );
+				return wrap;
+			}
 
 			const row = el( 'div', 'ocsp__opts' );
 			row.append(
 				...attribute.options.map( ( option ) => {
-					const pill = el( 'button', 'ocsp__opt', { type: 'button', text: option.label, 'aria-pressed': lone ? 'true' : 'false' } );
+					let pill;
+
+					if ( 'swatch' === style && ( option.color || option.image ) ) {
+						// The theme's own swatch: the term's colour or image.
+						pill = el( 'button', 'ocsp__opt ocsp__opt--swatch', {
+							type: 'button',
+							title: option.label,
+							'aria-label': option.label,
+							'aria-pressed': lone ? 'true' : 'false',
+							style: option.image
+								? 'background-image:url(' + option.image + ')'
+								: 'background-color:' + option.color,
+						} );
+					} else {
+						pill = el( 'button', 'ocsp__opt', { type: 'button', text: option.label, 'aria-pressed': lone ? 'true' : 'false' } );
+					}
 
 					if ( lone ) {
-						chosen[ attribute.name ] = option.slug;
+						pick( option );
 					}
 
 					pill.addEventListener( 'click', () => {
-						chosen[ attribute.name ] = option.slug;
+						pick( option );
 						Array.from( row.children ).forEach( ( sibling ) => sibling.setAttribute( 'aria-pressed', 'false' ) );
 						pill.setAttribute( 'aria-pressed', 'true' );
 						resolve();
@@ -437,9 +511,20 @@ function closeSheet( instant ) {
 
 	if ( instant ) {
 		hide();
-	} else {
-		setTimeout( hide, 220 );
-		resumePlayback();
+		return;
+	}
+
+	setTimeout( hide, 220 );
+
+	// The story kept playing under the sheet; if it reached its end while the
+	// shopper was choosing, it moves on now.
+	if ( isImage() ) {
+		const current = slide();
+		if ( clockNow() >= ( ( current && current.d ) || 5 ) ) {
+			go( 1 );
+		}
+	} else if ( ui.video.ended ) {
+		go( 1 );
 	}
 }
 
@@ -488,6 +573,9 @@ function paintProgress() {
 	}
 
 	if ( image && total && clockNow() >= total ) {
+		if ( ! ui.sheet.hidden ) {
+			return;
+		}
 		if ( state.qi === story().s.length - 1 ) {
 			track( 'd' );
 		}
@@ -615,6 +703,14 @@ function bindGestures() {
 	let moved = false;
 
 	ui.stage.addEventListener( 'pointerdown', ( e ) => {
+		// The strip, the sheet, the pins and the top controls are for touching:
+		// scrolling products or tapping Buy must not pause the story under it.
+		if ( e.target.closest( '.ocsp__products, .ocsp__sheet, .ocsp__top, .ocsp__unmute, .ocsp__pin' ) ) {
+			held = null;
+			moved = false;
+			return;
+		}
+
 		x0 = e.clientX;
 		y0 = e.clientY;
 		moved = false;
@@ -677,6 +773,12 @@ function bindGestures() {
 
 	ui.video.addEventListener( 'timeupdate', paintProgress );
 	ui.video.addEventListener( 'ended', () => {
+		// Someone mid-choice in the sheet keeps their slide; the story resumes
+		// its course when the sheet closes.
+		if ( ! ui.sheet.hidden ) {
+			return;
+		}
+
 		// The last slide finishing on its own is the only thing counted as
 		// watching to the end — skipping ahead is interest, not completion.
 		if ( state && state.qi === story().s.length - 1 ) {

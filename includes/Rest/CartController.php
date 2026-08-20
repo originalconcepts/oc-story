@@ -76,15 +76,26 @@ class CartController {
 				$row = array(
 					'name'    => 'attribute_' . sanitize_title( $attribute ),
 					'label'   => wc_attribute_label( $attribute, $product ),
+					'style'   => $this->attribute_style( $attribute ),
 					'options' => array(),
 				);
 
 				foreach ( (array) $options as $option ) {
-					$term          = taxonomy_exists( $attribute ) ? get_term_by( 'slug', $option, $attribute ) : null;
-					$row['options'][] = array(
+					$term  = taxonomy_exists( $attribute ) ? get_term_by( 'slug', $option, $attribute ) : null;
+					$entry = array(
 						'slug'  => $option,
 						'label' => $term instanceof \WP_Term ? $term->name : $option,
 					);
+
+					// The OC Theme's swatch scheme: colour and image live on the
+					// term, the attribute type decides which leads. Read behind
+					// a filter so another theme's scheme can plug its own in.
+					if ( $term instanceof \WP_Term ) {
+						$entry['color'] = (string) get_term_meta( $term->term_id, 'oc_swatch_color', true );
+						$entry['image'] = (string) get_term_meta( $term->term_id, 'oc_swatch_image', true );
+					}
+
+					$row['options'][] = apply_filters( 'ocs_sheet_option', $entry, $attribute, $product );
 				}
 
 				$out['attributes'][] = $row;
@@ -112,6 +123,40 @@ class CartController {
 	}
 
 	/**
+	 * How the sheet renders one attribute, following the theme's own choice.
+	 *
+	 * WooCommerce stores a type on every global attribute; the OC Theme adds
+	 * 'button', 'swatch' and 'swatch_image' to the stock 'select'. The sheet
+	 * mirrors whatever the product page shows, so the story never feels like a
+	 * different shop.
+	 *
+	 * @param string $attribute Attribute taxonomy name.
+	 * @return string 'swatch' | 'button' | 'select'.
+	 */
+	protected function attribute_style( $attribute ) {
+		$style = 'select';
+
+		if ( function_exists( 'wc_attribute_taxonomy_id_by_name' ) && function_exists( 'wc_get_attribute' ) ) {
+			$id = wc_attribute_taxonomy_id_by_name( $attribute );
+
+			if ( $id ) {
+				$meta = wc_get_attribute( $id );
+				$type = $meta ? (string) $meta->type : 'select';
+
+				if ( in_array( $type, array( 'swatch', 'swatch_image' ), true ) ) {
+					$style = 'swatch';
+				} elseif ( 'button' === $type ) {
+					$style = 'button';
+				}
+			}
+		} else {
+			$style = 'button';
+		}
+
+		return (string) apply_filters( 'ocs_sheet_attribute_style', $style, $attribute );
+	}
+
+	/**
 	 * Put a product in the shopper's cart.
 	 *
 	 * @param \WP_REST_Request $request Request.
@@ -130,6 +175,13 @@ class CartController {
 
 		if ( null === WC()->cart ) {
 			return new \WP_Error( 'ocs_no_cart', __( 'The shop is not available.', 'oc-story' ), array( 'status' => 500 ) );
+		}
+
+		// A guest's cart lives in a session the browser has to be told about.
+		// Without this cookie the item is saved to a session no future request
+		// carries, and the cart looks empty the moment they leave the story.
+		if ( ! is_user_logged_in() && WC()->session && is_callable( array( WC()->session, 'set_customer_session_cookie' ) ) ) {
+			WC()->session->set_customer_session_cookie( true );
 		}
 
 		$product_id   = absint( $request['product'] );
@@ -167,7 +219,28 @@ class CartController {
 		$added = WC()->cart->add_to_cart( $product_id, 1, $variation_id, $attributes, $item_data );
 
 		if ( ! $added ) {
-			return new \WP_Error( 'ocs_not_added', __( 'That combination is not available.', 'oc-story' ), array( 'status' => 400 ) );
+			// WooCommerce queued the real reason as a notice — "sold
+			// individually", "not enough stock" — and the shopper deserves it
+			// verbatim rather than a shrug.
+			$message = __( 'That combination is not available.', 'oc-story' );
+
+			if ( function_exists( 'wc_get_notices' ) ) {
+				foreach ( wc_get_notices( 'error' ) as $notice ) {
+					$text = is_array( $notice ) ? (string) ( $notice['notice'] ?? '' ) : (string) $notice;
+					$text = trim( wp_strip_all_tags( $text ) );
+					if ( '' !== $text ) {
+						$message = $text;
+						break;
+					}
+				}
+				wc_clear_notices();
+			}
+
+			return new \WP_Error( 'ocs_not_added', $message, array( 'status' => 400 ) );
+		}
+
+		if ( function_exists( 'wc_clear_notices' ) ) {
+			wc_clear_notices();
 		}
 
 		if ( null !== $claim ) {

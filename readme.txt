@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.2.1
+Stable tag: 0.2.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,18 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.2.2 =
+* Scrolling the product cards or adding to the cart no longer pauses the
+  video. The story keeps playing under the variations sheet, and waits to
+  advance until the sheet closes.
+* The sheet mirrors the theme's own attribute display: colour swatches where
+  the product page shows swatches, buttons where it shows buttons, a dropdown
+  where it shows a dropdown — with the chosen value named beside the label.
+* When WooCommerce refuses an add — sold individually, not enough stock — its
+  actual reason now appears, instead of a generic "unavailable".
+* Guest carts survive: the session cookie is now set when a guest adds from a
+  story, and the header mini-cart refreshes on the spot.
 
 = 0.2.1 =
 * The sound button works and is a real toggle: it sat underneath the tap zones,
