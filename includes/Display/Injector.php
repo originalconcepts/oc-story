@@ -307,11 +307,16 @@ class Injector {
 			return '';
 		}
 
+		// OCS_VERSION is part of the key on purpose. Without it, an update that
+		// changes what a bar renders — or what the payload carries — keeps
+		// serving yesterday's HTML for up to twelve hours after the deploy,
+		// and the new code looks broken while it is in fact never running.
 		$key = 'ocs_bar_' . md5(
 			wp_json_encode(
 				array(
 					$placement,
 					Story::version(),
+					OCS_VERSION,
 					'tagged' === $placement['stories']['mode'] ? $context['product_id'] : 0,
 					is_rtl(),
 				)

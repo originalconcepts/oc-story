@@ -273,6 +273,12 @@ late.
 **The events endpoint answers 204 to everything.** An error body invites
 retries and tells a prober what the filter rejected.
 
+**The render cache is keyed on the plugin version too.** Content changes bump
+`ocs_stories_version`, but a *code* change does not — so without `OCS_VERSION`
+in the transient key, the first deploy after a payload change serves the old
+HTML for twelve hours and the new code appears not to work. This was found by
+reading the live payload after a deploy and finding the new keys missing.
+
 **A card is a link wrapping an image, and the browser wants to drag both.**
 Native link and image dragging cancels the pointer stream the moment the mouse
 moves, so a hand-rolled drag on such a row does nothing at all. It needs

@@ -115,7 +115,9 @@ class StoriesController {
 			return rest_ensure_response( array() );
 		}
 
-		$key    = 'ocs_payload_' . md5( implode( ',', $ids ) . '|' . Story::version() );
+		// The plugin version belongs in the key: the payload's shape changes
+		// with the code, not with the content.
+		$key    = 'ocs_payload_' . md5( implode( ',', $ids ) . '|' . Story::version() . '|' . OCS_VERSION );
 		$cached = get_transient( $key );
 
 		if ( ! is_array( $cached ) ) {
