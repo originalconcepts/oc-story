@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.1.7
+Stable tag: 0.1.8
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,11 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.1.8 =
+* The automatic position now covers a blog home with no posts (the bar sits at
+  the top of the page) and carries a last-resort anchor before the footer for
+  templates it cannot classify.
 
 = 0.1.7 =
 * New placements default to "where the page content starts" — a position that

@@ -128,23 +128,18 @@ class Injector {
 			return self::render( $placement, $context );
 		};
 
+		$print = function () use ( $emit ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo $emit();
+		};
+
 		$is_woo = $context['is_product']
 			|| $context['is_shop']
 			|| ( function_exists( 'is_product_category' ) && ( is_product_category() || is_product_tag() ) );
 
 		if ( $is_woo ) {
-			add_action(
-				'woocommerce_before_main_content',
-				function () use ( $emit ) {
-					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo $emit();
-				},
-				(int) $placement['priority']
-			);
-			return;
-		}
-
-		if ( is_singular() ) {
+			add_action( 'woocommerce_before_main_content', $print, (int) $placement['priority'] );
+		} elseif ( is_singular() ) {
 			add_filter(
 				'the_content',
 				function ( $content ) use ( $emit ) {
@@ -158,18 +153,32 @@ class Injector {
 				},
 				5
 			);
-			return;
+		} else {
+			// An archive or a blog home. loop_start is the right spot — but a
+			// loop with nothing in it never starts, and a shop's "blog" home
+			// with zero posts is exactly the page this was first watched fail
+			// on. The main query has already run by `wp`, so ask it.
+			$has_loop = isset( $GLOBALS['wp_query'] ) && (int) $GLOBALS['wp_query']->post_count > 0;
+
+			if ( $has_loop ) {
+				add_action(
+					'loop_start',
+					function ( $query ) use ( $print ) {
+						if ( $query instanceof \WP_Query && $query->is_main_query() ) {
+							$print();
+						}
+					}
+				);
+			} else {
+				add_action( 'wp_body_open', $print );
+			}
 		}
 
-		add_action(
-			'loop_start',
-			function ( $query ) use ( $emit ) {
-				if ( $query instanceof \WP_Query && $query->is_main_query() ) {
-					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo $emit();
-				}
-			}
-		);
+		// The last resort, on every branch: an anchor that never fired by the
+		// time the footer loads means a template this ladder misjudged, and a
+		// bar at the end of the content beats a bar nowhere. The $done guard
+		// makes this a no-op whenever anything above already rendered.
+		add_action( 'get_footer', $print );
 	}
 
 	/**
