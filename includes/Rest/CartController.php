@@ -257,10 +257,17 @@ class CartController {
 			);
 		}
 
+		// The same fragment payload WooCommerce's own AJAX add returns — the
+		// theme's header count and cart drawer are wired to exactly this
+		// channel, so applying it client-side updates them on the spot.
+		$fragments = apply_filters( 'woocommerce_add_to_cart_fragments', array() );
+
 		return rest_ensure_response(
 			array(
-				'added' => true,
-				'count' => (int) WC()->cart->get_cart_contents_count(),
+				'added'     => true,
+				'count'     => (int) WC()->cart->get_cart_contents_count(),
+				'hash'      => function_exists( 'WC' ) && WC()->cart ? WC()->cart->get_cart_hash() : '',
+				'fragments' => is_array( $fragments ) && $fragments ? $fragments : null,
 			)
 		);
 	}

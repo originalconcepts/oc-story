@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.2.2
+Stable tag: 0.2.3
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,12 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.2.3 =
+* Adding from a story updates the header cart count and the mini-cart drawer
+  instantly. The add response now carries the same fragment payload
+  WooCommerce's own AJAX add produces, and the player applies it — no page
+  refresh, and no dependence on the wc-cart-fragments script being loaded.
 
 = 0.2.2 =
 * Scrolling the product cards or adding to the cart no longer pauses the

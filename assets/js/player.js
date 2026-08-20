@@ -317,13 +317,40 @@ function postCart( body, button ) {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify( Object.assign( { attr: claim }, body ) ),
-	} ).then( () => {
+	} ).then( ( result ) => {
 		button.textContent = i18n.added || 'Added';
 		button.classList.add( 'is-added' );
 		button.disabled = false;
 
-		// The header's mini cart updates on the spot when the theme listens
-		// for WooCommerce fragments; harmless when nothing does.
+		// The response carries the same fragment payload WooCommerce's own
+		// AJAX add produces, and it is applied the same way: each selector's
+		// element replaced with its fresh markup. That is the channel the
+		// theme's header count and cart drawer listen on, so they update
+		// without a page load and without depending on wc-cart-fragments
+		// being enqueued at all.
+		if ( result && result.fragments ) {
+			Object.keys( result.fragments ).forEach( ( selector ) => {
+				document.querySelectorAll( selector ).forEach( ( node ) => {
+					node.outerHTML = result.fragments[ selector ];
+				} );
+			} );
+
+			// Seed Woo's fragment cache so its next refresh agrees with us.
+			try {
+				if ( window.sessionStorage && window.wc_cart_fragments_params ) {
+					sessionStorage.setItem( window.wc_cart_fragments_params.fragment_name, JSON.stringify( result.fragments ) );
+					if ( result.hash ) {
+						sessionStorage.setItem( 'wc_cart_hash_' + ( window.wc_cart_fragments_params.cart_hash_key || '' ), result.hash );
+					}
+				}
+			} catch ( e ) {}
+		} else {
+			// No fragment payload — nudge whatever count badge the page has.
+			document.querySelectorAll( '.oc-cart-count, .cart-contents-count, .cart-count, [data-cart-count]' ).forEach( ( node ) => {
+				node.textContent = result && result.count;
+			} );
+		}
+
 		if ( window.jQuery ) {
 			window.jQuery( document.body ).trigger( 'wc_fragment_refresh' );
 		}
