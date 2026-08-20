@@ -63,7 +63,7 @@ class Placement {
 				'ids'     => array(),
 				'exclude' => array(),
 			),
-			'hook'     => 'woocommerce_before_main_content',
+			'hook'     => 'auto',
 			'priority' => 15,
 			'stories'  => array(
 				'mode' => 'all',   // 'all' | 'selected' | 'tagged'.
@@ -328,6 +328,7 @@ class Placement {
 		return (array) apply_filters(
 			'ocs_placement_hooks',
 			array(
+				'auto'                                  => __( 'Where the page content starts (recommended)', 'oc-story' ),
 				'manual'                                => __( 'Nowhere automatic — I will place it myself', 'oc-story' ),
 				'wp_body_open'                          => __( 'Very top of the page, above everything', 'oc-story' ),
 				'woocommerce_before_main_content'       => __( 'Above the page content', 'oc-story' ),

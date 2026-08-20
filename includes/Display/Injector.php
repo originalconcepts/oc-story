@@ -83,6 +83,11 @@ class Injector {
 			// slider's CSS in the HTML of every page.
 			self::$surfaces[ $placement['surface'] ] = true;
 
+			if ( 'auto' === $placement['hook'] ) {
+				$this->attach_auto( $placement, $context );
+				continue;
+			}
+
 			add_action(
 				$placement['hook'],
 				function () use ( $placement, $context ) {
@@ -92,6 +97,79 @@ class Injector {
 				(int) $placement['priority']
 			);
 		}
+	}
+
+	/**
+	 * "Where the page content starts", on whatever kind of page this is.
+	 *
+	 * The default position used to be a WooCommerce hook, and the first real
+	 * install showed why that cannot be the default: it simply does not exist
+	 * on a home page, and the person who chose "every page of the site" watched
+	 * an empty home page wondering where their story went. A shop owner should
+	 * not need to know what a hook is, so 'auto' picks the anchor that this
+	 * request actually has:
+	 *
+	 *   WooCommerce pages   woocommerce_before_main_content — the classic spot
+	 *   any singular page   prepended to the content (Elementor runs this too)
+	 *   everything else     the top of the main loop (a blog home, an archive)
+	 *
+	 * @param array $placement Placement.
+	 * @param array $context   Request context.
+	 */
+	protected function attach_auto( array $placement, array $context ) {
+		$done = false;
+
+		$emit = function () use ( &$done, $placement, $context ) {
+			if ( $done ) {
+				return '';
+			}
+			$done = true;
+
+			return self::render( $placement, $context );
+		};
+
+		$is_woo = $context['is_product']
+			|| $context['is_shop']
+			|| ( function_exists( 'is_product_category' ) && ( is_product_category() || is_product_tag() ) );
+
+		if ( $is_woo ) {
+			add_action(
+				'woocommerce_before_main_content',
+				function () use ( $emit ) {
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					echo $emit();
+				},
+				(int) $placement['priority']
+			);
+			return;
+		}
+
+		if ( is_singular() ) {
+			add_filter(
+				'the_content',
+				function ( $content ) use ( $emit ) {
+					// Widgets and builders run this filter on fragments too;
+					// only the main content of the main query gets the bar.
+					if ( ! is_main_query() || ! in_the_loop() ) {
+						return $content;
+					}
+
+					return $emit() . $content;
+				},
+				5
+			);
+			return;
+		}
+
+		add_action(
+			'loop_start',
+			function ( $query ) use ( $emit ) {
+				if ( $query instanceof \WP_Query && $query->is_main_query() ) {
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					echo $emit();
+				}
+			}
+		);
 	}
 
 	/**

@@ -222,7 +222,7 @@
 			enabled: true,
 			surface: state.surfaces.length ? state.surfaces[ 0 ].id : 'circles',
 			where: { scope: 'home', ids: [], exclude: [] },
-			hook: 'woocommerce_before_main_content',
+			hook: 'auto',
 			priority: 15,
 			stories: { mode: 'all', ids: [] },
 			desktop: { show: true, size: 84, labels: true, align: 'start', max: 12 },

@@ -776,3 +776,7 @@ msgid "%d product"
 msgid_plural "%d products"
 msgstr[0] ""
 msgstr[1] ""
+
+#: includes/Model/Placement.php
+msgid "Where the page content starts (recommended)"
+msgstr ""

@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.1.6
+Stable tag: 0.1.7
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,16 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.1.7 =
+* New placements default to "where the page content starts" — a position that
+  exists on every kind of page. The old default was a WooCommerce anchor that
+  simply is not there on a home page or a regular page.
+* Publishing, reordering or deleting a story now clears the site's page cache
+  automatically (WP Rocket, LiteSpeed, W3TC, Super Cache, Fastest Cache,
+  SiteGround, Cache Enabler, Breeze, Hummingbird, WP-Optimize), so the
+  storefront shows the change immediately instead of the cached page from
+  before.
 
 = 0.1.6 =
 * Closing the player left an invisible layer over the whole page that

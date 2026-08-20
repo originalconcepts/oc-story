@@ -207,6 +207,8 @@ class StoriesController {
 
 		do_action( 'ocs_story_published', $id );
 
+		\OCS\Core\CacheFlush::pages();
+
 		return rest_ensure_response( Story::to_array( $id ) );
 	}
 
@@ -231,6 +233,8 @@ class StoriesController {
 			return $result;
 		}
 
+		\OCS\Core\CacheFlush::pages();
+
 		return rest_ensure_response( Story::to_array( $result ) );
 	}
 
@@ -253,6 +257,8 @@ class StoriesController {
 
 		wp_delete_post( $id, true );
 
+		\OCS\Core\CacheFlush::pages();
+
 		return rest_ensure_response( array( 'deleted' => $id ) );
 	}
 
@@ -264,6 +270,8 @@ class StoriesController {
 	 */
 	public function reorder( $request ) {
 		$moved = Story::reorder( (array) $request['ids'] );
+
+		\OCS\Core\CacheFlush::pages();
 
 		return rest_ensure_response( array( 'moved' => $moved ) );
 	}

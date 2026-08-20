@@ -778,3 +778,7 @@ msgid "%d product"
 msgid_plural "%d products"
 msgstr[0] "מוצר אחד"
 msgstr[1] "%d מוצרים"
+
+#: includes/Model/Placement.php
+msgid "Where the page content starts (recommended)"
+msgstr "בתחילת תוכן העמוד (מומלץ)"

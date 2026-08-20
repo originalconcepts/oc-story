@@ -107,6 +107,7 @@ class PlacementsController {
 		// changed placement changes the key on its own. A deleted one would
 		// otherwise sit in the cache until it expired.
 		\OCS\Model\Story::bump_version();
+		\OCS\Core\CacheFlush::pages();
 
 		return rest_ensure_response( array( 'placements' => array_values( $clean ) ) );
 	}

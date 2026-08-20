@@ -175,7 +175,11 @@ check( 'no scope is offered that the engine cannot route', count( $scopes ) === 
 
 $hooks = \OCS\Model\Placement::hooks();
 check( 'manual placement is offered', isset( $hooks['manual'] ) );
-check( 'the position list is short enough to choose from', count( $hooks ) <= 12 );
+check( 'automatic placement is offered', isset( $hooks['auto'] ) );
+check( 'automatic placement is offered first', 'auto' === array_key_first( $hooks ) );
+check( 'a new placement defaults to automatic', 'auto' === \OCS\Model\Placement::defaults()['hook'] );
+check( 'sanitising keeps the automatic position', 'auto' === \OCS\Model\Placement::sanitize( array( 'id' => 'pl_x', 'hook' => 'auto' ) )['hook'] );
+check( 'the position list is short enough to choose from', count( $hooks ) <= 13 );
 
 echo "\nPlacement routing\n";
 $m = '\OCS\Model\Placement::matches';

@@ -76,6 +76,7 @@ class SettingsPage {
 
 		// Ring colours are inlined into cached bars.
 		Story::bump_version();
+		\OCS\Core\CacheFlush::pages();
 
 		wp_safe_redirect( add_query_arg( 'updated', '1', menu_page_url( self::SLUG, false ) ) );
 		exit;
