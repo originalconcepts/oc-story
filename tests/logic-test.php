@@ -172,6 +172,15 @@ check( 'keeps the collection mode', 'collection' === $pc['stories']['mode'] );
 check( 'strips tags from the collection name', 'משפיענים' === $pc['stories']['collection'] );
 check( 'grid is an accepted surface', 'grid' === \OCS\Model\Placement::sanitize( array( 'id' => 'pl_g', 'surface' => 'grid' ) )['surface'] );
 
+echo "\nTemplate whitespace\n";
+// The exact shape a template emits, and what wpautop would have done to it.
+$markup = "<div class=\"ocs-bar\">\n\t<span class=\"ring\">\n\t\t<img src=\"a.webp\" />\n\t</span>\n\t<span class=\"label\">שם עם רווח</span>\n</div>";
+$collapsed = preg_replace( '/>\s+</', '><', $markup );
+check( 'no newline survives between tags', false === strpos( $collapsed, ">\n" ) );
+check( 'nothing is left for wpautop to turn into a br', 0 === preg_match( '/>\s+</', $collapsed ) );
+check( 'text inside a tag keeps its spaces', false !== strpos( $collapsed, 'שם עם רווח' ) );
+check( 'every tag survives', substr_count( $collapsed, '<' ) === substr_count( $markup, '<' ) );
+
 echo "\nSurfaces\n";
 $surfaces = \OCS\Surfaces\SurfaceManager::all();
 check( 'circles, slider, grid and product block are all registered', count( $surfaces ) === 4 );

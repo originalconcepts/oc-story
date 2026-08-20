@@ -65,7 +65,14 @@ abstract class AbstractSurface implements SurfaceInterface {
 		extract( $vars, EXTR_SKIP );
 		include $file;
 
-		return (string) ob_get_clean();
+		$html = (string) ob_get_clean();
+
+		// Collapse the whitespace between tags. Templates are written to be
+		// read, and that indentation is a liability the moment the markup
+		// passes anything that treats newlines as meaningful — wpautop turns
+		// them into <br>, which is exactly how a circle became an ellipse.
+		// Only gaps between tags are touched; text inside them is untouched.
+		return (string) preg_replace( '/>\s+</', '><', $html );
 	}
 
 	/**

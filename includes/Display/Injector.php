@@ -151,7 +151,12 @@ class Injector {
 
 					return $emit() . $content;
 				},
-				5
+				// After wpautop, which sits at 10. Prepending earlier hands our
+				// markup to it, and it turns the newlines between our own tags
+				// into <br> — which is what turned the circles into ellipses:
+				// two stray line boxes inside a ring whose height is supposed
+				// to come from its aspect ratio.
+				20
 			);
 		} else {
 			// An archive or a blog home. loop_start is the right spot — but a

@@ -227,6 +227,13 @@ storefront fetches by URL must too.
 zones cover the whole stage at z2; the sound toggle sat under them and every
 touch turned the page instead. If it can be tapped, give it z-index 5.
 
+**Anything injected into `the_content` runs after wpautop, or it gets
+mangled.** wpautop sits at priority 10 and turns the newlines between your own
+tags into `<br>`; two of them inside a circle's ring added two line boxes and
+made every circle an ellipse. The injector prepends at 20, and
+`AbstractSurface::template()` collapses whitespace between tags so the markup
+survives any autop it might still meet.
+
 **Never render inside an output-buffer callback.** PHP forbids `ob_start()`
 within a buffer handler, and the surface templates buffer — so the auto
 placement's after-the-header injection must render at `template_redirect` and

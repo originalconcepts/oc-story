@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.3.2
+Stable tag: 0.3.3
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,11 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.3.3 =
+* Circles came out as ellipses inside page content: WordPress's paragraph
+  formatter was adding line breaks inside the markup. The bar is now added
+  after that step, and the markup is emitted without the gaps it feeds on.
 
 = 0.3.2 =
 * Critical fix: on pages using the automatic position's after-the-header
