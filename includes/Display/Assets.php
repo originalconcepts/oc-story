@@ -96,6 +96,7 @@ class Assets {
 						'prev'  => __( 'Previous', 'oc-story' ),
 						'next'  => __( 'Next', 'oc-story' ),
 						'shop'  => __( 'View product', 'oc-story' ),
+						'buy'   => __( 'Buy', 'oc-story' ),
 					),
 				)
 			) . ';',

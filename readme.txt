@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.1.8
+Stable tag: 0.1.9
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,12 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.1.9 =
+* The product card over the video got the shoppable-video look: bigger
+  thumbnail, product name, prominent price and a Buy button.
+* With more than one product, the next card peeks into the frame so shoppers
+  can see the row scrolls, and cards snap into place.
 
 = 0.1.8 =
 * The automatic position now covers a blog home with no posts (the bar sits at

@@ -782,3 +782,7 @@ msgstr[1] "%d מוצרים"
 #: includes/Model/Placement.php
 msgid "Where the page content starts (recommended)"
 msgstr "בתחילת תוכן העמוד (מומלץ)"
+
+#: includes/Display/Assets.php
+msgid "Buy"
+msgstr "קנה"

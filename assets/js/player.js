@@ -120,17 +120,26 @@ function paintProducts() {
 	const current = slide();
 	const list = ( current && current.pr ) || [];
 
+	// With several products the cards take a fixed share of the width, so the
+	// next one is always partly in frame — a sliver of card is what tells a
+	// thumb this row scrolls. A lone card just fits its content.
+	ui.products.classList.toggle( 'ocsp__products--multi', list.length > 1 );
+
 	ui.products.replaceChildren(
 		...list.map( ( product ) => {
 			const card = el( 'a', 'ocsp__product', { href: product.u } );
 
 			if ( product.t ) {
-				card.append( el( 'img', '', { src: product.t, alt: '', loading: 'lazy' } ) );
+				card.append( el( 'img', 'ocsp__product-thumb', { src: product.t, alt: '', loading: 'lazy' } ) );
 			}
 
-			const text = el( 'span' );
-			text.append( el( 'b', '', { text: product.n } ), el( 'span', '', { text: product.p } ) );
-			card.append( text );
+			const info = el( 'span', 'ocsp__product-info' );
+			info.append(
+				el( 'b', '', { text: product.n } ),
+				el( 'span', '', { text: product.p } )
+			);
+
+			card.append( info, el( 'span', 'ocsp__product-cta', { text: state.cfg.i18n && state.cfg.i18n.buy ? state.cfg.i18n.buy : 'Buy' } ) );
 
 			card.addEventListener( 'click', () => {
 				attribute( product );

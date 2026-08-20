@@ -22,14 +22,18 @@
 .ocsp__zone--prev{inset-inline-start:0}
 .ocsp__zone--next{inset-inline-end:0;width:67%}
 
-.ocsp__products{position:absolute;inset-inline:0;bottom:0;z-index:4;display:flex;gap:8px;overflow-x:auto;padding:12px;padding-bottom:max(12px,env(safe-area-inset-bottom));scrollbar-width:none;background:linear-gradient(to top,rgba(0,0,0,.55),transparent)}
+.ocsp__products{position:absolute;inset-inline:0;bottom:0;z-index:4;display:flex;gap:10px;overflow-x:auto;padding:14px 12px;padding-bottom:max(14px,env(safe-area-inset-bottom));scrollbar-width:none;scroll-snap-type:x mandatory;scroll-padding-inline:12px;background:linear-gradient(to top,rgba(0,0,0,.55),transparent)}
 .ocsp__products::-webkit-scrollbar{display:none}
 .ocsp__products:empty{display:none}
-.ocsp__product{flex:0 0 auto;display:flex;align-items:center;gap:8px;max-width:70%;background:#fff;color:#111;border:0;border-radius:10px;padding:6px 10px 6px 6px;text-decoration:none;font:inherit;font-size:13px;cursor:pointer}
-[dir=rtl] .ocsp__product{padding:6px 6px 6px 10px}
-.ocsp__product img{width:34px;height:34px;border-radius:6px;object-fit:cover;background:#eee;flex:0 0 auto}
-.ocsp__product b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;max-width:150px}
-.ocsp__product span{color:#555;font-size:12px}
+.ocsp__product{flex:0 0 auto;display:flex;align-items:center;gap:10px;max-width:88%;background:#fff;color:#111;border:0;border-radius:14px;padding:8px;text-decoration:none;font:inherit;cursor:pointer;scroll-snap-align:start;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+/* Several products: fixed card width leaves the next card's edge in frame —
+   the sliver is the affordance that says "this scrolls". */
+.ocsp__products--multi .ocsp__product{flex:0 0 80%;max-width:80%}
+.ocsp__product-thumb{width:52px;height:52px;border-radius:10px;object-fit:cover;background:#eee;flex:0 0 auto}
+.ocsp__product-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ocsp__product-info b{font-weight:500;font-size:13px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ocsp__product-info span{font-weight:700;font-size:15px;color:#111}
+.ocsp__product-cta{flex:0 0 auto;background:#111;color:#fff;font-size:13px;font-weight:600;line-height:1;padding:10px 16px;border-radius:999px}
 
 .ocsp__pin{position:absolute;z-index:3;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;border:2px solid #fff;background:rgba(255,255,255,.35);box-shadow:0 1px 4px rgba(0,0,0,.4);pointer-events:none}
 

@@ -780,3 +780,7 @@ msgstr[1] ""
 #: includes/Model/Placement.php
 msgid "Where the page content starts (recommended)"
 msgstr ""
+
+#: includes/Display/Assets.php
+msgid "Buy"
+msgstr ""
