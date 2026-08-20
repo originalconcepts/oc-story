@@ -244,6 +244,13 @@ broken renderer.** A warm transient returned a string and skipped templating
 entirely; the fatal waited for the first cache miss after a version bump.
 Verifying anything cached means bumping the version first and testing cold.
 
+**Direction: logical for layout, physical for scrolling.** The player's tap
+zones use `inset-inline-*`, so the forward zone lands left in Hebrew and right
+in English — which means the handler must NOT also invert, or the two cancel
+and forward becomes back. The product strip is the opposite case: `scrollLeft`
+is physical everywhere (and negative in RTL), so its arrows are placed with
+`left`/`right` and named for the direction they actually move.
+
 **Do not "fix" the play triangle for RTL.** A play control points right in
 every language; mirrored, it reads as rewind. Same for pin coordinates: the
 video frame never mirrors, so x/y are physical, left-origin, everywhere.

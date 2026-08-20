@@ -922,3 +922,63 @@ msgstr "נגן תצוגה מקדימה שקטה בכרטיסים, אחד בכל 
 #: includes
 msgid "Only one video plays anywhere on the page, and only while the row is on screen."
 msgstr "רק סרטון אחד מתנגן בעמוד כולו, ורק כשהשורה על המסך."
+
+#: includes
+msgid "New gallery"
+msgstr "גלריה חדשה"
+
+#: includes
+msgid "No galleries yet"
+msgstr "אין עדיין גלריות"
+
+#: includes
+msgid "Delete gallery"
+msgstr "מחק גלריה"
+
+#: includes
+msgid "Delete this gallery? The files stay in your media library."
+msgstr "למחוק את הגלריה? הקבצים נשארים בספריית המדיה."
+
+#: includes
+msgid "Untitled gallery"
+msgstr "גלריה ללא שם"
+
+#: includes
+msgid "A gallery is one or more videos. Add one, tag the products in it, and publish."
+msgstr "גלריה היא סרטון אחד או יותר. הוסף אחד, תייג את המוצרים שבו, ופרסם."
+
+#: includes
+msgid "Which galleries"
+msgstr "אילו גלריות"
+
+#: includes
+msgid "All galleries"
+msgstr "כל הגלריות"
+
+#: includes
+msgid "Galleries"
+msgstr "גלריות"
+
+#: includes
+msgid "How many galleries at most"
+msgstr "כמה גלריות לכל היותר"
+
+#: includes
+msgid "Gallery"
+msgstr "גלריה"
+
+#: includes
+msgid "Sparks"
+msgstr "ניצוצות"
+
+#: includes
+msgid "Spark this"
+msgstr "תן ניצוץ"
+
+#: includes
+msgid "Previous gallery"
+msgstr "הגלריה הקודמת"
+
+#: includes
+msgid "Next gallery"
+msgstr "הגלריה הבאה"

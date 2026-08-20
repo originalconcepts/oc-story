@@ -309,6 +309,8 @@ check( 'counts them', 2 === $first['counts']['opens'] );
 
 check( 'rejects a non-array body', array() === $n( 'DROP TABLE' ) );
 check( 'rejects an unknown event type', array() === $n( array( array( 't' => 'x', 's' => 1 ) ) ) );
+check( 'accepts a spark', 1 === count( $n( array( array( 't' => 'k', 's' => 7, 'l' => 's_9f2a3b4c' ) ) ) ) );
+check( 'a spark lands in its own counter', 1 === array_values( $n( array( array( 't' => 'k', 's' => 7 ) ) ) )[0]['counts']['sparks'] );
 check( 'rejects an unknown surface', array() === $n( array( array( 't' => 'o', 's' => 1, 'f' => 'evil' ) ) ) );
 check( 'rejects a malformed slide id', array() === $n( array( array( 't' => 'p', 's' => 1, 'l' => '../../etc' ) ) ) );
 check( 'rejects a negative story', array() === $n( array( array( 't' => 'o', 's' => -5 ) ) ) );

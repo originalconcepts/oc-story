@@ -83,6 +83,16 @@ function build( cfg ) {
 	const next = el( 'button', 'ocsp__zone ocsp__zone--next', { type: 'button', 'aria-label': i18n.next || 'Next' } );
 
 	const products = el( 'div', 'ocsp__products' );
+
+	// The strip lives in its own layer so the arrows can sit at its edges
+	// without joining the scroll they control.
+	const strip = el( 'div', 'ocsp__strip' );
+	// Named and placed by physical side, not logical. They move a scrollbar,
+	// and scrollLeft is physical in every direction — an arrow that scrolls
+	// left has to sit on the left and point left, in Hebrew as in English.
+	const stripBack = el( 'button', 'ocsp__strip-nav ocsp__strip-nav--l', { type: 'button', 'aria-label': i18n.prev || 'Previous' } );
+	const stripFwd = el( 'button', 'ocsp__strip-nav ocsp__strip-nav--r', { type: 'button', 'aria-label': i18n.next || 'Next' } );
+	strip.append( products, stripBack, stripFwd );
 	const pins = el( 'div', 'ocsp__pins' );
 
 	// Metadata only, and only ever for the slide immediately after this one.
@@ -106,10 +116,26 @@ function build( cfg ) {
 	sheetFoot.append( sheetPrice, sheetAdd );
 	sheet.append( sheetHead, sheetBody, sheetFoot );
 
-	stage.append( blur, image, video, pins, bars, top, unmute, prev, next, products, ahead, toast, sheet );
-	root.append( stage );
+	// Outside the frame, centred: up and down move between galleries. Sits
+	// before the stage in the DOM so direction places it — the right in an
+	// RTL shop, mirrored in an LTR one. Hidden on phones, where the video
+	// already fills the screen and a swipe does the same job.
+	const rail = el( 'div', 'ocsp__rail' );
+	const railUp = el( 'button', 'ocsp__rail-btn', { type: 'button', 'aria-label': i18n.prevGallery || 'Previous' } );
+	const railDown = el( 'button', 'ocsp__rail-btn', { type: 'button', 'aria-label': i18n.nextGallery || 'Next' } );
+	railUp.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>';
+	railDown.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+	rail.append( railUp, railDown );
 
-	return { root, stage, blur, image, video, ahead, bars, title, close, unmute, prev, next, products, pins, toast, sheet, sheetTitle, sheetClose, sheetBody, sheetPrice, sheetAdd };
+	// The spark: our own reaction. Not a heart — a shopper watching a product
+	// video is not saying "love", they are saying "that one".
+	const spark = el( 'button', 'ocsp__spark', { type: 'button', 'aria-label': i18n.spark || 'Spark' } );
+	spark.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 6.1L20 10l-5.8 1.9L12 18l-2.2-6.1L4 10l5.8-1.9z"/></svg><b class="ocsp__spark-count"></b>';
+
+	stage.append( blur, image, video, pins, bars, top, unmute, prev, next, spark, strip, ahead, toast, sheet );
+	root.append( rail, stage );
+
+	return { root, stage, blur, image, video, ahead, bars, title, close, unmute, prev, next, strip, products, stripBack, stripFwd, pins, toast, sheet, sheetTitle, sheetClose, sheetBody, sheetPrice, sheetAdd, rail, railUp, railDown, spark };
 }
 
 /* ------------------------------------------------------------------ paint */
@@ -240,6 +266,9 @@ function paintProducts() {
 			return card;
 		} )
 	);
+
+	ui.products.scrollLeft = 0;
+	setTimeout( paintStripNav, 0 );
 
 	// Pins mark a product's spot in the frame — image slides only. On video
 	// the frame moves while a pin cannot, which reads as a mistake.
@@ -633,6 +662,13 @@ function play() {
 	ui.title.textContent = story().t || '';
 	closeSheet( true );
 
+	if ( ! turning && ui.stage.classList.contains( 'is-turning' ) ) {
+		ui.stage.classList.remove( 'is-turning' );
+		ui.stage.style.transition = '';
+		ui.stage.style.transform = '';
+		ui.stage.style.opacity = '';
+	}
+
 	const image = 'i' === current.ty;
 
 	// Portrait media fills the whole stage edge to edge; landscape keeps its
@@ -683,12 +719,37 @@ function play() {
 
 	paintBars();
 	paintProducts();
+	paintSpark();
+
+	ui.railUp.disabled = 0 === state.si;
+	ui.railDown.disabled = state.si >= state.stories.length - 1;
 
 	cancelAnimationFrame( raf );
 	raf = requestAnimationFrame( tick );
 
 	const ahead = story().s[ state.qi + 1 ];
 	ui.ahead.src = ahead && 'i' !== ahead.ty ? ahead.u : '';
+}
+
+/**
+ * Move a whole gallery, with the turn.
+ *
+ * @param {number} direction +1 forward, -1 back.
+ */
+function jump( direction ) {
+	const at = state.si + direction;
+
+	if ( at < 0 || at >= state.stories.length ) {
+		return;
+	}
+
+	cube( direction, () => {
+		state.si = at;
+		state.qi = 0;
+		state.onSeen( story().i );
+		track( 'o' );
+		play();
+	} );
 }
 
 function go( direction ) {
@@ -714,14 +775,268 @@ function go( direction ) {
 		return;
 	}
 
-	state.si = nextStory;
-	state.qi = direction > 0 ? 0 : state.stories[ nextStory ].s.length - 1;
-	state.onSeen( story().i );
-	track( 'o' );
-	play();
+	cube( direction, () => {
+		state.si = nextStory;
+		state.qi = direction > 0 ? 0 : state.stories[ nextStory ].s.length - 1;
+		state.onSeen( story().i );
+		track( 'o' );
+		play();
+	} );
+}
+
+/* -------------------------------------------------------------- the cube */
+
+const CALM = () => window.matchMedia && matchMedia( '(prefers-reduced-motion: reduce)' ).matches;
+
+let turning = false;
+let turnGuard = 0;
+
+/**
+ * Turn to the next gallery like a face of a cube.
+ *
+ * Half a rotation out, swap what the stage holds, half a rotation in from the
+ * opposite side. Two halves of a turn read as one solid object rotating, and
+ * it costs one element and no second copy of the video.
+ *
+ * @param {number}   direction  +1 forward, -1 back.
+ * @param {Function} swap       Puts the new gallery on the stage.
+ */
+function cube( direction, swap ) {
+	if ( CALM() || turning ) {
+		swap();
+		return;
+	}
+
+	turning = true;
+
+	const face = ui.stage;
+	const away = direction > 0 ? -88 : 88;
+
+	/**
+	 * Put the face straight, whatever state it is in.
+	 *
+	 * The turn is a chain of timers, and timers are throttled hard in a
+	 * background tab — switch away mid-rotation and the chain stalls with the
+	 * video standing on its edge. This runs from a guard well past the honest
+	 * duration, and again at the start of every slide, so a stalled turn
+	 * cannot survive into what the shopper sees next.
+	 */
+	const straighten = () => {
+		face.classList.remove( 'is-turning' );
+		face.style.transition = '';
+		face.style.transform = '';
+		face.style.opacity = '';
+		turning = false;
+	};
+
+	clearTimeout( turnGuard );
+	turnGuard = setTimeout( straighten, 1400 );
+
+	face.classList.add( 'is-turning' );
+	face.style.transform = 'perspective(1200px) rotateY(0deg)';
+
+	setTimeout( () => {
+		face.style.transition = 'transform .2s ease-in, opacity .2s ease-in';
+		face.style.opacity = '.35';
+		face.style.transform = 'perspective(1200px) rotateY(' + away + 'deg)';
+
+		setTimeout( () => {
+			swap();
+
+			face.style.transition = 'none';
+			face.style.transform = 'perspective(1200px) rotateY(' + -away + 'deg)';
+
+			setTimeout( () => {
+				face.style.transition = 'transform .22s ease-out, opacity .22s ease-out';
+				face.style.opacity = '1';
+				face.style.transform = 'perspective(1200px) rotateY(0deg)';
+
+				setTimeout( straighten, 240 );
+			}, 20 );
+		}, 210 );
+	}, 20 );
+}
+
+/* ------------------------------------------------------------- the spark */
+
+const SPARKED = 'ocs_sparked';
+
+function sparkedSet() {
+	try {
+		return JSON.parse( localStorage.getItem( SPARKED ) || '{}' );
+	} catch ( e ) {
+		return {};
+	}
+}
+
+function paintSpark() {
+	const mine = sparkedSet()[ story().i ];
+
+	ui.spark.classList.toggle( 'is-on', !! mine );
+	ui.spark.querySelector( '.ocsp__spark-count' ).textContent = mine ? '1' : '';
+}
+
+/**
+ * Throw a handful of sparks from a point on the stage.
+ *
+ * Purely decorative, and gone in a second: eleven spans on their own
+ * animation, removed when it ends.
+ *
+ * @param {number} x Fraction across the stage.
+ * @param {number} y Fraction down the stage.
+ */
+function burst( x, y ) {
+	if ( CALM() ) {
+		return;
+	}
+
+	const field = el( 'div', 'ocsp__burst' );
+	field.style.left = x * 100 + '%';
+	field.style.top = y * 100 + '%';
+
+	for ( let i = 0; i < 11; i++ ) {
+		const bit = el( 'span', 'ocsp__bit' );
+		const angle = ( i / 11 ) * Math.PI * 2 + Math.random();
+		const reach = 46 + Math.random() * 54;
+
+		bit.style.setProperty( '--dx', Math.cos( angle ) * reach + 'px' );
+		bit.style.setProperty( '--dy', Math.sin( angle ) * reach + 'px' );
+		bit.style.animationDelay = Math.random() * 60 + 'ms';
+
+		field.append( bit );
+	}
+
+	ui.stage.append( field );
+	setTimeout( () => field.remove(), 900 );
+}
+
+/**
+ * Mark this gallery. Once per person per gallery — a second tap is still a
+ * burst, because taking the sparkle away would be a strange punishment, but
+ * it is not counted twice.
+ *
+ * @param {number} x Fraction across the stage.
+ * @param {number} y Fraction down the stage.
+ */
+function sparkIt( x, y ) {
+	burst( x, y );
+
+    const all = sparkedSet();
+	const id = story().i;
+
+	if ( ! all[ id ] ) {
+		all[ id ] = 1;
+
+		try {
+			localStorage.setItem( SPARKED, JSON.stringify( all ) );
+		} catch ( e ) {}
+
+		track( 'k', { l: slide().i } );
+	}
+
+	ui.spark.classList.add( 'is-hit' );
+	setTimeout( () => ui.spark.classList.remove( 'is-hit' ), 500 );
+	paintSpark();
+}
+
+/* ------------------------------------------------------------- the strip */
+
+/**
+ * How far the strip can travel either way.
+ *
+ * scrollLeft is physical everywhere, but its range flips in RTL: browsers
+ * count from 0 at the right edge down to a negative floor. Both ends are
+ * derived here so the rest of the code can stay in physical pixels.
+ *
+ * @return {{min: number, max: number}}
+ */
+function stripRange() {
+	const span = ui.products.scrollWidth - ui.products.clientWidth;
+
+	return RTL() ? { min: -span, max: 0 } : { min: 0, max: span };
+}
+
+function paintStripNav() {
+	const range = stripRange();
+	const at = ui.products.scrollLeft;
+	const room = range.max - range.min > 4;
+
+	ui.stripBack.hidden = ! room || at <= range.min + 2;
+	ui.stripFwd.hidden = ! room || at >= range.max - 2;
+}
+
+function nudgeStrip( physical ) {
+	const step = Math.max( 120, ui.products.clientWidth * 0.8 );
+	const range = stripRange();
+
+	ui.products.scrollTo( {
+		left: Math.max( range.min, Math.min( range.max, ui.products.scrollLeft + physical * step ) ),
+		behavior: 'smooth',
+	} );
+}
+
+function bindStrip() {
+	// Dragging is the primary way through the row: it needs no affordance, it
+	// works with a mouse where there is no horizontal wheel, and on touch the
+	// browser is already doing it — which is why a finger is left alone here.
+	let holdingStrip = false;
+	let fromX = 0;
+	let fromScroll = 0;
+	let dragged = false;
+
+	ui.products.addEventListener( 'pointerdown', ( e ) => {
+		if ( 'mouse' !== e.pointerType ) {
+			return;
+		}
+
+		holdingStrip = true;
+		dragged = false;
+		fromX = e.clientX;
+		fromScroll = ui.products.scrollLeft;
+	} );
+
+	ui.products.addEventListener( 'pointermove', ( e ) => {
+		if ( ! holdingStrip ) {
+			return;
+		}
+
+		const dx = e.clientX - fromX;
+
+		if ( Math.abs( dx ) > 4 ) {
+			dragged = true;
+			ui.products.classList.add( 'is-dragging' );
+		}
+
+		ui.products.scrollLeft = fromScroll - dx;
+	} );
+
+	const release = () => {
+		holdingStrip = false;
+		ui.products.classList.remove( 'is-dragging' );
+	};
+
+	ui.products.addEventListener( 'pointerup', release );
+	ui.products.addEventListener( 'pointercancel', release );
+	ui.products.addEventListener( 'pointerleave', release );
+
+	// A drag that ends on a card must not also open that product.
+	ui.products.addEventListener( 'click', ( e ) => {
+		if ( dragged ) {
+			e.preventDefault();
+			e.stopPropagation();
+			dragged = false;
+		}
+	}, true );
+
+	ui.products.addEventListener( 'scroll', paintStripNav, { passive: true } );
+
+	ui.stripBack.addEventListener( 'click', () => nudgeStrip( -1 ) );
+	ui.stripFwd.addEventListener( 'click', () => nudgeStrip( 1 ) );
 }
 
 /* --------------------------------------------------------------- gestures */
+
+let lastTap = 0;
 
 function bindGestures() {
 	let x0 = 0;
@@ -768,6 +1083,18 @@ function bindGestures() {
 		}
 
 		if ( ! moved ) {
+			// Two taps in quick succession spark, wherever they landed — the
+			// gesture everyone already has in their thumbs.
+			const now = Date.now();
+			const box = ui.stage.getBoundingClientRect();
+
+			if ( now - lastTap < 320 ) {
+				lastTap = 0;
+				sparkIt( ( e.clientX - box.left ) / box.width, ( e.clientY - box.top ) / box.height );
+				return;
+			}
+
+			lastTap = now;
 			return;
 		}
 
@@ -786,9 +1113,57 @@ function bindGestures() {
 		}
 	} );
 
-	ui.prev.addEventListener( 'click', () => go( RTL() ? 1 : -1 ) );
-	ui.next.addEventListener( 'click', () => go( RTL() ? -1 : 1 ) );
+	// The zones are placed with logical properties: `--next` sits at the
+	// inline end, which is the left in an RTL shop and the right in an LTR
+	// one. Both are already "forward" for that reader, so inverting the
+	// handler on top of that — as this did — cancelled the CSS out and made
+	// forward mean back in Hebrew.
+	// A click that was the second of a double tap is a spark, not a step.
+	const stepper = ( direction ) => ( ) => {
+		if ( Date.now() - lastTap < 40 ) {
+			return;
+		}
+		go( direction );
+	};
+
+	ui.prev.addEventListener( 'click', stepper( -1 ) );
+	ui.next.addEventListener( 'click', stepper( 1 ) );
+
+	// The zones sit above the frame, so a double tap on them counts too.
+	[ ui.prev, ui.next ].forEach( ( zone ) => {
+		zone.addEventListener( 'pointerup', ( e ) => {
+			const now = Date.now();
+			const box = ui.stage.getBoundingClientRect();
+
+			if ( now - lastTap < 320 ) {
+				lastTap = 0;
+				sparkIt( ( e.clientX - box.left ) / box.width, ( e.clientY - box.top ) / box.height );
+				return;
+			}
+
+			lastTap = now;
+		} );
+	} );
 	ui.close.addEventListener( 'click', close );
+
+	// The black around the video is a way out, the way any modal's backdrop is.
+	ui.root.addEventListener( 'click', ( e ) => {
+		if ( e.target === ui.root ) {
+			close();
+		}
+	} );
+
+	bindStrip();
+
+	ui.railUp.addEventListener( 'click', () => jump( -1 ) );
+	ui.railDown.addEventListener( 'click', () => jump( 1 ) );
+
+	ui.spark.addEventListener( 'click', ( e ) => {
+		e.stopPropagation();
+		const box = ui.stage.getBoundingClientRect();
+		const mark = ui.spark.getBoundingClientRect();
+		sparkIt( ( mark.left + mark.width / 2 - box.left ) / box.width, ( mark.top + mark.height / 2 - box.top ) / box.height );
+	} );
 
 	ui.sheetClose.addEventListener( 'click', () => closeSheet() );
 

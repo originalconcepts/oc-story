@@ -70,7 +70,7 @@ class Studio {
 					'hasFfmpeg'  => Probe::has_ffmpeg(),
 				),
 				'labels'   => array(
-					'untitled' => __( 'Untitled video', 'oc-story' ),
+					'untitled' => __( 'Untitled gallery', 'oc-story' ),
 				),
 				'i18n'     => $this->strings(),
 			)
@@ -107,10 +107,10 @@ class Studio {
 	protected function strings() {
 		return array(
 			'studio'         => __( 'Studio', 'oc-story' ),
-			'newStory'       => __( 'Upload a video', 'oc-story' ),
+			'newStory'       => __( 'New gallery', 'oc-story' ),
 			'addSlide'       => __( 'Add video', 'oc-story' ),
-			'empty'          => __( 'No videos yet', 'oc-story' ),
-			'emptyHint'      => __( 'Add a video, tag the products in it, and publish. That is the whole thing.', 'oc-story' ),
+			'empty'          => __( 'No galleries yet', 'oc-story' ),
+			'emptyHint'      => __( 'A gallery is one or more videos. Add one, tag the products in it, and publish.', 'oc-story' ),
 			'title'          => __( 'Caption under the circle', 'oc-story' ),
 			'collection'     => __( 'Collection', 'oc-story' ),
 			'collectionHint' => __( 'e.g. Influencers — groups stories so a widget can show only this set', 'oc-story' ),
@@ -131,9 +131,9 @@ class Studio {
 			'saving'         => __( 'Saving…', 'oc-story' ),
 			'saved'          => __( 'Saved', 'oc-story' ),
 			'close'          => __( 'Close', 'oc-story' ),
-			'delete'         => __( 'Delete video', 'oc-story' ),
+			'delete'         => __( 'Delete gallery', 'oc-story' ),
 			'deleteSlide'    => __( 'Remove this video', 'oc-story' ),
-			'confirmDelete'  => __( 'Delete this video? The files stay in your media library.', 'oc-story' ),
+			'confirmDelete'  => __( 'Delete this gallery? The files stay in your media library.', 'oc-story' ),
 			'compressing'    => __( 'Compressing on your device…', 'oc-story' ),
 			'uploading'      => __( 'Uploading…', 'oc-story' ),
 			'shrank'         => __( '%1$s became %2$s', 'oc-story' ),

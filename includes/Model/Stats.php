@@ -38,6 +38,7 @@ class Stats {
 		'o' => 'opens',
 		'd' => 'completions',
 		'p' => 'product_taps',
+		'k' => 'sparks',
 	);
 
 	/**
@@ -132,7 +133,7 @@ class Stats {
 		$table = Install::table( 'stats_daily' );
 		$day   = current_time( 'Y-m-d' );
 
-		$counters = array( 'impressions', 'opens', 'completions', 'product_taps', 'add_to_cart', 'orders' );
+		$counters = array( 'impressions', 'opens', 'completions', 'product_taps', 'sparks', 'add_to_cart', 'orders' );
 
 		foreach ( $rows as $row ) {
 			$values = array();
@@ -151,13 +152,14 @@ class Stats {
 				$wpdb->prepare(
 					"INSERT INTO {$table}
 						(day, story_id, slide_id, surface, device,
-						 impressions, opens, completions, product_taps, add_to_cart, orders, revenue)
-					 VALUES (%s, %d, %s, %s, %s, %d, %d, %d, %d, %d, %d, %f)
+						 impressions, opens, completions, product_taps, sparks, add_to_cart, orders, revenue)
+					 VALUES (%s, %d, %s, %s, %s, %d, %d, %d, %d, %d, %d, %d, %f)
 					 ON DUPLICATE KEY UPDATE
 						impressions  = impressions  + VALUES(impressions),
 						opens        = opens        + VALUES(opens),
 						completions  = completions  + VALUES(completions),
 						product_taps = product_taps + VALUES(product_taps),
+						sparks       = sparks       + VALUES(sparks),
 						add_to_cart  = add_to_cart  + VALUES(add_to_cart),
 						orders       = orders       + VALUES(orders),
 						revenue      = revenue      + VALUES(revenue)",
@@ -170,6 +172,7 @@ class Stats {
 					$values['opens'],
 					$values['completions'],
 					$values['product_taps'],
+					$values['sparks'],
 					$values['add_to_cart'],
 					$values['orders'],
 					$revenue
@@ -197,6 +200,7 @@ class Stats {
 						SUM(opens) AS opens,
 						SUM(completions) AS completions,
 						SUM(product_taps) AS product_taps,
+						SUM(sparks) AS sparks,
 						SUM(add_to_cart) AS add_to_cart,
 						SUM(orders) AS orders,
 						SUM(revenue) AS revenue
@@ -216,6 +220,7 @@ class Stats {
 					'opens'        => (int) $row['opens'],
 					'completions'  => (int) $row['completions'],
 					'product_taps' => (int) $row['product_taps'],
+					'sparks'       => (int) $row['sparks'],
 					'add_to_cart'  => (int) $row['add_to_cart'],
 					'orders'       => (int) $row['orders'],
 					'revenue'      => (float) $row['revenue'],

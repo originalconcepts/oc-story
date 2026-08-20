@@ -108,6 +108,9 @@ class Assets {
 						'add'         => __( 'Add to cart', 'oc-story' ),
 						'added'       => __( 'Added ✓', 'oc-story' ),
 						'unavailable' => __( 'Unavailable', 'oc-story' ),
+						'spark'       => __( 'Spark this', 'oc-story' ),
+						'prevGallery' => __( 'Previous gallery', 'oc-story' ),
+						'nextGallery' => __( 'Next gallery', 'oc-story' ),
 					),
 				)
 			) . ';',

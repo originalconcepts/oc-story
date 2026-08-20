@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.4.0
+Stable tag: 0.5.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,18 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.5.0 =
+* Right-to-left shops: tapping the left of the video moves forward and the
+  right goes back, as Hebrew reads. Left-to-right shops are unchanged.
+* The tagged products can be moved through: drag the row with a mouse, or use
+  the arrows that appear at its edges on hover.
+* Clicking the black around the video closes it.
+* Arrows beside the video, up and down, move between galleries — and the move
+  turns like the face of a cube.
+* A spark: tap the mark beside the video, or double-tap the video itself, and
+  it bursts. Sparks are counted per gallery in Insights.
+* A story is now called a gallery throughout the admin.
 
 = 0.4.0 =
 * Video cards now play themselves, silently. One video plays at a time

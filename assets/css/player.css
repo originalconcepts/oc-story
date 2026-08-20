@@ -4,6 +4,7 @@
    full-screen layer silently eating every tap on the page under it. */
 .ocsp{position:fixed;inset:0;z-index:999999;background:#000;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,visibility 0s linear .18s;overscroll-behavior:contain}
 .ocsp[data-open]{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .18s ease}
+.ocsp__stage.is-turning{backface-visibility:hidden;will-change:transform}
 .ocsp__stage{position:relative;width:100%;height:100%;max-width:min(100vw,calc(100vh * 9 / 16));background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center;touch-action:pan-y}
 @media (min-width:782px){.ocsp__stage{border-radius:12px;max-height:92vh}}
 .ocsp__video{width:100%;height:100%;object-fit:contain;background:#000;display:block}
@@ -22,7 +23,19 @@
 .ocsp__zone--prev{inset-inline-start:0}
 .ocsp__zone--next{inset-inline-end:0;width:67%}
 
-.ocsp__products{position:absolute;inset-inline:0;bottom:0;z-index:4;display:flex;gap:10px;overflow-x:auto;padding:14px 12px;padding-bottom:max(14px,env(safe-area-inset-bottom));scrollbar-width:none;scroll-snap-type:x mandatory;scroll-padding-inline:12px;background:linear-gradient(to top,rgba(0,0,0,.55),transparent)}
+.ocsp__strip{position:absolute;inset-inline:0;bottom:0;z-index:4;background:linear-gradient(to top,rgba(0,0,0,.55),transparent)}
+.ocsp__products{display:flex;gap:10px;overflow-x:auto;padding:14px 12px;padding-bottom:max(14px,env(safe-area-inset-bottom));scrollbar-width:none;scroll-snap-type:x proximity;scroll-padding-inline:12px;cursor:grab}
+.ocsp__products.is-dragging{cursor:grabbing;scroll-snap-type:none;scroll-behavior:auto}
+.ocsp__strip-nav{position:absolute;top:calc(50% - 4px);transform:translateY(-50%);z-index:5;width:30px;height:30px;border:0;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;padding:0;display:grid;place-items:center;opacity:0;transition:opacity .18s ease}
+.ocsp__strip-nav[hidden]{display:none}
+.ocsp__strip-nav::after{content:"";width:8px;height:8px;border-right:2px solid #fff;border-bottom:2px solid #fff}
+.ocsp__strip-nav--l{left:4px}
+.ocsp__strip-nav--l::after{transform:rotate(135deg);margin-left:3px}
+.ocsp__strip-nav--r{right:4px}
+.ocsp__strip-nav--r::after{transform:rotate(-45deg);margin-right:3px}
+/* Only where there is a pointer to hover with, and only while it is here —
+   so the arrows never sit on top of a product a thumb is reading. */
+@media (hover:hover){.ocsp__strip:hover .ocsp__strip-nav{opacity:1}}
 .ocsp__products::-webkit-scrollbar{display:none}
 .ocsp__products:empty{display:none}
 .ocsp__product{flex:0 0 auto;display:flex;align-items:center;gap:12px;max-width:88%;background:#fff;color:#111;border:0;border-radius:16px;padding:10px;text-decoration:none;font:inherit;cursor:pointer;scroll-snap-align:start;box-shadow:0 2px 10px rgba(0,0,0,.25)}
@@ -80,6 +93,25 @@
 .ocsp__toast{position:absolute;inset-inline:16px;bottom:110px;z-index:7;background:rgba(17,17,17,.92);color:#fff;font-size:13px;line-height:1.4;padding:11px 14px;border-radius:12px;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.4)}
 .ocsp__toast[hidden]{display:none}
 
+.ocsp__rail{display:flex;flex-direction:column;gap:10px;margin-inline:14px;z-index:5}
+.ocsp__rail-btn{width:42px;height:42px;border:0;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;cursor:pointer;display:grid;place-items:center;padding:0;transition:background .15s ease}
+.ocsp__rail-btn:hover{background:rgba(0,0,0,.7)}
+.ocsp__rail-btn[disabled]{opacity:.25;cursor:default}
+.ocsp__rail-btn svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:781px){.ocsp__rail{display:none}}
+
+/* the spark */
+.ocsp__spark{position:absolute;inset-inline-end:10px;bottom:112px;z-index:5;width:46px;height:46px;border:0;border-radius:50%;background:rgba(0,0,0,.4);color:#fff;cursor:pointer;display:grid;place-items:center;padding:0}
+.ocsp__spark svg{width:26px;height:26px;fill:rgba(255,255,255,.9);transition:fill .2s ease,transform .2s ease}
+.ocsp__spark.is-on svg{fill:#ffd23f}
+.ocsp__spark.is-hit svg{transform:scale(1.35)}
+.ocsp__spark-count{position:absolute;bottom:-2px;inset-inline-end:-2px;font-size:11px;font-weight:700;line-height:1;color:#ffd23f}
+.ocsp__spark-count:empty{display:none}
+
+.ocsp__burst{position:absolute;z-index:6;width:0;height:0;pointer-events:none}
+.ocsp__bit{position:absolute;width:7px;height:7px;border-radius:50%;background:#ffd23f;box-shadow:0 0 8px rgba(255,210,63,.9);animation:ocsp-bit .75s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes ocsp-bit{0%{transform:translate(0,0) scale(.3);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1);opacity:0}}
+
 html[data-ocsp-open]{overflow:hidden;touch-action:none}
 
-@media (prefers-reduced-motion:reduce){.ocsp{transition:none}.ocsp__bar i{transition:none}}
+@media (prefers-reduced-motion:reduce){.ocsp{transition:none}.ocsp__bar i{transition:none}.ocsp__bit{animation:none;display:none}}

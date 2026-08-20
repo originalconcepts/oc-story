@@ -920,3 +920,63 @@ msgstr ""
 #: includes
 msgid "Only one video plays anywhere on the page, and only while the row is on screen."
 msgstr ""
+
+#: includes
+msgid "New gallery"
+msgstr ""
+
+#: includes
+msgid "No galleries yet"
+msgstr ""
+
+#: includes
+msgid "Delete gallery"
+msgstr ""
+
+#: includes
+msgid "Delete this gallery? The files stay in your media library."
+msgstr ""
+
+#: includes
+msgid "Untitled gallery"
+msgstr ""
+
+#: includes
+msgid "A gallery is one or more videos. Add one, tag the products in it, and publish."
+msgstr ""
+
+#: includes
+msgid "Which galleries"
+msgstr ""
+
+#: includes
+msgid "All galleries"
+msgstr ""
+
+#: includes
+msgid "Galleries"
+msgstr ""
+
+#: includes
+msgid "How many galleries at most"
+msgstr ""
+
+#: includes
+msgid "Gallery"
+msgstr ""
+
+#: includes
+msgid "Sparks"
+msgstr ""
+
+#: includes
+msgid "Spark this"
+msgstr ""
+
+#: includes
+msgid "Previous gallery"
+msgstr ""
+
+#: includes
+msgid "Next gallery"
+msgstr ""
