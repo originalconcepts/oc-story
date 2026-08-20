@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
 class Install {
 
 	const DB_VERSION_OPTION = 'ocs_db_version';
-	const DB_VERSION        = 3;
+	const DB_VERSION        = 4;
 
 	/**
 	 * Every table we own, without the prefix. Used by create and by uninstall.
@@ -140,6 +140,7 @@ class Install {
 			completions INT UNSIGNED NOT NULL DEFAULT 0,
 			product_taps INT UNSIGNED NOT NULL DEFAULT 0,
 			sparks INT UNSIGNED NOT NULL DEFAULT 0,
+			likes INT UNSIGNED NOT NULL DEFAULT 0,
 			add_to_cart INT UNSIGNED NOT NULL DEFAULT 0,
 			orders INT UNSIGNED NOT NULL DEFAULT 0,
 			revenue DECIMAL(18,4) NOT NULL DEFAULT 0,

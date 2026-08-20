@@ -6,7 +6,12 @@
 .ocsp[data-open]{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .18s ease}
 .ocsp__stage.is-turning{backface-visibility:hidden;will-change:transform}
 .ocsp__stage{position:relative;width:100%;height:100%;max-width:min(100vw,calc(100vh * 9 / 16));background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center;touch-action:pan-y}
-@media (min-width:782px){.ocsp__stage{border-radius:12px;max-height:92vh}}
+@media (min-width:782px){
+	.ocsp__stage{border-radius:12px;max-height:92vh;box-shadow:0 24px 80px rgba(0,0,0,.6)}
+	/* Let the shop show through behind the player, so it reads as something
+	   opened on top of the page rather than a place you have been taken to. */
+	.ocsp--dim{background:rgba(0,0,0,.72);backdrop-filter:blur(6px)}
+}
 .ocsp__video{width:100%;height:100%;object-fit:contain;background:#000;display:block}
 
 .ocsp__bars{position:absolute;top:0;inset-inline:0;display:flex;gap:3px;padding:8px 8px 0;z-index:3}
@@ -98,20 +103,40 @@
 .ocsp__rail-btn:hover{background:rgba(0,0,0,.7)}
 .ocsp__rail-btn[disabled]{opacity:.25;cursor:default}
 .ocsp__rail-btn svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ocsp__rail--none{display:none}
+.ocsp__rail--arrows .ocsp__thumbs{display:none}
+.ocsp__rail--thumbs .ocsp__rail-btn{display:none}
+.ocsp__thumbs{display:flex;flex-direction:column;gap:8px;max-height:70vh;overflow-y:auto;scrollbar-width:none;padding:2px}
+.ocsp__thumbs::-webkit-scrollbar{display:none}
+.ocsp__thumb{width:44px;height:60px;flex:0 0 auto;border:0;border-radius:8px;padding:0;overflow:hidden;background:rgba(255,255,255,.15);cursor:pointer;opacity:.55;outline:2px solid transparent;transition:opacity .15s ease,outline-color .15s ease}
+.ocsp__thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.ocsp__thumb:hover{opacity:.85}
+.ocsp__thumb.is-on{opacity:1;outline-color:#ffd23f}
 @media (max-width:781px){.ocsp__rail{display:none}}
 
-/* the spark */
-.ocsp__spark{position:absolute;inset-inline-end:10px;bottom:112px;z-index:5;width:46px;height:46px;border:0;border-radius:50%;background:rgba(0,0,0,.4);color:#fff;cursor:pointer;display:grid;place-items:center;padding:0}
-.ocsp__spark svg{width:26px;height:26px;fill:rgba(255,255,255,.9);transition:fill .2s ease,transform .2s ease}
-.ocsp__spark.is-on svg{fill:#ffd23f}
-.ocsp__spark.is-hit svg{transform:scale(1.35)}
-.ocsp__spark-count{position:absolute;bottom:-2px;inset-inline-end:-2px;font-size:11px;font-weight:700;line-height:1;color:#ffd23f}
-.ocsp__spark-count:empty{display:none}
+/* reactions: the known one on top so the new one below it reads as a sibling */
+.ocsp__reactions{position:absolute;inset-inline-end:10px;bottom:128px;z-index:5;display:flex;flex-direction:column;align-items:center;gap:14px}
+.ocsp__react{position:relative;width:46px;height:46px;border:0;border-radius:50%;background:rgba(0,0,0,.4);color:#fff;cursor:pointer;display:grid;place-items:center;padding:0;-webkit-tap-highlight-color:transparent}
+.ocsp__react svg{width:27px;height:27px;fill:rgba(255,255,255,.92);transition:fill .2s ease,transform .25s cubic-bezier(.2,1.6,.4,1)}
+.ocsp__react--like.is-on svg{fill:#ff3b5c}
+.ocsp__react--spark.is-on svg{fill:#ffd23f}
+.ocsp__react--spark svg{filter:drop-shadow(0 0 5px rgba(255,210,63,.55))}
+.ocsp__react.is-hit svg{transform:scale(1.45)}
+.ocsp__react-count{position:absolute;bottom:-13px;inset-inline:0;font-size:11px;font-weight:700;line-height:1;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+.ocsp__react-count:empty{display:none}
+
+/* said once per device, then never again */
+.ocsp__hint{position:absolute;inset-inline-end:54px;bottom:0;white-space:nowrap;font-size:12px;font-weight:600;color:#111;background:#ffd23f;padding:6px 10px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.35);animation:ocsp-hint .35s ease both}
+@keyframes ocsp-hint{from{opacity:0;transform:translateX(6px)}to{opacity:1;transform:none}}
 
 .ocsp__burst{position:absolute;z-index:6;width:0;height:0;pointer-events:none}
-.ocsp__bit{position:absolute;width:7px;height:7px;border-radius:50%;background:#ffd23f;box-shadow:0 0 8px rgba(255,210,63,.9);animation:ocsp-bit .75s cubic-bezier(.2,.7,.3,1) forwards}
-@keyframes ocsp-bit{0%{transform:translate(0,0) scale(.3);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1);opacity:0}}
+.ocsp__flash{position:absolute;left:-60px;top:-60px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(255,210,63,.55),rgba(255,210,63,0) 70%);animation:ocsp-flash .55s ease-out forwards}
+.ocsp__burst--like .ocsp__flash{background:radial-gradient(circle,rgba(255,59,92,.45),rgba(255,59,92,0) 70%)}
+@keyframes ocsp-flash{0%{transform:scale(.2);opacity:1}100%{transform:scale(1.5);opacity:0}}
+.ocsp__bit{position:absolute;width:var(--size,9px);height:var(--size,9px);margin:calc(var(--size,9px) / -2);border-radius:50%;background:#ffd23f;box-shadow:0 0 12px rgba(255,210,63,1),0 0 3px #fff;animation:ocsp-bit .95s cubic-bezier(.15,.75,.25,1) forwards}
+.ocsp__burst--like .ocsp__bit{background:#ff3b5c;box-shadow:0 0 10px rgba(255,59,92,.9)}
+@keyframes ocsp-bit{0%{transform:translate(0,0) scale(.2);opacity:1}30%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1);opacity:0}}
 
 html[data-ocsp-open]{overflow:hidden;touch-action:none}
 
-@media (prefers-reduced-motion:reduce){.ocsp{transition:none}.ocsp__bar i{transition:none}.ocsp__bit{animation:none;display:none}}
+@media (prefers-reduced-motion:reduce){.ocsp{transition:none}.ocsp__bar i{transition:none}.ocsp__bit,.ocsp__flash{animation:none;display:none}.ocsp__hint{animation:none}}

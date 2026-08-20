@@ -39,6 +39,7 @@ class Stats {
 		'd' => 'completions',
 		'p' => 'product_taps',
 		'k' => 'sparks',
+		'h' => 'likes',
 	);
 
 	/**
@@ -133,7 +134,7 @@ class Stats {
 		$table = Install::table( 'stats_daily' );
 		$day   = current_time( 'Y-m-d' );
 
-		$counters = array( 'impressions', 'opens', 'completions', 'product_taps', 'sparks', 'add_to_cart', 'orders' );
+		$counters = array( 'impressions', 'opens', 'completions', 'product_taps', 'sparks', 'likes', 'add_to_cart', 'orders' );
 
 		foreach ( $rows as $row ) {
 			$values = array();
@@ -152,14 +153,15 @@ class Stats {
 				$wpdb->prepare(
 					"INSERT INTO {$table}
 						(day, story_id, slide_id, surface, device,
-						 impressions, opens, completions, product_taps, sparks, add_to_cart, orders, revenue)
-					 VALUES (%s, %d, %s, %s, %s, %d, %d, %d, %d, %d, %d, %d, %f)
+						 impressions, opens, completions, product_taps, sparks, likes, add_to_cart, orders, revenue)
+					 VALUES (%s, %d, %s, %s, %s, %d, %d, %d, %d, %d, %d, %d, %d, %f)
 					 ON DUPLICATE KEY UPDATE
 						impressions  = impressions  + VALUES(impressions),
 						opens        = opens        + VALUES(opens),
 						completions  = completions  + VALUES(completions),
 						product_taps = product_taps + VALUES(product_taps),
 						sparks       = sparks       + VALUES(sparks),
+						likes        = likes        + VALUES(likes),
 						add_to_cart  = add_to_cart  + VALUES(add_to_cart),
 						orders       = orders       + VALUES(orders),
 						revenue      = revenue      + VALUES(revenue)",
@@ -173,6 +175,7 @@ class Stats {
 					$values['completions'],
 					$values['product_taps'],
 					$values['sparks'],
+					$values['likes'],
 					$values['add_to_cart'],
 					$values['orders'],
 					$revenue
@@ -201,6 +204,7 @@ class Stats {
 						SUM(completions) AS completions,
 						SUM(product_taps) AS product_taps,
 						SUM(sparks) AS sparks,
+						SUM(likes) AS likes,
 						SUM(add_to_cart) AS add_to_cart,
 						SUM(orders) AS orders,
 						SUM(revenue) AS revenue
@@ -221,6 +225,7 @@ class Stats {
 					'completions'  => (int) $row['completions'],
 					'product_taps' => (int) $row['product_taps'],
 					'sparks'       => (int) $row['sparks'],
+					'likes'        => (int) $row['likes'],
 					'add_to_cart'  => (int) $row['add_to_cart'],
 					'orders'       => (int) $row['orders'],
 					'revenue'      => (float) $row['revenue'],
@@ -228,6 +233,51 @@ class Stats {
 			},
 			(array) $rows
 		);
+	}
+
+	/**
+	 * Lifetime sparks and likes for a set of galleries, per slide.
+	 *
+	 * The player shows these as social proof, so they ride along in the bar's
+	 * payload — one grouped query on a render that is cached for twelve hours,
+	 * rather than a request per open.
+	 *
+	 * @param int[] $story_ids Gallery IDs.
+	 * @return array<string,array> Keyed "storyId:slideId".
+	 */
+	public static function reactions( array $story_ids ) {
+		global $wpdb;
+
+		$ids = array_values( array_filter( array_map( 'absint', $story_ids ) ) );
+
+		if ( ! $ids ) {
+			return array();
+		}
+
+		$table        = Install::table( 'stats_daily' );
+		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT story_id, slide_id, SUM(sparks) AS sparks, SUM(likes) AS likes
+				 FROM {$table}
+				 WHERE story_id IN ({$placeholders}) AND slide_id != ''
+				 GROUP BY story_id, slide_id",
+				$ids
+			),
+			ARRAY_A
+		);
+
+		$out = array();
+		foreach ( (array) $rows as $row ) {
+			$out[ $row['story_id'] . ':' . $row['slide_id'] ] = array(
+				'sparks' => (int) $row['sparks'],
+				'likes'  => (int) $row['likes'],
+			);
+		}
+
+		return $out;
 	}
 
 	/**

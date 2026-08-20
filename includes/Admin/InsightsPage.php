@@ -37,6 +37,7 @@ class InsightsPage {
 			'completions'  => 0,
 			'product_taps' => 0,
 			'sparks'       => 0,
+			'likes'        => 0,
 			'add_to_cart'  => 0,
 			'orders'       => 0,
 			'revenue'      => 0.0,
@@ -91,6 +92,7 @@ class InsightsPage {
 						<th><?php esc_html_e( 'Gallery', 'oc-story' ); ?></th>
 						<th><?php esc_html_e( 'Opens', 'oc-story' ); ?></th>
 						<th><?php esc_html_e( 'Watched to the end', 'oc-story' ); ?></th>
+						<th><?php esc_html_e( 'Likes', 'oc-story' ); ?></th>
 						<th><?php esc_html_e( 'Sparks', 'oc-story' ); ?></th>
 						<th><?php esc_html_e( 'Product taps', 'oc-story' ); ?></th>
 						<th><?php esc_html_e( 'Added to cart', 'oc-story' ); ?></th>
@@ -113,6 +115,7 @@ class InsightsPage {
 								echo esc_html( sprintf( __( '%d%%', 'oc-story' ), $rate ) );
 								?>
 							</td>
+							<td><?php echo esc_html( number_format_i18n( $row['likes'] ) ); ?></td>
 							<td><?php echo esc_html( number_format_i18n( $row['sparks'] ) ); ?></td>
 							<td><?php echo esc_html( number_format_i18n( $row['product_taps'] ) ); ?></td>
 							<td><?php echo esc_html( number_format_i18n( $row['add_to_cart'] ) ); ?></td>
@@ -132,6 +135,7 @@ class InsightsPage {
 							echo esc_html( sprintf( __( '%d%%', 'oc-story' ), $total_rate ) );
 							?>
 						</th>
+						<th><?php echo esc_html( number_format_i18n( $totals['likes'] ) ); ?></th>
 						<th><?php echo esc_html( number_format_i18n( $totals['sparks'] ) ); ?></th>
 						<th><?php echo esc_html( number_format_i18n( $totals['product_taps'] ) ); ?></th>
 						<th><?php echo esc_html( number_format_i18n( $totals['add_to_cart'] ) ); ?></th>

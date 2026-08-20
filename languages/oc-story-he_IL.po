@@ -972,13 +972,53 @@ msgid "Sparks"
 msgstr "ניצוצות"
 
 #: includes
-msgid "Spark this"
-msgstr "תן ניצוץ"
-
-#: includes
 msgid "Previous gallery"
 msgstr "הגלריה הקודמת"
 
 #: includes
 msgid "Next gallery"
 msgstr "הגלריה הבאה"
+
+#: includes
+msgid "Spark"
+msgstr "ספארק"
+
+#: includes
+msgid "Like"
+msgstr "לייק"
+
+#: includes
+msgid "Likes"
+msgstr "לייקים"
+
+#: includes
+msgid "Mark the one that caught you"
+msgstr "לחצו ספארק על הסרטון שתפס אתכם"
+
+#: includes
+msgid "Arrows beside the video"
+msgstr "חצים לצד הווידאו"
+
+#: includes
+msgid "Thumbnails of the other galleries"
+msgstr "תמונות ממוזערות של שאר הגלריות"
+
+#: includes
+msgid "Nothing — swipe and keys only"
+msgstr "ללא — החלקה ומקלדת בלבד"
+
+#: includes
+msgid "Let the page show through, dimmed"
+msgstr "אפשר לעמוד להציץ מאחור, מעומעם"
+
+#: includes
+msgid "Moving between galleries"
+msgstr "מעבר בין גלריות"
+
+#: includes
+msgid "Phones always swipe; this is what a desktop shows."
+msgstr "בנייד תמיד מחליקים; זו התצוגה במחשב."
+
+#: includes
+msgid "Behind the video"
+msgstr "מאחורי הווידאו"

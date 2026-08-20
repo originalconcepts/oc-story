@@ -55,11 +55,6 @@ $ocs_labels = ( $placement['desktop']['labels'] ? '1' : '0' ) . ( $placement['mo
 				: '';
 			$ocs_poster   = $ocs_story['poster_url'];
 			$ocs_title    = $ocs_story['title'];
-			$ocs_seconds = 0;
-
-			foreach ( $ocs_story['slides'] as $ocs_slide ) {
-				$ocs_seconds += (float) $ocs_slide['duration'];
-			}
 			?>
 			<button
 				type="button"
@@ -95,9 +90,6 @@ $ocs_labels = ( $placement['desktop']['labels'] ? '1' : '0' ) . ( $placement['mo
 
 					<span class="ocs-card__play" aria-hidden="true"></span>
 
-					<?php if ( $ocs_seconds >= 1 ) : ?>
-						<span class="ocs-card__time"><?php echo esc_html( gmdate( 'i:s', (int) round( $ocs_seconds ) ) ); ?></span>
-					<?php endif; ?>
 
 				</span>
 

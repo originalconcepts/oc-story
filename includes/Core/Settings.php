@@ -56,6 +56,10 @@ class Settings {
 			// Cards preview themselves, silently, one at a time. See
 			// assets/js/preview.js for how that stays cheap.
 			'card_autoplay'          => 'yes',
+			// How a shopper moves between galleries in the player:
+			// 'arrows' | 'thumbs' | 'none'.
+			'gallery_nav'            => 'arrows',
+			'backdrop'               => 'dim', // 'dim' | 'solid'.
 			'close_on_finish'        => 'yes',
 
 			// --- Look ------------------------------------------------------------

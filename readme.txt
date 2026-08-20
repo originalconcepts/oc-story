@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.5.0
+Stable tag: 0.6.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,21 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.6.0 =
+* Two reactions under the video instead of one, and they belong to the clip
+  you are watching rather than to the whole gallery: the heart everyone
+  already knows, and the spark beside it, each with its own count. The first
+  time a player opens on a device it says what the spark is for.
+* The gold burst is twice the handful it was, with a flash behind it.
+* Dragging the product row with a mouse now works. The cards are links around
+  images, and the browser was starting its own drag over ours.
+* The story waits while the pointer is in the product row, and a long press
+  anywhere on the video pauses it until you let go.
+* Moving between galleries on a desktop can now be arrows, thumbnails of the
+  other galleries, or nothing at all — OC Story → Settings.
+* The page can show through behind the player, dimmed, instead of solid black.
+* Video cards are a fifth larger, and the seconds badge is gone.
 
 = 0.5.0 =
 * Right-to-left shops: tapping the left of the video moves forward and the

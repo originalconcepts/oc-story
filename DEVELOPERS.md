@@ -273,6 +273,22 @@ late.
 **The events endpoint answers 204 to everything.** An error body invites
 retries and tells a prober what the filter rejected.
 
+**A card is a link wrapping an image, and the browser wants to drag both.**
+Native link and image dragging cancels the pointer stream the moment the mouse
+moves, so a hand-rolled drag on such a row does nothing at all. It needs
+`draggable="false"` on the anchor *and* the img, `preventDefault()` on
+pointerdown, and `setPointerCapture` so a hand that strays off the row keeps
+the drag.
+
+**A new icon teaches nothing on its own.** The spark shipped alone and the
+first person to press it asked what it had done. It now sits beside a heart,
+both counted, with a one-line hint the first time a player opens on a device:
+the known thing next to the new one is what says "this row is for reacting".
+
+**A reaction belongs to the slide, not the gallery.** A gallery holds several
+clips, and "I liked that one" has to mean that one. The event carries `l`
+(slide id); `Stats::reactions()` keys on `story_id:slide_id`.
+
 **Settings are visited twice in an install's life** — that screen is a plain
 options form on purpose. The studio and placements are applications because
 they are used weekly and from a phone.

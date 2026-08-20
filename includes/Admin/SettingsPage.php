@@ -49,8 +49,15 @@ class SettingsPage {
 			$style = 'gradient';
 		}
 
+		$nav = isset( $post['gallery_nav'] ) ? (string) $post['gallery_nav'] : 'arrows';
+		if ( ! in_array( $nav, array( 'arrows', 'thumbs', 'none' ), true ) ) {
+			$nav = 'arrows';
+		}
+
 		Settings::update(
 			array(
+				'gallery_nav'              => $nav,
+				'backdrop'                 => empty( $post['backdrop'] ) ? 'solid' : 'dim',
 				// Look.
 				'ring_style'               => $style,
 				'ring_color'               => sanitize_hex_color( (string) ( $post['ring_color'] ?? '' ) ),
@@ -131,6 +138,23 @@ class SettingsPage {
 						<th scope="row"><?php esc_html_e( 'Products', 'oc-story' ); ?></th>
 						<td>
 							<label><input type="checkbox" name="show_product_strip" <?php checked( 'yes' === $s['show_product_strip'] ); ?>> <?php esc_html_e( 'Show tagged products over the video', 'oc-story' ); ?></label>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="ocs-nav"><?php esc_html_e( 'Moving between galleries', 'oc-story' ); ?></label></th>
+						<td>
+							<select name="gallery_nav" id="ocs-nav">
+								<option value="arrows" <?php selected( $s['gallery_nav'], 'arrows' ); ?>><?php esc_html_e( 'Arrows beside the video', 'oc-story' ); ?></option>
+								<option value="thumbs" <?php selected( $s['gallery_nav'], 'thumbs' ); ?>><?php esc_html_e( 'Thumbnails of the other galleries', 'oc-story' ); ?></option>
+								<option value="none" <?php selected( $s['gallery_nav'], 'none' ); ?>><?php esc_html_e( 'Nothing — swipe and keys only', 'oc-story' ); ?></option>
+							</select>
+							<p class="description"><?php esc_html_e( 'Phones always swipe; this is what a desktop shows.', 'oc-story' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Behind the video', 'oc-story' ); ?></th>
+						<td>
+							<label><input type="checkbox" name="backdrop" <?php checked( 'dim' === $s['backdrop'] ); ?>> <?php esc_html_e( 'Let the page show through, dimmed', 'oc-story' ); ?></label>
 						</td>
 					</tr>
 					<tr>

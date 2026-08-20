@@ -51,6 +51,10 @@ function build( cfg ) {
 	const i18n = cfg.i18n || {};
 
 	const root = el( 'div', 'ocsp', { role: 'dialog', 'aria-modal': 'true' } );
+
+	if ( cfg.dim ) {
+		root.classList.add( 'ocsp--dim' );
+	}
 	const stage = el( 'div', 'ocsp__stage' );
 
 	// The soft-focus backdrop that fills the frame when the media itself
@@ -120,22 +124,39 @@ function build( cfg ) {
 	// before the stage in the DOM so direction places it — the right in an
 	// RTL shop, mirrored in an LTR one. Hidden on phones, where the video
 	// already fills the screen and a swipe does the same job.
-	const rail = el( 'div', 'ocsp__rail' );
+	const rail = el( 'div', 'ocsp__rail ocsp__rail--' + ( cfg.nav || 'arrows' ) );
 	const railUp = el( 'button', 'ocsp__rail-btn', { type: 'button', 'aria-label': i18n.prevGallery || 'Previous' } );
 	const railDown = el( 'button', 'ocsp__rail-btn', { type: 'button', 'aria-label': i18n.nextGallery || 'Next' } );
 	railUp.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>';
 	railDown.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
-	rail.append( railUp, railDown );
+	// The other way to move between galleries: their posters, stacked, with
+	// the one you are watching lit. Filled once the payload is known.
+	const thumbs = el( 'div', 'ocsp__thumbs' );
 
-	// The spark: our own reaction. Not a heart — a shopper watching a product
-	// video is not saying "love", they are saying "that one".
-	const spark = el( 'button', 'ocsp__spark', { type: 'button', 'aria-label': i18n.spark || 'Spark' } );
-	spark.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 6.1L20 10l-5.8 1.9L12 18l-2.2-6.1L4 10l5.8-1.9z"/></svg><b class="ocsp__spark-count"></b>';
+	rail.append( railUp, thumbs, railDown );
 
-	stage.append( blur, image, video, pins, bars, top, unmute, prev, next, spark, strip, ahead, toast, sheet );
+	// Two reactions, side by side on purpose. The heart is the one everybody
+	// already knows, and it is what teaches the spark next to it that this
+	// row is for reacting at all — George tapped the spark alone and asked
+	// what it had done.
+	const reactions = el( 'div', 'ocsp__reactions' );
+
+	const like = el( 'button', 'ocsp__react ocsp__react--like', { type: 'button', 'aria-label': i18n.like || 'Like' } );
+	like.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5l-1.5-1.35C5.4 14.5 2.5 11.9 2.5 8.6 2.5 6 4.5 4 7.1 4c1.5 0 2.9.7 3.8 1.8l1.1 1.3 1.1-1.3C14 4.7 15.4 4 16.9 4 19.5 4 21.5 6 21.5 8.6c0 3.3-2.9 5.9-8 10.55z"/></svg><b class="ocsp__react-count"></b>';
+
+	const spark = el( 'button', 'ocsp__react ocsp__react--spark', { type: 'button', 'aria-label': i18n.spark || 'Spark' } );
+	spark.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 6.1L20 10l-5.8 1.9L12 18l-2.2-6.1L4 10l5.8-1.9z"/></svg><b class="ocsp__react-count"></b>';
+
+	// Said once, the first time anyone opens a player on this device.
+	const hint = el( 'span', 'ocsp__hint', { text: i18n.sparkHint || '' } );
+	hint.hidden = true;
+
+	reactions.append( like, spark, hint );
+
+	stage.append( blur, image, video, pins, bars, top, unmute, prev, next, reactions, strip, ahead, toast, sheet );
 	root.append( rail, stage );
 
-	return { root, stage, blur, image, video, ahead, bars, title, close, unmute, prev, next, strip, products, stripBack, stripFwd, pins, toast, sheet, sheetTitle, sheetClose, sheetBody, sheetPrice, sheetAdd, rail, railUp, railDown, spark };
+	return { root, stage, blur, image, video, ahead, bars, title, close, unmute, prev, next, strip, products, stripBack, stripFwd, pins, toast, sheet, sheetTitle, sheetClose, sheetBody, sheetPrice, sheetAdd, rail, railUp, railDown, thumbs, reactions, like, spark, hint };
 }
 
 /* ------------------------------------------------------------------ paint */
@@ -224,10 +245,14 @@ function paintProducts() {
 
 	ui.products.replaceChildren(
 		...list.map( ( product ) => {
-			const card = el( 'a', 'ocsp__product', { href: product.u, 'data-pid': product.i } );
+			// draggable=false on both: a card is an <a> and a thumbnail is an
+			// <img>, and the browser's own link/image drag starts the moment
+			// the mouse moves — cancelling the pointer stream the strip needs
+			// to pan. That is why dragging the row did nothing.
+			const card = el( 'a', 'ocsp__product', { href: product.u, 'data-pid': product.i, draggable: 'false' } );
 
 			if ( product.t ) {
-				card.append( el( 'img', 'ocsp__product-thumb', { src: product.t, alt: '', loading: 'lazy' } ) );
+				card.append( el( 'img', 'ocsp__product-thumb', { src: product.t, alt: '', loading: 'lazy', draggable: 'false' } ) );
 			}
 
 			const info = el( 'span', 'ocsp__product-info' );
@@ -629,7 +654,7 @@ function paintProgress() {
 	}
 
 	if ( image && total && clockNow() >= total ) {
-		if ( ! ui.sheet.hidden ) {
+		if ( ! ui.sheet.hidden || state.browsing ) {
 			return;
 		}
 		if ( state.qi === story().s.length - 1 ) {
@@ -719,10 +744,14 @@ function play() {
 
 	paintBars();
 	paintProducts();
-	paintSpark();
+	paintReactions();
 
 	ui.railUp.disabled = 0 === state.si;
 	ui.railDown.disabled = state.si >= state.stories.length - 1;
+
+	Array.prototype.forEach.call( ui.thumbs.children, ( node, i ) => {
+		node.classList.toggle( 'is-on', i === state.si );
+	} );
 
 	cancelAnimationFrame( raf );
 	raf = requestAnimationFrame( tick );
@@ -859,84 +888,152 @@ function cube( direction, swap ) {
 
 /* ------------------------------------------------------------- the spark */
 
-const SPARKED = 'ocs_sparked';
+const MINE = 'ocs_reacted';
+const HINTED = 'ocs_hinted';
 
-function sparkedSet() {
+function mine() {
 	try {
-		return JSON.parse( localStorage.getItem( SPARKED ) || '{}' );
+		return JSON.parse( localStorage.getItem( MINE ) || '{}' );
 	} catch ( e ) {
 		return {};
 	}
 }
 
-function paintSpark() {
-	const mine = sparkedSet()[ story().i ];
+/**
+ * A reaction belongs to the slide, not the gallery.
+ *
+ * A gallery can hold five clips; saying "that one" about the third has to
+ * mean the third.
+ *
+ * @return {string}
+ */
+function slideKey() {
+	const current = slide();
 
-	ui.spark.classList.toggle( 'is-on', !! mine );
-	ui.spark.querySelector( '.ocsp__spark-count' ).textContent = mine ? '1' : '';
+	return story().i + ':' + ( current ? current.i : '' );
+}
+
+function tally( kind ) {
+	const current = slide();
+	const base = current ? ( 'spark' === kind ? current.sp : current.lk ) || 0 : 0;
+	const own = mine()[ slideKey() ] || {};
+
+	return base + ( own[ kind ] ? 1 : 0 );
+}
+
+function paintReactions() {
+	const own = mine()[ slideKey() ] || {};
+
+	[ [ ui.like, 'like' ], [ ui.spark, 'spark' ] ].forEach( ( pair ) => {
+		const count = tally( pair[ 1 ] );
+
+		pair[ 0 ].classList.toggle( 'is-on', !! own[ pair[ 1 ] ] );
+		pair[ 0 ].querySelector( '.ocsp__react-count' ).textContent = count > 0 ? count : '';
+	} );
 }
 
 /**
  * Throw a handful of sparks from a point on the stage.
  *
- * Purely decorative, and gone in a second: eleven spans on their own
- * animation, removed when it ends.
- *
- * @param {number} x Fraction across the stage.
- * @param {number} y Fraction down the stage.
+ * @param {number} x    Fraction across the stage.
+ * @param {number} y    Fraction down the stage.
+ * @param {string} kind Which reaction threw them.
  */
-function burst( x, y ) {
+function burst( x, y, kind ) {
 	if ( CALM() ) {
 		return;
 	}
 
-	const field = el( 'div', 'ocsp__burst' );
+	const field = el( 'div', 'ocsp__burst ocsp__burst--' + kind );
 	field.style.left = x * 100 + '%';
 	field.style.top = y * 100 + '%';
+	field.append( el( 'span', 'ocsp__flash' ) );
 
-	for ( let i = 0; i < 11; i++ ) {
+	const bits = 'spark' === kind ? 20 : 10;
+
+	for ( let i = 0; i < bits; i++ ) {
 		const bit = el( 'span', 'ocsp__bit' );
-		const angle = ( i / 11 ) * Math.PI * 2 + Math.random();
-		const reach = 46 + Math.random() * 54;
+		const angle = ( i / bits ) * Math.PI * 2 + Math.random() * 0.5;
+		const reach = 70 + Math.random() * 90;
 
 		bit.style.setProperty( '--dx', Math.cos( angle ) * reach + 'px' );
 		bit.style.setProperty( '--dy', Math.sin( angle ) * reach + 'px' );
-		bit.style.animationDelay = Math.random() * 60 + 'ms';
+		bit.style.setProperty( '--size', ( 'spark' === kind ? 8 + Math.random() * 7 : 7 ) + 'px' );
+		bit.style.animationDelay = Math.random() * 70 + 'ms';
 
 		field.append( bit );
 	}
 
 	ui.stage.append( field );
-	setTimeout( () => field.remove(), 900 );
+	setTimeout( () => field.remove(), 1100 );
 }
 
 /**
- * Mark this gallery. Once per person per gallery — a second tap is still a
- * burst, because taking the sparkle away would be a strange punishment, but
- * it is not counted twice.
+ * React to this slide. Once per person per slide either way — a second tap
+ * still bursts, because taking the mark away would be a strange punishment,
+ * but it is not counted twice.
  *
- * @param {number} x Fraction across the stage.
- * @param {number} y Fraction down the stage.
+ * @param {string} kind 'spark' or 'like'.
+ * @param {number} x    Fraction across the stage.
+ * @param {number} y    Fraction down the stage.
  */
-function sparkIt( x, y ) {
-	burst( x, y );
+function react( kind, x, y ) {
+	burst( x, y, kind );
 
-    const all = sparkedSet();
-	const id = story().i;
+	const all = mine();
+	const key = slideKey();
 
-	if ( ! all[ id ] ) {
-		all[ id ] = 1;
+	all[ key ] = all[ key ] || {};
+
+	if ( ! all[ key ][ kind ] ) {
+		all[ key ][ kind ] = 1;
 
 		try {
-			localStorage.setItem( SPARKED, JSON.stringify( all ) );
+			localStorage.setItem( MINE, JSON.stringify( all ) );
 		} catch ( e ) {}
 
-		track( 'k', { l: slide().i } );
+		track( 'spark' === kind ? 'k' : 'h', { l: slide().i } );
 	}
 
-	ui.spark.classList.add( 'is-hit' );
-	setTimeout( () => ui.spark.classList.remove( 'is-hit' ), 500 );
-	paintSpark();
+	const button = 'spark' === kind ? ui.spark : ui.like;
+	button.classList.add( 'is-hit' );
+	setTimeout( () => button.classList.remove( 'is-hit' ), 500 );
+
+	hideHint();
+	paintReactions();
+}
+
+function centreOf( node ) {
+	const box = ui.stage.getBoundingClientRect();
+	const mark = node.getBoundingClientRect();
+
+	return {
+		x: ( mark.left + mark.width / 2 - box.left ) / box.width,
+		y: ( mark.top + mark.height / 2 - box.top ) / box.height,
+	};
+}
+
+function hideHint() {
+	ui.hint.hidden = true;
+
+	try {
+		localStorage.setItem( HINTED, '1' );
+	} catch ( e ) {}
+}
+
+function maybeHint() {
+	let seen = '1';
+
+	try {
+		seen = localStorage.getItem( HINTED );
+	} catch ( e ) {}
+
+	if ( seen || ! ui.hint.textContent ) {
+		return;
+	}
+
+	ui.hint.hidden = false;
+	setTimeout( hideHint, 5000 );
 }
 
 /* ------------------------------------------------------------- the strip */
@@ -989,6 +1086,17 @@ function bindStrip() {
 			return;
 		}
 
+		// The cards are links wrapping images, and both of those start a
+		// native drag of their own the moment the mouse moves — which cancels
+		// our pointer stream and is why dragging did nothing at all.
+		e.preventDefault();
+
+		// And once the drag is ours, keep it: without capture, a hand that
+		// strays off the row mid-drag drops it.
+		try {
+			ui.products.setPointerCapture( e.pointerId );
+		} catch ( err ) {}
+
 		holdingStrip = true;
 		dragged = false;
 		fromX = e.clientX;
@@ -1017,7 +1125,6 @@ function bindStrip() {
 
 	ui.products.addEventListener( 'pointerup', release );
 	ui.products.addEventListener( 'pointercancel', release );
-	ui.products.addEventListener( 'pointerleave', release );
 
 	// A drag that ends on a card must not also open that product.
 	ui.products.addEventListener( 'click', ( e ) => {
@@ -1030,6 +1137,41 @@ function bindStrip() {
 
 	ui.products.addEventListener( 'scroll', paintStripNav, { passive: true } );
 
+	// Someone whose pointer is in the product row is deciding whether to buy.
+	// Moving the story on under them is the one thing that would lose the
+	// sale, so the story simply waits.
+	ui.products.addEventListener( 'pointerenter', ( e ) => {
+		if ( 'touch' !== e.pointerType ) {
+			state.browsing = true;
+			pausePlayback();
+		}
+	} );
+
+	ui.products.addEventListener( 'pointerleave', ( e ) => {
+		if ( 'touch' !== e.pointerType ) {
+			state.browsing = false;
+			resumePlayback();
+		}
+	} );
+
+	// A finger has no hover, so touching the row does the same and lets go a
+	// few seconds after the last touch.
+	let touchIdle = 0;
+
+	ui.products.addEventListener( 'touchstart', () => {
+		clearTimeout( touchIdle );
+		state.browsing = true;
+		pausePlayback();
+	}, { passive: true } );
+
+	ui.products.addEventListener( 'touchend', () => {
+		clearTimeout( touchIdle );
+		touchIdle = setTimeout( () => {
+			state.browsing = false;
+			resumePlayback();
+		}, 3000 );
+	}, { passive: true } );
+
 	ui.stripBack.addEventListener( 'click', () => nudgeStrip( -1 ) );
 	ui.stripFwd.addEventListener( 'click', () => nudgeStrip( 1 ) );
 }
@@ -1037,6 +1179,7 @@ function bindStrip() {
 /* --------------------------------------------------------------- gestures */
 
 let lastTap = 0;
+let heldUntil = 0;
 
 function bindGestures() {
 	let x0 = 0;
@@ -1047,7 +1190,7 @@ function bindGestures() {
 	ui.stage.addEventListener( 'pointerdown', ( e ) => {
 		// The strip, the sheet, the pins and the top controls are for touching:
 		// scrolling products or tapping Buy must not pause the story under it.
-		if ( e.target.closest( '.ocsp__products, .ocsp__sheet, .ocsp__top, .ocsp__unmute, .ocsp__pin' ) ) {
+		if ( e.target.closest( '.ocsp__products, .ocsp__sheet, .ocsp__top, .ocsp__unmute, .ocsp__pin, .ocsp__reactions' ) ) {
 			held = null;
 			moved = false;
 			return;
@@ -1078,6 +1221,9 @@ function bindGestures() {
 		held = null;
 
 		if ( wasHeld ) {
+			// Releasing a long press resumes — it does not also turn the page,
+			// which is what the click that follows would otherwise do.
+			heldUntil = Date.now() + 400;
 			resumePlayback();
 			return;
 		}
@@ -1090,7 +1236,7 @@ function bindGestures() {
 
 			if ( now - lastTap < 320 ) {
 				lastTap = 0;
-				sparkIt( ( e.clientX - box.left ) / box.width, ( e.clientY - box.top ) / box.height );
+				react( 'spark', ( e.clientX - box.left ) / box.width, ( e.clientY - box.top ) / box.height );
 				return;
 			}
 
@@ -1120,7 +1266,7 @@ function bindGestures() {
 	// forward mean back in Hebrew.
 	// A click that was the second of a double tap is a spark, not a step.
 	const stepper = ( direction ) => ( ) => {
-		if ( Date.now() - lastTap < 40 ) {
+		if ( Date.now() - lastTap < 40 || Date.now() < heldUntil ) {
 			return;
 		}
 		go( direction );
@@ -1137,7 +1283,7 @@ function bindGestures() {
 
 			if ( now - lastTap < 320 ) {
 				lastTap = 0;
-				sparkIt( ( e.clientX - box.left ) / box.width, ( e.clientY - box.top ) / box.height );
+				react( 'spark', ( e.clientX - box.left ) / box.width, ( e.clientY - box.top ) / box.height );
 				return;
 			}
 
@@ -1158,11 +1304,12 @@ function bindGestures() {
 	ui.railUp.addEventListener( 'click', () => jump( -1 ) );
 	ui.railDown.addEventListener( 'click', () => jump( 1 ) );
 
-	ui.spark.addEventListener( 'click', ( e ) => {
-		e.stopPropagation();
-		const box = ui.stage.getBoundingClientRect();
-		const mark = ui.spark.getBoundingClientRect();
-		sparkIt( ( mark.left + mark.width / 2 - box.left ) / box.width, ( mark.top + mark.height / 2 - box.top ) / box.height );
+	[ [ ui.like, 'like' ], [ ui.spark, 'spark' ] ].forEach( ( pair ) => {
+		pair[ 0 ].addEventListener( 'click', ( e ) => {
+			e.stopPropagation();
+			const at = centreOf( pair[ 0 ] );
+			react( pair[ 1 ], at.x, at.y );
+		} );
 	} );
 
 	ui.sheetClose.addEventListener( 'click', () => closeSheet() );
@@ -1175,9 +1322,9 @@ function bindGestures() {
 
 	ui.video.addEventListener( 'timeupdate', paintProgress );
 	ui.video.addEventListener( 'ended', () => {
-		// Someone mid-choice in the sheet keeps their slide; the story resumes
-		// its course when the sheet closes.
-		if ( ! ui.sheet.hidden ) {
+		// Someone mid-choice in the sheet, or reading the products, keeps
+		// their slide; the story resumes its course afterwards.
+		if ( ! ui.sheet.hidden || state.browsing ) {
 			return;
 		}
 
@@ -1278,11 +1425,33 @@ export function open( stories, index, ctx ) {
 		si: Math.max( 0, Math.min( index || 0, usable.length - 1 ) ),
 		qi: 0,
 		muted: false,
+		browsing: false,
 		cfg: ctx.cfg || {},
 		surface: ctx.surface || '',
 		onSeen: ctx.onSeen || function () {},
 		returnTo: document.activeElement,
 	};
+
+	if ( 'thumbs' === ( state.cfg.nav || 'arrows' ) ) {
+		ui.thumbs.textContent = '';
+
+		usable.forEach( ( item, i ) => {
+			const first = item.s[ 0 ] || {};
+			const thumb = el( 'button', 'ocsp__thumb', { type: 'button', 'aria-label': item.t || '' } );
+
+			if ( first.p ) {
+				thumb.append( el( 'img', '', { src: first.p, alt: '', loading: 'lazy', decoding: 'async' } ) );
+			}
+
+			thumb.addEventListener( 'click', () => {
+				if ( i !== state.si ) {
+					jump( i - state.si );
+				}
+			} );
+
+			ui.thumbs.append( thumb );
+		} );
+	}
 
 	document.documentElement.setAttribute( 'data-ocsp-open', '1' );
 	ui.root.setAttribute( 'data-open', '1' );
@@ -1291,6 +1460,7 @@ export function open( stories, index, ctx ) {
 	state.onSeen( story().i );
 	track( 'o' );
 	play();
+	maybeHint();
 }
 
 /**

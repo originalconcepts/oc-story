@@ -581,6 +581,12 @@ class Story {
 	public static function to_payload( array $stories ) {
 		$out = array();
 
+		$ids = array();
+		foreach ( $stories as $story ) {
+			$ids[] = (int) $story['id'];
+		}
+		$reactions = Stats::reactions( $ids );
+
 		foreach ( $stories as $story ) {
 			$slides = array();
 
@@ -605,9 +611,18 @@ class Story {
 					);
 				}
 
+				$counts = isset( $reactions[ $story['id'] . ':' . $slide['id'] ] )
+					? $reactions[ $story['id'] . ':' . $slide['id'] ]
+					: array(
+						'sparks' => 0,
+						'likes'  => 0,
+					);
+
 				$slides[] = array(
 					'i'  => $slide['id'],
 					'ty' => 'image' === ( isset( $slide['type'] ) ? $slide['type'] : 'video' ) ? 'i' : 'v',
+					'sp' => $counts['sparks'],
+					'lk' => $counts['likes'],
 					'u'  => $slide['url'],
 					'p'  => $slide['poster_url'],
 					'w'  => $slide['w'],
