@@ -1178,7 +1178,6 @@ function bindStrip() {
 
 /* --------------------------------------------------------------- gestures */
 
-let lastTap = 0;
 let heldUntil = 0;
 
 function bindGestures() {
@@ -1228,22 +1227,13 @@ function bindGestures() {
 			return;
 		}
 
-		if ( ! moved ) {
-			// Two taps in quick succession spark, wherever they landed — the
-			// gesture everyone already has in their thumbs.
-			const now = Date.now();
-			const box = ui.stage.getBoundingClientRect();
-
-			if ( now - lastTap < 320 ) {
-				lastTap = 0;
-				react( 'spark', ( e.clientX - box.left ) / box.width, ( e.clientY - box.top ) / box.height );
-				return;
-			}
-
-			lastTap = now;
-			return;
-		}
-
+		// A tap used to be able to spark: two in quick succession, anywhere.
+		// It sparked on single taps instead — the zones sit inside the stage,
+		// so one tap ran both handlers and the second read the first's
+		// timestamp as a double tap. It also made stepping through a gallery
+		// spark constantly, which is worse than not having the gesture: a
+		// reaction that fires by accident means nothing. The spark is the
+		// spark button now, and only that.
 		const dx = e.clientX - x0;
 		const dy = e.clientY - y0;
 
@@ -1264,9 +1254,10 @@ function bindGestures() {
 	// one. Both are already "forward" for that reader, so inverting the
 	// handler on top of that — as this did — cancelled the CSS out and made
 	// forward mean back in Hebrew.
-	// A click that was the second of a double tap is a spark, not a step.
+	// A click that ended a long press turns no page — releasing a hold means
+	// "carry on", not "next".
 	const stepper = ( direction ) => ( ) => {
-		if ( Date.now() - lastTap < 40 || Date.now() < heldUntil ) {
+		if ( Date.now() < heldUntil ) {
 			return;
 		}
 		go( direction );
@@ -1275,21 +1266,6 @@ function bindGestures() {
 	ui.prev.addEventListener( 'click', stepper( -1 ) );
 	ui.next.addEventListener( 'click', stepper( 1 ) );
 
-	// The zones sit above the frame, so a double tap on them counts too.
-	[ ui.prev, ui.next ].forEach( ( zone ) => {
-		zone.addEventListener( 'pointerup', ( e ) => {
-			const now = Date.now();
-			const box = ui.stage.getBoundingClientRect();
-
-			if ( now - lastTap < 320 ) {
-				lastTap = 0;
-				react( 'spark', ( e.clientX - box.left ) / box.width, ( e.clientY - box.top ) / box.height );
-				return;
-			}
-
-			lastTap = now;
-		} );
-	} );
 	ui.close.addEventListener( 'click', close );
 
 	// The black around the video is a way out, the way any modal's backdrop is.

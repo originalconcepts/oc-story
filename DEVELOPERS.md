@@ -273,6 +273,12 @@ late.
 **The events endpoint answers 204 to everything.** An error body invites
 retries and tells a prober what the filter rejected.
 
+**Nested handlers make a double tap out of one tap.** The tap zones live
+inside the stage, so a single tap ran the stage's pointerup handler and the
+zone's; the second read the first's timestamp and called it a double tap.
+Every tap sparked. Two lessons: one gesture, one place that owns it — and a
+reaction that can fire by accident is worse than no gesture at all.
+
 **The render cache is keyed on the plugin version too.** Content changes bump
 `ocs_stories_version`, but a *code* change does not — so without `OCS_VERSION`
 in the transient key, the first deploy after a payload change serves the old

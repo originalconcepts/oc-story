@@ -250,7 +250,10 @@ class Stats {
 
 		$ids = array_values( array_filter( array_map( 'absint', $story_ids ) ) );
 
-		if ( ! $ids ) {
+		// to_payload() is pure enough to be exercised without a database — the
+		// logic harness does exactly that — and counts are decoration, so the
+		// absence of one means zeroes, not a fatal.
+		if ( ! $ids || ! $wpdb ) {
 			return array();
 		}
 

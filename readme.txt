@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.6.0
+Stable tag: 0.6.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -49,6 +49,11 @@ WooCommerce 7.0 or newer.
 
 == Changelog ==
 
+= 0.6.1 =
+* Tapping the video to move through a gallery no longer sparks. The spark is
+  the spark button, and only that — a reaction that fires by accident says
+  nothing about the video.
+
 = 0.6.0 =
 * Two reactions under the video instead of one, and they belong to the clip
   you are watching rather than to the whole gallery: the heart everyone
@@ -72,8 +77,8 @@ WooCommerce 7.0 or newer.
 * Clicking the black around the video closes it.
 * Arrows beside the video, up and down, move between galleries — and the move
   turns like the face of a cube.
-* A spark: tap the mark beside the video, or double-tap the video itself, and
-  it bursts. Sparks are counted per gallery in Insights.
+* A spark: tap the mark beside the video and it bursts. Sparks are counted
+  in Insights.
 * A story is now called a gallery throughout the admin.
 
 = 0.4.0 =
