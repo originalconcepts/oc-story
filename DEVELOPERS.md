@@ -217,6 +217,16 @@ core's `?add-to-cart=` GET, the attribution claim is revalidated server-side,
 and money still only moves at checkout. wc_load_cart() is what gives a custom
 REST namespace a session.
 
+**Every asset a phone loads must carry a version.** The player chunk shipped
+unversioned and George's phone ran a stale copy through two rounds of fixes —
+"Unavailable" on an available product was a cached player.js, not a server
+bug. cfg.player and cfg.css both carry ?v=OCS_VERSION; anything new that the
+storefront fetches by URL must too.
+
+**Anything tappable over the stage sits above z-index 2.** The navigation
+zones cover the whole stage at z2; the sound toggle sat under them and every
+touch turned the page instead. If it can be tapped, give it z-index 5.
+
 **Do not "fix" the play triangle for RTL.** A play control points right in
 every language; mirrored, it reads as rewind. Same for pin coordinates: the
 video frame never mirrors, so x/y are physical, left-origin, everywhere.

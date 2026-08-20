@@ -86,7 +86,7 @@ class Assets {
 			'ocs-bar',
 			'window.ocsCfg=' . wp_json_encode(
 				array(
-					'player' => OCS_URL . 'assets/js/player.js',
+					'player' => OCS_URL . 'assets/js/player.js?v=' . OCS_VERSION,
 					'css'    => OCS_URL . 'assets/css/player.css?v=' . OCS_VERSION,
 					'events' => Settings::is( 'analytics_enabled' ) ? rest_url( 'oc-story/v1/events' ) : '',
 					'api'    => rest_url( 'oc-story/v1' ),

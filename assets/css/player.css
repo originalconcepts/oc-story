@@ -25,9 +25,11 @@
 .ocsp__products{position:absolute;inset-inline:0;bottom:0;z-index:4;display:flex;gap:10px;overflow-x:auto;padding:14px 12px;padding-bottom:max(14px,env(safe-area-inset-bottom));scrollbar-width:none;scroll-snap-type:x mandatory;scroll-padding-inline:12px;background:linear-gradient(to top,rgba(0,0,0,.55),transparent)}
 .ocsp__products::-webkit-scrollbar{display:none}
 .ocsp__products:empty{display:none}
-.ocsp__product{flex:0 0 auto;display:flex;align-items:center;gap:10px;max-width:88%;background:#fff;color:#111;border:0;border-radius:14px;padding:8px;text-decoration:none;font:inherit;cursor:pointer;scroll-snap-align:start;box-shadow:0 2px 10px rgba(0,0,0,.25)}
-/* Several products: fixed card width leaves the next card's edge in frame —
-   the sliver is the affordance that says "this scrolls". */
+.ocsp__product{flex:0 0 auto;display:flex;align-items:center;gap:12px;max-width:88%;background:#fff;color:#111;border:0;border-radius:16px;padding:10px;text-decoration:none;font:inherit;cursor:pointer;scroll-snap-align:start;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+/* One product owns the full width, margins aside — the card is the buying
+   moment and earns the presence. Several products: a fixed four-fifths keeps
+   the next card's edge in frame, the sliver that says "this scrolls". */
+.ocsp__products:not(.ocsp__products--multi) .ocsp__product{flex:1 1 100%;max-width:100%}
 .ocsp__products--multi .ocsp__product{flex:0 0 80%;max-width:80%}
 .ocsp__product-thumb{width:64px;height:64px;border-radius:12px;object-fit:cover;background:#eee;flex:0 0 auto}
 .ocsp__product-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
@@ -43,10 +45,16 @@
 
 .ocsp__pin{position:absolute;z-index:3;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;border:2px solid #fff;background:rgba(17,17,17,.75);color:#fff;font-size:12px;font-weight:600;line-height:1;display:grid;place-items:center;box-shadow:0 1px 5px rgba(0,0,0,.45);cursor:pointer;padding:0}
 
-.ocsp__unmute{position:absolute;top:60px;inset-inline-end:12px;z-index:4}
+/* Above the tap zones (z2), or every tap on it turns the page instead of
+   the sound. Aligned under the close button. */
+.ocsp__unmute{position:absolute;top:64px;inset-inline-end:8px;z-index:5}
 
-.ocsp__image{width:100%;height:100%;object-fit:contain;background:#000;display:block}
+.ocsp__image{position:relative;z-index:1;width:100%;height:100%;object-fit:contain;background:transparent;display:block}
 .ocsp__image[hidden],.ocsp__video[hidden]{display:none}
+.ocsp__video{position:relative;z-index:1;background:transparent}
+.ocsp__video.is-cover,.ocsp__image.is-cover{object-fit:cover}
+.ocsp__blur{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;filter:blur(35px) brightness(.65);transform:scale(1.15)}
+.ocsp__blur[hidden]{display:none}
 
 .ocsp__sheet{position:absolute;inset-inline:0;bottom:0;z-index:6;background:#fff;color:#111;border-radius:18px 18px 0 0;transform:translateY(100%);transition:transform .22s ease;max-height:72%;display:flex;flex-direction:column;padding-bottom:max(10px,env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.35)}
 .ocsp__sheet[data-open]{transform:translateY(0)}

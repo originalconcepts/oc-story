@@ -53,6 +53,12 @@ function build( cfg ) {
 	const root = el( 'div', 'ocsp', { role: 'dialog', 'aria-modal': 'true' } );
 	const stage = el( 'div', 'ocsp__stage' );
 
+	// The soft-focus backdrop that fills the frame when the media itself
+	// cannot — the Instagram treatment for landscape footage in a portrait
+	// stage. It reuses the slide poster, which is already loaded.
+	const blur = el( 'img', 'ocsp__blur', { alt: '', 'aria-hidden': 'true' } );
+	blur.hidden = true;
+
 	const image = el( 'img', 'ocsp__image', { alt: '' } );
 	image.hidden = true;
 
@@ -68,8 +74,7 @@ function build( cfg ) {
 	const bars = el( 'div', 'ocsp__bars' );
 	const title = el( 'div', 'ocsp__title' );
 	const close = el( 'button', 'ocsp__btn', { type: 'button', 'aria-label': i18n.close || 'Close', text: '✕' } );
-	const unmute = el( 'button', 'ocsp__btn ocsp__unmute', { type: 'button', 'aria-label': 'Sound', text: '♪' } );
-	unmute.hidden = true;
+	const unmute = el( 'button', 'ocsp__btn ocsp__unmute', { type: 'button', 'aria-label': 'Sound', text: '🔊' } );
 
 	const top = el( 'div', 'ocsp__top' );
 	top.append( title, close );
@@ -98,10 +103,10 @@ function build( cfg ) {
 	sheetFoot.append( sheetPrice, sheetAdd );
 	sheet.append( sheetHead, sheetBody, sheetFoot );
 
-	stage.append( image, video, pins, bars, top, unmute, prev, next, products, ahead, sheet );
+	stage.append( blur, image, video, pins, bars, top, unmute, prev, next, products, ahead, sheet );
 	root.append( stage );
 
-	return { root, stage, image, video, ahead, bars, title, close, unmute, prev, next, products, pins, sheet, sheetTitle, sheetClose, sheetBody, sheetPrice, sheetAdd };
+	return { root, stage, blur, image, video, ahead, bars, title, close, unmute, prev, next, products, pins, sheet, sheetTitle, sheetClose, sheetBody, sheetPrice, sheetAdd };
 }
 
 /* ------------------------------------------------------------------ paint */
@@ -155,6 +160,10 @@ function resumePlayback() {
 function slide() {
 	const current = story();
 	return current && current.s ? current.s[ state.qi ] : null;
+}
+
+function paintMute() {
+	ui.unmute.textContent = state.muted ? '🔇' : '🔊';
 }
 
 function paintBars() {
@@ -382,10 +391,18 @@ function buildSheet( product, data ) {
 			const wrap = el( 'div', 'ocsp__opt-group' );
 			wrap.append( el( 'span', 'ocsp__opt-label', { text: attribute.label } ) );
 
+			// One option is not a choice. Pre-select it, so a product with a
+			// single colour is one tap from the cart instead of a quiz.
+			const lone = 1 === attribute.options.length;
+
 			const row = el( 'div', 'ocsp__opts' );
 			row.append(
 				...attribute.options.map( ( option ) => {
-					const pill = el( 'button', 'ocsp__opt', { type: 'button', text: option.label, 'aria-pressed': 'false' } );
+					const pill = el( 'button', 'ocsp__opt', { type: 'button', text: option.label, 'aria-pressed': lone ? 'true' : 'false' } );
+
+					if ( lone ) {
+						chosen[ attribute.name ] = option.slug;
+					}
 
 					pill.addEventListener( 'click', () => {
 						chosen[ attribute.name ] = option.slug;
@@ -503,6 +520,18 @@ function play() {
 
 	const image = 'i' === current.ty;
 
+	// Portrait media fills the whole stage edge to edge; landscape keeps its
+	// shape over a blurred fill of itself instead of black bars.
+	const portrait = ! current.w || ! current.h || current.h >= current.w;
+	const media = image ? ui.image : ui.video;
+	ui.image.classList.toggle( 'is-cover', portrait );
+	ui.video.classList.toggle( 'is-cover', portrait );
+
+	ui.blur.hidden = portrait || ! current.p;
+	if ( ! portrait && current.p ) {
+		ui.blur.src = current.p;
+	}
+
 	ui.image.hidden = ! image;
 	ui.video.hidden = image;
 	state.clock = { start: performance.now(), elapsed: 0, running: image };
@@ -514,6 +543,8 @@ function play() {
 		ui.unmute.hidden = true;
 		ui.image.src = current.u || current.p;
 	} else {
+		ui.unmute.hidden = false;
+		paintMute();
 		ui.image.removeAttribute( 'src' );
 		ui.video.poster = current.p || '';
 		ui.video.src = current.u;
@@ -529,7 +560,7 @@ function play() {
 			started.catch( () => {
 				state.muted = true;
 				ui.video.muted = true;
-				ui.unmute.hidden = false;
+				paintMute();
 				ui.video.play().catch( () => {} );
 			} );
 		}
@@ -639,9 +670,9 @@ function bindGestures() {
 	ui.sheetClose.addEventListener( 'click', () => closeSheet() );
 
 	ui.unmute.addEventListener( 'click', () => {
-		state.muted = false;
-		ui.video.muted = false;
-		ui.unmute.hidden = true;
+		state.muted = ! state.muted;
+		ui.video.muted = state.muted;
+		paintMute();
 	} );
 
 	ui.video.addEventListener( 'timeupdate', paintProgress );

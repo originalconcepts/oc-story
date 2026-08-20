@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.2.0
+Stable tag: 0.2.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,20 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.2.1 =
+* The sound button works and is a real toggle: it sat underneath the tap zones,
+  so touches turned the page instead of the sound. Now aligned under the close
+  button, always available on video, showing the current state.
+* Full-bleed media, the Instagram way: portrait fills the screen edge to edge;
+  landscape keeps its shape over a blurred backdrop instead of black bars.
+* One product takes the full width of the card row; several take 80% with the
+  next card peeking in.
+* An attribute with a single option pre-selects itself in the variations sheet
+  — one colour should be one tap, not a quiz.
+* The player script now carries a version, so phones stop running a stale
+  cached copy after an update — the root cause behind "Unavailable" on a
+  product that was available.
 
 = 0.2.0 =
 * Buying without leaving the story: the Buy button adds simple products to the
