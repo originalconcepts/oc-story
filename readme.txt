@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.3.0
+Stable tag: 0.3.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,19 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.3.1 =
+* The studio speaks "video", not "story": the button is "Upload a video", and
+  every label follows — a vertical product video is not a story, and the old
+  word promised the wrong thing.
+* The widgets screen opens as a table — one row per widget with its name,
+  look, pages and content — and tapping a row opens that widget's settings,
+  instead of every widget's full settings stacked open.
+* "How it looks" is now chosen visually: four tiles, each a miniature of the
+  surface, instead of a dropdown naming things nobody has seen.
+* The desktop/phone fields speak the chosen look's language: a circles widget
+  asks about circle size, a slider or wall asks about card width — and card
+  width now actually is the card's width.
 
 = 0.3.0 =
 * Widgets, plural. The placements screen now speaks the language it always

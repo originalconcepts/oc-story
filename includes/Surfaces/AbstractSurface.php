@@ -157,10 +157,16 @@ abstract class AbstractSurface implements SurfaceInterface {
 	 * @return string
 	 */
 	protected function card_vars( array $placement ) {
+		// The size is the card width. Values under 100 predate that meaning —
+		// they were circle diameters reused — and are doubled to keep old
+		// widgets looking as they did.
+		$desktop = (int) $placement['desktop']['size'];
+		$mobile  = (int) $placement['mobile']['size'];
+
 		return sprintf(
 			'--ocs-card:%dpx;--ocs-card-mobile:%dpx;--ocs-align:%s;--ocs-align-mobile:%s',
-			max( 100, (int) $placement['desktop']['size'] * 2 ),
-			max( 100, (int) $placement['mobile']['size'] * 2 ),
+			$desktop < 100 ? $desktop * 2 : $desktop,
+			$mobile < 100 ? $mobile * 2 : $mobile,
 			'start' === $placement['desktop']['align'] ? 'flex-start' : ( 'end' === $placement['desktop']['align'] ? 'flex-end' : 'center' ),
 			'start' === $placement['mobile']['align'] ? 'flex-start' : ( 'end' === $placement['mobile']['align'] ? 'flex-end' : 'center' )
 		);

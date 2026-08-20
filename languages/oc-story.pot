@@ -848,3 +848,63 @@ msgstr ""
 #: includes
 msgid "Widgets"
 msgstr ""
+
+#: includes
+msgid "Upload a video"
+msgstr ""
+
+#: includes
+msgid "No videos yet"
+msgstr ""
+
+#: includes
+msgid "Delete video"
+msgstr ""
+
+#: includes
+msgid "Delete this video? The files stay in your media library."
+msgstr ""
+
+#: includes
+msgid "Untitled video"
+msgstr ""
+
+#: includes
+msgid "Card width"
+msgstr ""
+
+#: includes
+msgid "Title under the card"
+msgstr ""
+
+#: includes
+msgid "How many circles at most"
+msgstr ""
+
+#: includes
+msgid "How many videos at most"
+msgstr ""
+
+#: includes
+msgid "All widgets"
+msgstr ""
+
+#: includes
+msgid "Where"
+msgstr ""
+
+#: includes
+msgid "All videos"
+msgstr ""
+
+#: includes
+msgid "Hand-picked"
+msgstr ""
+
+#: includes
+msgid "By product on screen"
+msgstr ""
+
+#: includes
+msgid "Edit"
+msgstr ""

@@ -265,7 +265,9 @@ class Placement {
 
 		return array(
 			'show'   => self::flag( isset( $raw['show'] ) ? $raw['show'] : $defaults['show'] ),
-			'size'   => isset( $raw['size'] ) ? max( 40, min( 160, (int) $raw['size'] ) ) : $defaults['size'],
+			// Up to 400: for circles this is a diameter, for the card surfaces
+			// it is the card width, and cards are legitimately wider.
+			'size'   => isset( $raw['size'] ) ? max( 40, min( 400, (int) $raw['size'] ) ) : $defaults['size'],
 			'labels' => self::flag( isset( $raw['labels'] ) ? $raw['labels'] : $defaults['labels'] ),
 			'align'  => $align,
 			'max'    => isset( $raw['max'] ) ? max( 1, min( 50, (int) $raw['max'] ) ) : $defaults['max'],

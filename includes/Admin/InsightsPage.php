@@ -87,7 +87,7 @@ class InsightsPage {
 			<table class="widefat striped" style="max-width:1100px">
 				<thead>
 					<tr>
-						<th><?php esc_html_e( 'Story', 'oc-story' ); ?></th>
+						<th><?php esc_html_e( 'Video', 'oc-story' ); ?></th>
 						<th><?php esc_html_e( 'Opens', 'oc-story' ); ?></th>
 						<th><?php esc_html_e( 'Watched to the end', 'oc-story' ); ?></th>
 						<th><?php esc_html_e( 'Product taps', 'oc-story' ); ?></th>

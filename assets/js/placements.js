@@ -14,6 +14,7 @@
 	var root = document.getElementById( 'ocs-placements' );
 
 	var state = {
+		editing: null,
 		placements: [],
 		surfaces: [],
 		hooks: {},
@@ -230,7 +231,7 @@
 			mobile: { show: true, size: 64, labels: true, align: 'start', max: 20 },
 		} );
 
-		set( { dirty: true } );
+		state.dirty = true;
 	}
 
 	/* --------------------------------------------------------------- fields */
@@ -327,6 +328,11 @@
 	function deviceBlock( placement, device, label ) {
 		var conf = placement[ device ];
 
+		// The fields speak the surface's language: a circle has a size, a card
+		// has a width, and a widget showing a slider must never ask about
+		// circles.
+		var circles = 'circles' === placement.surface;
+
 		return el( 'div', { class: 'ocs-device' }, [
 			el( 'strong', { text: label } ),
 			toggle( t.show, conf.show, function ( e ) {
@@ -334,12 +340,12 @@
 				set( { dirty: true } );
 			} ),
 			field(
-				t.size,
+				circles ? t.size : t.sizeCard,
 				el( 'input', {
 					class: 'ocs-input',
 					type: 'number',
 					min: '40',
-					max: '160',
+					max: '400',
 					value: conf.size,
 					onChange: function ( e ) {
 						conf.size = parseInt( e.target.value, 10 ) || 64;
@@ -348,7 +354,7 @@
 				} )
 			),
 			field(
-				t.max,
+				circles ? t.max : t.maxCards,
 				el( 'input', {
 					class: 'ocs-input',
 					type: 'number',
@@ -372,23 +378,75 @@
 					}
 				)
 			),
-			toggle( t.labels, conf.labels, function ( e ) {
+			toggle( circles ? t.labels : t.labelsCard, conf.labels, function ( e ) {
 				conf.labels = e.target.checked;
 				set( { dirty: true } );
 			} ),
 		] );
 	}
 
-	/* --------------------------------------------------------------- render */
+	/**
+	 * Choosing a look by seeing it — a row of tiles, each a miniature of the
+	 * surface, instead of a dropdown naming things nobody has seen yet.
+	 */
+	function surfacePicker( placement ) {
+		var art = {
+			circles: '<span class="ocs-mini ocs-mini--dot"></span><span class="ocs-mini ocs-mini--dot"></span><span class="ocs-mini ocs-mini--dot"></span>',
+			slider: '<span class="ocs-mini ocs-mini--tall"></span><span class="ocs-mini ocs-mini--tall"></span><span class="ocs-mini ocs-mini--tall ocs-mini--peek"></span>',
+			grid: '<span class="ocs-mini ocs-mini--cell"></span><span class="ocs-mini ocs-mini--cell"></span><span class="ocs-mini ocs-mini--cell"></span><span class="ocs-mini ocs-mini--cell"></span>',
+			product: '<span class="ocs-mini ocs-mini--page"></span><span class="ocs-mini ocs-mini--tall ocs-mini--low"></span><span class="ocs-mini ocs-mini--tall ocs-mini--low"></span>',
+		};
+
+		var labels = {
+			circles: t.surfaceCircles,
+			slider: t.surfaceSlider,
+			grid: t.surfaceGrid,
+			product: t.surfaceProduct,
+		};
+
+		return el( 'div', { class: 'ocs-tiles' }, state.surfaces.map( function ( surface ) {
+			var tile = el( 'button', {
+				class: 'ocs-tile',
+				type: 'button',
+				'aria-pressed': placement.surface === surface.id ? 'true' : 'false',
+				onClick: function () {
+					placement.surface = surface.id;
+					set( { dirty: true } );
+				},
+			} );
+
+			var artBox = el( 'span', { class: 'ocs-tile__art ocs-tile__art--' + surface.id } );
+			artBox.innerHTML = art[ surface.id ] || '';
+
+			tile.append( artBox, el( 'span', { class: 'ocs-tile__label', text: labels[ surface.id ] || surface.label } ) );
+
+			return tile;
+		} ) );
+	}
+
+	/**
+	 * One line that says what a widget shows, for the table.
+	 */
+	function summarise( placement ) {
+		var where = state.scopes[ placement.where.scope ] || placement.where.scope;
+		var what = t.storiesAll;
+
+		if ( 'selected' === placement.stories.mode ) {
+			what = t.storiesPicked + ' (' + placement.stories.ids.length + ')';
+		} else if ( 'collection' === placement.stories.mode ) {
+			what = ( t.collection || '' ) + ': ' + ( placement.stories.collection || '—' );
+		} else if ( 'tagged' === placement.stories.mode ) {
+			what = t.storiesTagged;
+		}
+
+		return { where: where, what: what };
+	}
+
+	/* --------------------------------------------------------------- render */	/* --------------------------------------------------------------- render */
 
 	function card( placement, index ) {
 		var key = placement.id || 'new-' + index;
 		var kind = picker( placement.where.scope );
-
-		var surfaces = {};
-		state.surfaces.forEach( function ( surface ) {
-			surfaces[ surface.id ] = surface.label;
-		} );
 
 		var modes = { all: t.modeAll, selected: t.modeSelected };
 		if ( ( state.collections || [] ).length || 'collection' === placement.stories.mode ) {
@@ -415,7 +473,7 @@
 					text: t.remove,
 					onClick: function () {
 						state.placements.splice( index, 1 );
-						set( { dirty: true } );
+						set( { dirty: true, editing: null } );
 					},
 				} ),
 			] ),
@@ -434,10 +492,7 @@
 							},
 						} )
 					),
-					field( t.surface, select( placement.surface, surfaces, function ( e ) {
-						placement.surface = e.target.value;
-						set( { dirty: true } );
-					} ) ),
+					field( t.surface, surfacePicker( placement ) ),
 					field( t.scope, select( placement.where.scope, state.scopes, function ( e ) {
 						placement.where.scope = e.target.value;
 						placement.where.ids = [];
@@ -516,42 +571,100 @@
 		] );
 	}
 
-	function render() {
-		var children = [
+	function listView() {
+		var rows = state.placements.map( function ( placement, index ) {
+			var info = summarise( placement );
+			var surfaceLabels = { circles: t.surfaceCircles, slider: t.surfaceSlider, grid: t.surfaceGrid, product: t.surfaceProduct };
+
+			var activeToggle = el( 'input', { type: 'checkbox', onClick: function ( e ) {
+				e.stopPropagation();
+			}, onChange: function ( e ) {
+				placement.enabled = e.target.checked;
+				state.dirty = true;
+				save();
+			} } );
+			activeToggle.checked = !! placement.enabled;
+
+			var row = el( 'tr', { class: 'ocs-row', onClick: function () {
+				set( { editing: index } );
+			} }, [
+				el( 'td', {}, [ el( 'strong', { text: placement.label || t.namePlaceholder } ) ] ),
+				el( 'td', { text: surfaceLabels[ placement.surface ] || placement.surface } ),
+				el( 'td', { text: info.where } ),
+				el( 'td', { text: info.what } ),
+				el( 'td', {}, [ activeToggle ] ),
+				el( 'td', { class: 'ocs-row__go', text: '‹' } ),
+			] );
+
+			return row;
+		} );
+
+		return el( 'div', {}, [
 			el( 'div', { class: 'ocs-head' }, [
 				el( 'h1', { text: t.title } ),
-				el( 'div', { class: 'ocs-actions' }, [
-					el( 'button', { class: 'ocs-btn', type: 'button', text: t.add, onClick: add } ),
-					el( 'button', {
-						class: 'ocs-btn ocs-btn--primary',
-						type: 'button',
-						disabled: state.busy,
-						text: state.busy ? t.saving : ( state.dirty ? t.save : t.saved ),
-						onClick: save,
-					} ),
-				] ),
+				el( 'button', {
+					class: 'ocs-btn ocs-btn--primary',
+					type: 'button',
+					text: t.add,
+					onClick: function () {
+						add();
+						set( { editing: state.placements.length - 1 } );
+					},
+				} ),
 			] ),
-		];
+			state.note ? el( 'div', { class: 'ocs-note' + ( 'error' === state.note.kind ? ' ocs-note--error' : '' ), text: state.note.text } ) : null,
+			state.placements.length
+				? el( 'table', { class: 'ocs-table' }, [
+					el( 'thead', {}, [ el( 'tr', {}, [
+						el( 'th', { text: t.name } ),
+						el( 'th', { text: t.surface } ),
+						el( 'th', { text: t.tblWhere } ),
+						el( 'th', { text: t.tblStories } ),
+						el( 'th', { text: t.tblActive } ),
+						el( 'th', { text: '' } ),
+					] ) ] ),
+					el( 'tbody', {}, rows ),
+				] )
+				: el( 'div', { class: 'ocs-empty' }, [
+					el( 'h2', { text: t.empty } ),
+					el( 'p', { text: t.emptyHint } ),
+				] ),
+		] );
+	}
 
-		if ( state.note ) {
-			children.push( el( 'div', {
-				class: 'ocs-note' + ( 'error' === state.note.kind ? ' ocs-note--error' : '' ),
-				text: state.note.text,
-			} ) );
+	function editView() {
+		var placement = state.placements[ state.editing ];
+
+		if ( ! placement ) {
+			state.editing = null;
+			return listView();
 		}
 
-		if ( state.placements.length ) {
-			state.placements.forEach( function ( placement, index ) {
-				children.push( card( placement, index ) );
-			} );
-		} else {
-			children.push( el( 'div', { class: 'ocs-empty' }, [
-				el( 'h2', { text: t.empty } ),
-				el( 'p', { text: t.emptyHint } ),
-			] ) );
-		}
+		return el( 'div', {}, [
+			el( 'div', { class: 'ocs-head' }, [
+				el( 'button', {
+					class: 'ocs-btn ocs-btn--ghost',
+					type: 'button',
+					text: '← ' + t.back,
+					onClick: function () {
+						set( { editing: null } );
+					},
+				} ),
+				el( 'button', {
+					class: 'ocs-btn ocs-btn--primary',
+					type: 'button',
+					disabled: state.busy,
+					text: state.busy ? t.saving : ( state.dirty ? t.save : t.saved ),
+					onClick: save,
+				} ),
+			] ),
+			state.note ? el( 'div', { class: 'ocs-note' + ( 'error' === state.note.kind ? ' ocs-note--error' : '' ), text: state.note.text } ) : null,
+			card( placement, state.editing ),
+		] );
+	}
 
-		root.replaceChildren.apply( root, children );
+	function render() {
+		root.replaceChildren( null === state.editing ? listView() : editView() );
 		root.removeAttribute( 'data-loading' );
 	}
 

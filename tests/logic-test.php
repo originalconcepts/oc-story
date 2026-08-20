@@ -150,7 +150,7 @@ $p = \OCS\Model\Placement::sanitize( array(
 	'id'      => 'PL_ABC!!',
 	'surface' => 'hologram',
 	'where'   => array( 'scope' => 'moon', 'ids' => '4, 9, 9, x' ),
-	'desktop' => array( 'size' => 400, 'labels' => 'yes' ),
+	'desktop' => array( 'size' => 900, 'labels' => 'yes' ),
 	'mobile'  => array( 'size' => 10, 'align' => 'sideways' ),
 	'stories' => array( 'mode' => 'random' ),
 ) );
@@ -158,7 +158,7 @@ check( 'lowercases and strips the id', $p['id'] === 'pl_abc' );
 check( 'falls back to a known surface', $p['surface'] === 'circles' );
 check( 'falls back to a known scope', $p['where']['scope'] === 'home' );
 check( 'parses a comma-separated id list', $p['where']['ids'] === array( 4, 9 ) );
-check( 'clamps an oversized circle', $p['desktop']['size'] === 160 );
+check( 'clamps an oversized size', $p['desktop']['size'] === 400 );
 check( 'clamps an undersized circle', $p['mobile']['size'] === 40 );
 check( 'coerces a checkbox string', $p['desktop']['labels'] === true );
 check( 'falls back to a known alignment', $p['mobile']['align'] === 'start' );

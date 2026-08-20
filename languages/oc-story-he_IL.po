@@ -850,3 +850,63 @@ msgstr "לדוגמה: משפיענים — מקבץ סטוריז כדי שווי
 #: includes
 msgid "Widgets"
 msgstr "ווידג'טים"
+
+#: includes
+msgid "Upload a video"
+msgstr "העלאת וידאו"
+
+#: includes
+msgid "No videos yet"
+msgstr "אין עדיין סרטונים"
+
+#: includes
+msgid "Delete video"
+msgstr "מחק וידאו"
+
+#: includes
+msgid "Delete this video? The files stay in your media library."
+msgstr "למחוק את הווידאו? הקבצים נשארים בספריית המדיה."
+
+#: includes
+msgid "Untitled video"
+msgstr "וידאו ללא שם"
+
+#: includes
+msgid "Card width"
+msgstr "רוחב הכרטיס"
+
+#: includes
+msgid "Title under the card"
+msgstr "כותרת מתחת לכרטיס"
+
+#: includes
+msgid "How many circles at most"
+msgstr "כמה עיגולים לכל היותר"
+
+#: includes
+msgid "How many videos at most"
+msgstr "כמה סרטונים לכל היותר"
+
+#: includes
+msgid "All widgets"
+msgstr "כל הווידג'טים"
+
+#: includes
+msgid "Where"
+msgstr "איפה"
+
+#: includes
+msgid "All videos"
+msgstr "כל הסרטונים"
+
+#: includes
+msgid "Hand-picked"
+msgstr "נבחרים ידנית"
+
+#: includes
+msgid "By product on screen"
+msgstr "לפי המוצר במסך"
+
+#: includes
+msgid "Edit"
+msgstr "עריכה"
