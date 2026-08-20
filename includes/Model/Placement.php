@@ -31,7 +31,7 @@ class Placement {
 	 *
 	 * @var string[]
 	 */
-	const SURFACES = array( 'circles', 'slider', 'product' );
+	const SURFACES = array( 'circles', 'slider', 'grid', 'product' );
 
 	/**
 	 * Where a placement can apply.
@@ -66,8 +66,9 @@ class Placement {
 			'hook'     => 'auto',
 			'priority' => 15,
 			'stories'  => array(
-				'mode' => 'all',   // 'all' | 'selected' | 'tagged'.
-				'ids'  => array(),
+				'mode'       => 'all',   // 'all' | 'selected' | 'collection' | 'tagged'.
+				'ids'        => array(),
+				'collection' => '',
 			),
 			'desktop'  => array(
 				'show'   => true,
@@ -210,7 +211,7 @@ class Placement {
 		}
 
 		$mode = isset( $raw['stories']['mode'] ) ? strtolower( (string) $raw['stories']['mode'] ) : 'all';
-		if ( ! in_array( $mode, array( 'all', 'selected', 'tagged' ), true ) ) {
+		if ( ! in_array( $mode, array( 'all', 'selected', 'collection', 'tagged' ), true ) ) {
 			$mode = 'all';
 		}
 
@@ -229,8 +230,11 @@ class Placement {
 			'hook'     => isset( $raw['hook'] ) ? preg_replace( '/[^a-zA-Z0-9_\-]/', '', (string) $raw['hook'] ) : $defaults['hook'],
 			'priority' => isset( $raw['priority'] ) ? max( 1, min( 999, (int) $raw['priority'] ) ) : $defaults['priority'],
 			'stories'  => array(
-				'mode' => $mode,
-				'ids'  => self::ids( isset( $raw['stories']['ids'] ) ? $raw['stories']['ids'] : array() ),
+				'mode'       => $mode,
+				'ids'        => self::ids( isset( $raw['stories']['ids'] ) ? $raw['stories']['ids'] : array() ),
+				'collection' => isset( $raw['stories']['collection'] )
+					? mb_substr( trim( wp_strip_all_tags( (string) $raw['stories']['collection'] ) ), 0, 60 )
+					: '',
 			),
 			'desktop'  => self::device( isset( $raw['desktop'] ) ? $raw['desktop'] : array(), $defaults['desktop'] ),
 			'mobile'   => self::device( isset( $raw['mobile'] ) ? $raw['mobile'] : array(), $defaults['mobile'] ),

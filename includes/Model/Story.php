@@ -26,6 +26,7 @@ defined( 'ABSPATH' ) || exit;
 class Story {
 
 	const POST_TYPE  = 'oc_story';
+	const COLLECTION = 'ocs_collection';
 	const META_SLIDES = '_ocs_slides';
 	const META_LABEL  = '_ocs_label';
 
@@ -33,6 +34,21 @@ class Story {
 	 * Register the post type. Called on `init`.
 	 */
 	public static function register() {
+		// Collections are how "influencers" and "courses" stay two different
+		// pools feeding two different widgets. A taxonomy rather than meta so
+		// the widget query is an indexed tax_query, not a meta scan.
+		register_taxonomy(
+			self::COLLECTION,
+			self::POST_TYPE,
+			array(
+				'public'            => false,
+				'show_ui'           => false,
+				'show_in_rest'      => false,
+				'hierarchical'      => false,
+				'show_admin_column' => false,
+			)
+		);
+
 		register_post_type(
 			self::POST_TYPE,
 			array(
@@ -361,6 +377,10 @@ class Story {
 			self::set_slides( $id, $args['slides'] );
 		}
 
+		if ( array_key_exists( 'collection', $args ) ) {
+			self::set_collection( $id, (string) $args['collection'] );
+		}
+
 		return (int) $id;
 	}
 
@@ -399,6 +419,10 @@ class Story {
 		}
 
 		self::bump_version();
+
+		if ( array_key_exists( 'collection', $args ) ) {
+			self::set_collection( $story_id, (string) $args['collection'] );
+		}
 
 		if ( array_key_exists( 'poster', $args ) ) {
 			$poster = (int) $args['poster'];
@@ -534,6 +558,7 @@ class Story {
 		return array(
 			'id'         => (int) $post->ID,
 			'title'      => $post->post_title,
+			'collection' => self::collection( $post->ID ),
 			'status'     => $post->post_status,
 			'menu_order' => (int) $post->menu_order,
 			'poster'     => (int) $thumbnail,
@@ -627,6 +652,47 @@ class Story {
 	}
 
 	/**
+	 * Put a story in a collection, or in none.
+	 *
+	 * @param int    $story_id Story ID.
+	 * @param string $name     Collection name, '' to clear.
+	 */
+	public static function set_collection( $story_id, $name ) {
+		$name = trim( wp_strip_all_tags( $name ) );
+
+		wp_set_object_terms( (int) $story_id, '' === $name ? array() : array( $name ), self::COLLECTION );
+	}
+
+	/**
+	 * The story's collection name, or ''.
+	 *
+	 * @param int $story_id Story ID.
+	 * @return string
+	 */
+	public static function collection( $story_id ) {
+		$terms = get_the_terms( (int) $story_id, self::COLLECTION );
+
+		return is_array( $terms ) && $terms ? (string) $terms[0]->name : '';
+	}
+
+	/**
+	 * Every collection that has at least one story.
+	 *
+	 * @return string[]
+	 */
+	public static function collections() {
+		$terms = get_terms(
+			array(
+				'taxonomy'   => self::COLLECTION,
+				'hide_empty' => true,
+				'fields'     => 'names',
+			)
+		);
+
+		return is_wp_error( $terms ) ? array() : array_values( array_map( 'strval', $terms ) );
+	}
+
+	/**
 	 * Where a new story goes in the bar: first.
 	 *
 	 * New content is the reason someone opens a story bar at all, so a new story
@@ -709,8 +775,9 @@ class Story {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'limit'   => 20,
-				'include' => array(),
+				'limit'      => 20,
+				'include'    => array(),
+				'collection' => '',
 			)
 		);
 
@@ -730,6 +797,16 @@ class Story {
 		if ( ! empty( $args['include'] ) ) {
 			$query['post__in'] = array_map( 'absint', (array) $args['include'] );
 			$query['orderby']  = 'post__in';
+		}
+
+		if ( '' !== (string) $args['collection'] ) {
+			$query['tax_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
+				array(
+					'taxonomy' => self::COLLECTION,
+					'field'    => 'name',
+					'terms'    => array( (string) $args['collection'] ),
+				),
+			);
 		}
 
 		$query = apply_filters( 'ocs_story_query_args', $query, $args );

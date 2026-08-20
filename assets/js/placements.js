@@ -112,6 +112,7 @@
 				surfaces: data.surfaces || [],
 				hooks: data.hooks || {},
 				scopes: data.scopes || {},
+				collections: data.collections || [],
 			} );
 
 			resolveNames();
@@ -224,7 +225,7 @@
 			where: { scope: 'home', ids: [], exclude: [] },
 			hook: 'auto',
 			priority: 15,
-			stories: { mode: 'all', ids: [] },
+			stories: { mode: 'all', ids: [], collection: '' },
 			desktop: { show: true, size: 84, labels: true, align: 'start', max: 12 },
 			mobile: { show: true, size: 64, labels: true, align: 'start', max: 20 },
 		} );
@@ -390,6 +391,9 @@
 		} );
 
 		var modes = { all: t.modeAll, selected: t.modeSelected };
+		if ( ( state.collections || [] ).length || 'collection' === placement.stories.mode ) {
+			modes.collection = t.modeCollection;
+		}
 		if ( 'tagged' === placement.where.scope ) {
 			modes.tagged = t.modeTagged;
 		}
@@ -471,6 +475,19 @@
 						placement.stories.mode = e.target.value;
 						set( { dirty: true } );
 					} ) ),
+					'collection' === placement.stories.mode
+						? field( t.collection, select(
+							placement.stories.collection || '',
+							( state.collections || [] ).reduce( function ( map, name ) {
+								map[ name ] = name;
+								return map;
+							}, { '': '—' } ),
+							function ( e ) {
+								placement.stories.collection = e.target.value;
+								set( { dirty: true } );
+							}
+						) )
+						: null,
 					'selected' === placement.stories.mode
 						? el( 'div', { class: 'ocs-chips' }, ( state.stories || [] ).map( function ( story ) {
 							var on = placement.stories.ids.indexOf( story.id ) > -1;

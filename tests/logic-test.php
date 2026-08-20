@@ -49,6 +49,7 @@ require OCS_PATH . 'includes/Surfaces/SurfaceInterface.php';
 require OCS_PATH . 'includes/Surfaces/AbstractSurface.php';
 require OCS_PATH . 'includes/Surfaces/Circles.php';
 require OCS_PATH . 'includes/Surfaces/Slider.php';
+require OCS_PATH . 'includes/Surfaces/Grid.php';
 require OCS_PATH . 'includes/Surfaces/ProductBlock.php';
 require OCS_PATH . 'includes/Surfaces/SurfaceManager.php';
 require OCS_PATH . 'includes/Model/Stats.php';
@@ -163,9 +164,17 @@ check( 'coerces a checkbox string', $p['desktop']['labels'] === true );
 check( 'falls back to a known alignment', $p['mobile']['align'] === 'start' );
 check( 'falls back to a known story mode', $p['stories']['mode'] === 'all' );
 
+$pc = \OCS\Model\Placement::sanitize( array(
+	'id'      => 'pl_c',
+	'stories' => array( 'mode' => 'collection', 'collection' => '<b>משפיענים</b>' ),
+) );
+check( 'keeps the collection mode', 'collection' === $pc['stories']['mode'] );
+check( 'strips tags from the collection name', 'משפיענים' === $pc['stories']['collection'] );
+check( 'grid is an accepted surface', 'grid' === \OCS\Model\Placement::sanitize( array( 'id' => 'pl_g', 'surface' => 'grid' ) )['surface'] );
+
 echo "\nSurfaces\n";
 $surfaces = \OCS\Surfaces\SurfaceManager::all();
-check( 'circles, slider and product block are all registered', count( $surfaces ) === 3 );
+check( 'circles, slider, grid and product block are all registered', count( $surfaces ) === 4 );
 
 $named = true;
 foreach ( $surfaces as $id => $surface ) {

@@ -53,8 +53,8 @@ class Menu {
 
 		$placements_hook = add_submenu_page(
 			self::SLUG,
-			__( 'Where it shows', 'oc-story' ),
-			__( 'Where it shows', 'oc-story' ),
+			__( 'Widgets', 'oc-story' ),
+			__( 'Widgets', 'oc-story' ),
 			'manage_woocommerce',
 			PlacementsPage::SLUG,
 			array( $placements, 'render' )

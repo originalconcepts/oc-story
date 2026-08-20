@@ -23,6 +23,7 @@ const BUDGET = [
 	{ file: 'assets/css/surface-circles.css', raw: 2048, why: 'circles, inlined' },
 	{ file: 'assets/css/surface-slider.css', raw: 2560, why: 'slider, inlined' },
 	{ file: 'assets/css/surface-product.css', raw: 1024, why: 'product block, inlined' },
+	{ file: 'assets/css/surface-grid.css', raw: 1024, why: 'video wall, inlined' },
 
 	// The only script the storefront loads before an interaction.
 	{ file: 'assets/js/bar.js', gzip: 4096, why: 'initial script' },
@@ -42,7 +43,8 @@ const WORST_CASE = { files: [
 	'assets/css/surface-circles.css',
 	'assets/css/surface-slider.css',
 	'assets/css/surface-product.css',
-], raw: 6144, why: 'every surface at once (a page with a shortcode)' };
+	'assets/css/surface-grid.css',
+], raw: 7168, why: 'every surface at once (a page with a shortcode)' };
 
 let failed = 0;
 

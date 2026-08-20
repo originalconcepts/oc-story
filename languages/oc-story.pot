@@ -808,3 +808,43 @@ msgstr ""
 #: includes
 msgid "The shop is not available."
 msgstr ""
+
+#: includes
+msgid "Video widgets"
+msgstr ""
+
+#: includes
+msgid "Add a widget"
+msgstr ""
+
+#: includes
+msgid "No widgets yet"
+msgstr ""
+
+#: includes
+msgid "Each widget is its own row of videos: choose how it looks, which pages it lives on, and which videos it shows."
+msgstr ""
+
+#: includes
+msgid "Widget name"
+msgstr ""
+
+#: includes
+msgid "Influencers on the home page"
+msgstr ""
+
+#: includes
+msgid "A collection"
+msgstr ""
+
+#: includes
+msgid "Collection"
+msgstr ""
+
+#: includes
+msgid "e.g. Influencers — groups stories so a widget can show only this set"
+msgstr ""
+
+#: includes
+msgid "Widgets"
+msgstr ""

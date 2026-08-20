@@ -326,7 +326,14 @@ class Injector {
 		$mode  = $placement['stories']['mode'];
 		$limit = max( (int) $placement['desktop']['max'], (int) $placement['mobile']['max'] );
 
-		if ( 'selected' === $mode ) {
+		if ( 'collection' === $mode && '' !== (string) $placement['stories']['collection'] ) {
+			$posts = Story::published(
+				array(
+					'limit'      => $limit,
+					'collection' => (string) $placement['stories']['collection'],
+				)
+			);
+		} elseif ( 'selected' === $mode ) {
 			$posts = Story::published(
 				array(
 					'limit'   => $limit,

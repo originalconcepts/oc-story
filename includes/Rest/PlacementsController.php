@@ -68,10 +68,11 @@ class PlacementsController {
 
 		return rest_ensure_response(
 			array(
-				'placements' => array_values( Placement::all() ),
-				'surfaces'   => $surfaces,
-				'hooks'      => Placement::hooks(),
-				'scopes'     => Placement::scopes(),
+				'placements'  => array_values( Placement::all() ),
+				'surfaces'    => $surfaces,
+				'hooks'       => Placement::hooks(),
+				'scopes'      => Placement::scopes(),
+				'collections' => \OCS\Model\Story::collections(),
 			)
 		);
 	}

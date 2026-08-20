@@ -810,3 +810,43 @@ msgstr "השילוב הזה אינו זמין."
 #: includes
 msgid "The shop is not available."
 msgstr "החנות אינה זמינה כרגע."
+
+#: includes
+msgid "Video widgets"
+msgstr "ווידג'טים של וידאו"
+
+#: includes
+msgid "Add a widget"
+msgstr "הוסף ווידג'ט"
+
+#: includes
+msgid "No widgets yet"
+msgstr "אין עדיין ווידג'טים"
+
+#: includes
+msgid "Each widget is its own row of videos: choose how it looks, which pages it lives on, and which videos it shows."
+msgstr "כל ווידג'ט הוא שורת וידאו עצמאית: בוחרים איך הוא נראה, באילו עמודים הוא חי, ואילו סרטונים הוא מציג."
+
+#: includes
+msgid "Widget name"
+msgstr "שם הווידג'ט"
+
+#: includes
+msgid "Influencers on the home page"
+msgstr "משפיענים בעמוד הבית"
+
+#: includes
+msgid "A collection"
+msgstr "קולקציה"
+
+#: includes
+msgid "Collection"
+msgstr "קולקציה"
+
+#: includes
+msgid "e.g. Influencers — groups stories so a widget can show only this set"
+msgstr "לדוגמה: משפיענים — מקבץ סטוריז כדי שווידג'ט יציג רק את הסט הזה"
+
+#: includes
+msgid "Widgets"
+msgstr "ווידג'טים"

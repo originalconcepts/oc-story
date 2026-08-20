@@ -357,6 +357,7 @@ async function save() {
 			body: JSON.stringify( {
 				title: story.title,
 				status: story.status,
+				collection: story.collection || '',
 				slides: story.slides.map( trim ),
 			} ),
 		} );
@@ -803,6 +804,26 @@ function editorView() {
 								state.dirty = true;
 							},
 						} ),
+					] ),
+					el( 'div', { class: 'ocs-field' }, [
+						el( 'label', { for: 'ocs-collection', text: t.collection } ),
+						el( 'input', {
+							id: 'ocs-collection',
+							class: 'ocs-input',
+							type: 'text',
+							maxlength: '60',
+							list: 'ocs-collections',
+							value: story.collection || '',
+							placeholder: t.collectionHint,
+							onInput: ( e ) => {
+								story.collection = e.target.value;
+								state.dirty = true;
+							},
+						} ),
+						el( 'datalist', { id: 'ocs-collections' },
+							[ ...new Set( state.stories.map( ( s ) => s.collection ).filter( Boolean ) ) ]
+								.map( ( name ) => el( 'option', { value: name } ) )
+						),
 					] ),
 					productPanel(),
 					el( 'div', { class: 'ocs-actions' }, [

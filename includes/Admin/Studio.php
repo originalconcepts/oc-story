@@ -112,6 +112,8 @@ class Studio {
 			'empty'          => __( 'No stories yet', 'oc-story' ),
 			'emptyHint'      => __( 'Add a video, tag the products in it, and publish. That is the whole thing.', 'oc-story' ),
 			'title'          => __( 'Caption under the circle', 'oc-story' ),
+			'collection'     => __( 'Collection', 'oc-story' ),
+			'collectionHint' => __( 'e.g. Influencers — groups stories so a widget can show only this set', 'oc-story' ),
 			'products'       => __( 'Products in this video', 'oc-story' ),
 			'searchProducts' => __( 'Type a product name…', 'oc-story' ),
 			'noProducts'     => __( 'Nothing found', 'oc-story' ),

@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.2.3
+Stable tag: 0.3.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,18 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.3.0 =
+* Widgets, plural. The placements screen now speaks the language it always
+  worked in: every widget is its own independent row of videos — its own
+  name, look, pages, devices and content. Influencers on the home page,
+  course videos on the courses page, a mobile-only story bar and a
+  per-product row can all run side by side.
+* Collections: give a story a collection name in the studio ("Influencers",
+  "Courses") and point a widget at that collection. New stories in the
+  collection appear in the widget automatically.
+* New look: the video wall — the slider's cards in a wrapping grid, two
+  columns on phones.
 
 = 0.2.3 =
 * Adding from a story updates the header cart count and the mini-cart drawer

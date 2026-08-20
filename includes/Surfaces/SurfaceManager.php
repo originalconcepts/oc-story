@@ -36,6 +36,7 @@ class SurfaceManager {
 			$surfaces = array(
 				'circles' => new Circles(),
 				'slider'  => new Slider(),
+				'grid'    => new Grid(),
 				'product' => new ProductBlock(),
 			);
 			$surfaces = apply_filters( 'ocs_surfaces', $surfaces );

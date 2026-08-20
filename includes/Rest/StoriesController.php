@@ -195,9 +195,10 @@ class StoriesController {
 	public function create( $request ) {
 		$id = Story::create(
 			array(
-				'title'  => (string) $request['title'],
-				'status' => (string) $request['status'],
-				'slides' => is_array( $request['slides'] ) ? $request['slides'] : array(),
+				'title'      => (string) $request['title'],
+				'status'     => (string) $request['status'],
+				'collection' => (string) $request['collection'],
+				'slides'     => is_array( $request['slides'] ) ? $request['slides'] : array(),
 			)
 		);
 
@@ -221,7 +222,7 @@ class StoriesController {
 	public function update( $request ) {
 		$args = array();
 
-		foreach ( array( 'title', 'status', 'slides', 'poster' ) as $key ) {
+		foreach ( array( 'title', 'status', 'slides', 'poster', 'collection' ) as $key ) {
 			if ( null !== $request[ $key ] ) {
 				$args[ $key ] = $request[ $key ];
 			}
