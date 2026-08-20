@@ -420,12 +420,16 @@ are throttled hard in a background tab, and the studio is exactly the screen
 someone starts and switches away from. Measured cost of getting this wrong: 68.8 ms
 per frame instead of 3 ms. The codecs were never the bottleneck; the waiting was.
 
-**No autoplaying previews in the slider.** Every competing plugin plays muted
-loops in the grid, and it is the single fastest way to break the budget above:
-six cards in view is six video downloads before anyone has asked for one. The
-card shows a poster, a duration and a product count. If this is ever added it
-belongs behind a setting that is off by default and a separate chunk that only
-loads when it is on.
+**Autoplaying previews — the rule this reversed, and how.** This said no: six
+cards in view is six video downloads before anyone asked for one. Shipped in
+0.4.0 anyway, because a still grid of posters gets ignored and the whole point
+of the surface is to catch an eye. What made it affordable is that the
+objection was to *six*, not to *one*: a single video element exists on the
+page, moves from card to card on a five-second turn, and only takes turns while
+the row is on screen. Hovering hands it over immediately. Reduced motion, save
+data and 2G opt out entirely; a hidden tab parks it. The logic is its own
+chunk, loaded only where a card surface previews, and the setting can switch
+the whole thing off.
 
 **faststart is not optional.** An MP4 with the moov atom at the end forces mobile
 Safari to fetch the whole file before the first frame. It looks fine on desktop

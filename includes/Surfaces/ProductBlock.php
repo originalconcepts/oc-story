@@ -71,6 +71,7 @@ class ProductBlock extends AbstractSurface {
 				'inline'    => $inline,
 				'src'       => '' === $inline ? $this->payload_src( $visible ) : '',
 				'style'     => $this->card_vars( $placement ),
+				'autoplay'  => \OCS\Core\Settings::is( 'card_autoplay' ),
 				'heading'   => (string) apply_filters( 'ocs_product_block_heading', __( 'See it in action', 'oc-story' ) ),
 			)
 		);

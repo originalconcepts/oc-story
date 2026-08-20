@@ -10,7 +10,11 @@
    language: mirroring it turns the control into a rewind button. */
 .ocs-card__play::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-40%,-50%);border-style:solid;border-width:5px 0 5px 8px;border-color:transparent transparent transparent #fff}
 .ocs-card__time{position:absolute;top:8px;inset-inline-end:8px;background:rgba(0,0,0,.5);color:#fff;font-size:11px;line-height:1;padding:3px 6px;border-radius:999px}
-.ocs-card__tag{position:absolute;bottom:10px;inset-inline-end:8px;background:#fff;color:#111;font-size:11px;line-height:1;padding:4px 8px;border-radius:999px}
+.ocs-card__preview{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s ease;background:#000;z-index:1;pointer-events:none}
+.ocs-card__preview.is-on{opacity:1}
+/* With previews running the play mark is noise: the card is already moving. */
+[data-ocs-autoplay] .ocs-card__play{display:none}
+.ocs-card__time{z-index:2}
 .ocs-card__label{display:block;margin-top:8px;font-size:13px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ocs-slider[data-ocs-labels^="0"] .ocs-card__label{display:none}
 .ocs-card:focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:14px}

@@ -79,6 +79,13 @@ class Assets {
 
 		wp_enqueue_script( 'ocs-bar', OCS_URL . 'assets/js/bar.js', array(), OCS_VERSION, true );
 
+		// The preview chunk rides along only where a card surface is actually
+		// rendering and previews are switched on — never on a circles-only
+		// page, and never at all when the setting is off.
+		if ( Settings::is( 'card_autoplay' ) && array_intersect( array( 'slider', 'grid', 'product' ), Injector::surfaces() ) ) {
+			wp_enqueue_script( 'ocs-preview', OCS_URL . 'assets/js/preview.js', array(), OCS_VERSION, true );
+		}
+
 		// The player chunk is imported by URL, so the path has to survive a
 		// child theme, a CDN rewrite and a plugins directory that is not where
 		// anyone expects it to be.

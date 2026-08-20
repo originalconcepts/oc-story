@@ -10,6 +10,7 @@
  * @var string $src       REST URL when the payload was not inlined.
  * @var string $style     Per-device custom properties.
  * @var string $heading   Optional heading above the row.
+ * @var bool   $autoplay  Whether cards preview themselves silently.
  *
  * @package OC_Story
  */
@@ -24,6 +25,9 @@ $ocs_labels = ( $placement['desktop']['labels'] ? '1' : '0' ) . ( $placement['mo
 	data-ocs-bar="<?php echo esc_attr( $placement['id'] ); ?>"
 	data-ocs-surface="<?php echo esc_attr( $placement['surface'] ); ?>"
 	data-ocs-labels="<?php echo esc_attr( $ocs_labels ); ?>"
+	<?php if ( ! empty( $autoplay ) ) : ?>
+		data-ocs-autoplay="1"
+	<?php endif; ?>
 	<?php if ( '' !== $src ) : ?>
 		data-ocs-src="<?php echo esc_url( $src ); ?>"
 	<?php endif; ?>
@@ -42,20 +46,28 @@ $ocs_labels = ( $placement['desktop']['labels'] ? '1' : '0' ) . ( $placement['mo
 			}
 
 			$ocs_first    = isset( $ocs_story['slides'][0] ) ? $ocs_story['slides'][0] : null;
+
+			// The clip the silent preview plays. Only video slides qualify —
+			// and it is only an attribute here; nothing loads until the card's
+			// turn comes round, in view.
+			$ocs_preview = ( $ocs_first && 'image' !== $ocs_first['type'] && '' !== $ocs_first['url'] )
+				? $ocs_first['url']
+				: '';
 			$ocs_poster   = $ocs_story['poster_url'];
 			$ocs_title    = $ocs_story['title'];
-			$ocs_products = 0;
-			$ocs_seconds  = 0;
+			$ocs_seconds = 0;
 
 			foreach ( $ocs_story['slides'] as $ocs_slide ) {
-				$ocs_products += count( $ocs_slide['products'] );
-				$ocs_seconds  += (float) $ocs_slide['duration'];
+				$ocs_seconds += (float) $ocs_slide['duration'];
 			}
 			?>
 			<button
 				type="button"
 				class="ocs-card"
 				data-ocs-open="<?php echo esc_attr( $ocs_story['id'] ); ?>"
+				<?php if ( '' !== $ocs_preview ) : ?>
+					data-ocs-preview="<?php echo esc_url( $ocs_preview ); ?>"
+				<?php endif; ?>
 				aria-label="<?php echo esc_attr( $ocs_title ? $ocs_title : __( 'Watch video', 'oc-story' ) ); ?>"
 			>
 				<span class="ocs-card__frame">
@@ -87,17 +99,6 @@ $ocs_labels = ( $placement['desktop']['labels'] ? '1' : '0' ) . ( $placement['mo
 						<span class="ocs-card__time"><?php echo esc_html( gmdate( 'i:s', (int) round( $ocs_seconds ) ) ); ?></span>
 					<?php endif; ?>
 
-					<?php if ( $ocs_products > 0 ) : ?>
-						<span class="ocs-card__tag">
-							<?php
-							printf(
-								/* translators: %d: number of products tagged in the video */
-								esc_html( _n( '%d product', '%d products', $ocs_products, 'oc-story' ) ),
-								(int) $ocs_products
-							);
-							?>
-						</span>
-					<?php endif; ?>
 				</span>
 
 				<?php if ( '' !== $ocs_title ) : ?>

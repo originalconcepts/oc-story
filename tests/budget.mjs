@@ -31,6 +31,12 @@ const BUDGET = [
 	// Product pages only, and only when attribution is on.
 	{ file: 'assets/js/attr.js', gzip: 1024, why: 'attribution helper' },
 
+	// Only where a card surface previews, and it buys a lot for the size: one
+	// shared video element, viewport-gated, hover-driven. Raised from 2048
+	// deliberately when the geometry fallback landed — a conditionally loaded
+	// chunk on a minority of pages is the right place to spend 200 bytes.
+	{ file: 'assets/js/preview.js', gzip: 2560, why: 'card previews' },
+
 	// Imported on the first tap, never before.
 	{ file: 'assets/js/player.js', gzip: 16384, why: 'player chunk' },
 	{ file: 'assets/css/player.css', gzip: 5120, why: 'player stylesheet' },

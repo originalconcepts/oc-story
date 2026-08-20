@@ -53,6 +53,9 @@ class Settings {
 			'loop_last_slide'        => 'no',
 			'advance_to_next_story'  => 'yes',
 			'show_product_strip'     => 'yes',
+			// Cards preview themselves, silently, one at a time. See
+			// assets/js/preview.js for how that stays cheap.
+			'card_autoplay'          => 'yes',
 			'close_on_finish'        => 'yes',
 
 			// --- Look ------------------------------------------------------------

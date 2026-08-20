@@ -908,3 +908,15 @@ msgstr ""
 #: includes
 msgid "Edit"
 msgstr ""
+
+#: includes
+msgid "Video cards"
+msgstr ""
+
+#: includes
+msgid "Play a silent preview in the cards, one at a time"
+msgstr ""
+
+#: includes
+msgid "Only one video plays anywhere on the page, and only while the row is on screen."
+msgstr ""

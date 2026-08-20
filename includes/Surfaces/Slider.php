@@ -71,6 +71,7 @@ class Slider extends AbstractSurface {
 				'inline'    => $inline,
 				'src'       => '' === $inline ? $this->payload_src( $visible ) : '',
 				'style'     => $this->card_vars( $placement ),
+				'autoplay'  => \OCS\Core\Settings::is( 'card_autoplay' ),
 				'heading'   => '',
 			)
 		);

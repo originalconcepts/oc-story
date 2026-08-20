@@ -59,6 +59,7 @@ class SettingsPage {
 				// Player.
 				'advance_to_next_story'    => empty( $post['advance_to_next_story'] ) ? 'no' : 'yes',
 				'show_product_strip'       => empty( $post['show_product_strip'] ) ? 'no' : 'yes',
+				'card_autoplay'            => empty( $post['card_autoplay'] ) ? 'no' : 'yes',
 
 				// Video.
 				'max_long_side'            => max( 480, min( 1920, (int) ( $post['max_long_side'] ?? 1280 ) ) ),
@@ -130,6 +131,13 @@ class SettingsPage {
 						<th scope="row"><?php esc_html_e( 'Products', 'oc-story' ); ?></th>
 						<td>
 							<label><input type="checkbox" name="show_product_strip" <?php checked( 'yes' === $s['show_product_strip'] ); ?>> <?php esc_html_e( 'Show tagged products over the video', 'oc-story' ); ?></label>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Video cards', 'oc-story' ); ?></th>
+						<td>
+							<label><input type="checkbox" name="card_autoplay" <?php checked( 'yes' === $s['card_autoplay'] ); ?>> <?php esc_html_e( 'Play a silent preview in the cards, one at a time', 'oc-story' ); ?></label>
+							<p class="description"><?php esc_html_e( 'Only one video plays anywhere on the page, and only while the row is on screen.', 'oc-story' ); ?></p>
 						</td>
 					</tr>
 				</table>

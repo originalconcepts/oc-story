@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.3.3
+Stable tag: 0.4.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,16 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.4.0 =
+* Video cards now play themselves, silently. One video plays at a time
+  anywhere on the page: five seconds in one card, then the next, and so on
+  round the row — and hovering a card hands it the spotlight at once. No play
+  button, no product-count pill: the card is already moving.
+* Only one video is ever downloaded, nothing loads until a card's turn comes
+  round, and turns only happen while the row is on screen. A hidden tab stops
+  it; reduced-motion, data-saver and 2G connections never start it. It can be
+  switched off under Settings → Video cards.
 
 = 0.3.3 =
 * Circles came out as ellipses inside page content: WordPress's paragraph
