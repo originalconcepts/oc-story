@@ -120,6 +120,26 @@ check( 'clamps a coordinate above one', $products[0]['y'] === 1.0 );
 check( 'clamps a coordinate below zero', $products[2]['x'] === 0.0 );
 check( 'nulls a non-numeric coordinate', $products[2]['y'] === null );
 
+$typed = $n( array(
+	array( 'ref' => '10', 'type' => 'image' ),
+	array( 'ref' => '11', 'type' => 'hologram' ),
+	array( 'ref' => '12' ),
+) );
+check( 'keeps an image slide', 'image' === $typed[0]['type'] );
+check( 'an unknown type falls back to video', 'video' === $typed[1]['type'] );
+check( 'a missing type is video', 'video' === $typed[2]['type'] );
+
+$payload = \OCS\Model\Story::to_payload( array( array(
+	'id'     => 5,
+	'title'  => 'x',
+	'slides' => array(
+		array( 'id' => 's_aaaa1111', 'type' => 'image', 'url' => 'https://x/a.jpg', 'poster_url' => 'https://x/p.jpg', 'w' => 720, 'h' => 1280, 'duration' => 5, 'products' => array(), 'cta' => array( 'text' => '', 'url' => '' ) ),
+		array( 'id' => 's_bbbb2222', 'type' => 'video', 'url' => 'https://x/a.mp4', 'poster_url' => '', 'w' => 720, 'h' => 1280, 'duration' => 9, 'products' => array(), 'cta' => array( 'text' => '', 'url' => '' ) ),
+	),
+) ) );
+check( 'payload marks an image slide', 'i' === $payload[0]['s'][0]['ty'] );
+check( 'payload marks a video slide', 'v' === $payload[0]['s'][1]['ty'] );
+
 $cta = $n( array( array( 'ref' => '10', 'cta' => array( 'text' => '<b>Shop</b>', 'url' => 'javascript:alert(1)' ) ) ) );
 check( 'strips tags from cta text', $cta[0]['cta']['text'] === 'Shop' );
 check( 'rejects a non-url cta link', $cta[0]['cta']['url'] === '' );

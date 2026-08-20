@@ -89,6 +89,7 @@ class Assets {
 					'player' => OCS_URL . 'assets/js/player.js',
 					'css'    => OCS_URL . 'assets/css/player.css?v=' . OCS_VERSION,
 					'events' => Settings::is( 'analytics_enabled' ) ? rest_url( 'oc-story/v1/events' ) : '',
+					'api'    => rest_url( 'oc-story/v1' ),
 					'ring'   => Settings::get( 'ring_style', 'gradient' ),
 					'next'   => Settings::is( 'advance_to_next_story' ),
 					'i18n'   => array(
@@ -96,7 +97,10 @@ class Assets {
 						'prev'  => __( 'Previous', 'oc-story' ),
 						'next'  => __( 'Next', 'oc-story' ),
 						'shop'  => __( 'View product', 'oc-story' ),
-						'buy'   => __( 'Buy', 'oc-story' ),
+						'buy'         => __( 'Buy', 'oc-story' ),
+						'add'         => __( 'Add to cart', 'oc-story' ),
+						'added'       => __( 'Added ✓', 'oc-story' ),
+						'unavailable' => __( 'Unavailable', 'oc-story' ),
 					),
 				)
 			) . ';',

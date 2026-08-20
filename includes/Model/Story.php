@@ -137,8 +137,11 @@ class Story {
 				$duration = 0.0;
 			}
 
+			$type = isset( $slide['type'] ) && 'image' === $slide['type'] ? 'image' : 'video';
+
 			$out[] = array(
 				'id'       => $id,
+				'type'     => $type,
 				'source'   => isset( $slide['source'] ) ? preg_replace( '/[^a-z0-9_]/', '', strtolower( (string) $slide['source'] ) ) : 'local',
 				'ref'      => $ref,
 				'poster'   => isset( $slide['poster'] ) ? (int) $slide['poster'] : 0,
@@ -500,9 +503,12 @@ class Story {
 
 			$out[] = array(
 				'id'         => $slide['id'],
+				'type'       => isset( $slide['type'] ) ? $slide['type'] : 'video',
 				'source'     => $slide['source'],
 				'ref'        => $slide['ref'],
-				'url'        => $source->get_playback_url( $slide['ref'] ),
+				'url'        => 'image' === ( isset( $slide['type'] ) ? $slide['type'] : 'video' )
+					? (string) wp_get_attachment_url( (int) $slide['ref'] )
+					: $source->get_playback_url( $slide['ref'] ),
 				'poster'     => $slide['poster'],
 				'poster_url' => $slide['poster'] ? (string) wp_get_attachment_url( $slide['poster'] ) : '',
 				'w'          => $slide['w'],
@@ -566,6 +572,9 @@ class Story {
 						'p' => $product['price'],
 						'u' => $product['url'],
 						't' => $product['thumb'],
+						'r' => isset( $product['rating'] ) ? $product['rating'] : 0,
+						'c' => isset( $product['reviews'] ) ? $product['reviews'] : 0,
+						'v' => ! empty( $product['variable'] ) ? 1 : 0,
 						'x' => $product['x'],
 						'y' => $product['y'],
 					);
@@ -573,6 +582,7 @@ class Story {
 
 				$slides[] = array(
 					'i'  => $slide['id'],
+					'ty' => 'image' === ( isset( $slide['type'] ) ? $slide['type'] : 'video' ) ? 'i' : 'v',
 					'u'  => $slide['url'],
 					'p'  => $slide['poster_url'],
 					'w'  => $slide['w'],

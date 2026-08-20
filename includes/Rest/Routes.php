@@ -38,6 +38,7 @@ class Routes {
 			\OCS\Rest\LookupController::class,
 			\OCS\Rest\UploadController::class,
 			\OCS\Rest\EventsController::class,
+			\OCS\Rest\CartController::class,
 		);
 
 		$controllers = apply_filters( 'ocs_rest_controllers', $controllers );

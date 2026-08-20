@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.1.9
+Stable tag: 0.2.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,20 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.2.0 =
+* Buying without leaving the story: the Buy button adds simple products to the
+  cart on the spot, and opens a bottom sheet to pick variations — price updates
+  per choice, out-of-stock combinations are disabled, and the sale is credited
+  to the story.
+* Product cards show the product's star rating and review count, powered by
+  the shop's existing reviews.
+* Photo slides: the studio now accepts images as well as video. A photo shows
+  for five seconds with the same progress bar and gestures.
+* Product pins now appear only on photo slides — on video the frame moves
+  while a pin cannot — and tapping a pin highlights that product's card.
+* The automatic placement injects the bar right below the site header on pages
+  with no content anchors, instead of above the header.
 
 = 0.1.9 =
 * The product card over the video got the shoppable-video look: bigger

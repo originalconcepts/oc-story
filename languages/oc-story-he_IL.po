@@ -786,3 +786,27 @@ msgstr "בתחילת תוכן העמוד (מומלץ)"
 #: includes/Display/Assets.php
 msgid "Buy"
 msgstr "קנה"
+
+#: includes
+msgid "Add to cart"
+msgstr "הוסף לסל"
+
+#: includes
+msgid "Added ✓"
+msgstr "נוסף לסל ✓"
+
+#: includes
+msgid "Unavailable"
+msgstr "לא זמין"
+
+#: includes
+msgid "That product is not available."
+msgstr "המוצר הזה אינו זמין."
+
+#: includes
+msgid "That combination is not available."
+msgstr "השילוב הזה אינו זמין."
+
+#: includes
+msgid "The shop is not available."
+msgstr "החנות אינה זמינה כרגע."

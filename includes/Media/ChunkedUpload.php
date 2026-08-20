@@ -63,7 +63,7 @@ class ChunkedUpload {
 			);
 		}
 
-		if ( '' !== $mime && ! in_array( $mime, array_values( Probe::allowed_mimes() ), true ) ) {
+		if ( '' !== $mime && ! in_array( $mime, array_values( Probe::allowed_upload_mimes() ), true ) ) {
 			return new \WP_Error( 'ocs_bad_mime', __( 'That file type is not a video we can use.', 'oc-story' ), array( 'status' => 415 ) );
 		}
 
@@ -214,7 +214,7 @@ class ChunkedUpload {
 			return new \WP_Error( 'ocs_size_mismatch', __( 'The upload did not match its declared size.', 'oc-story' ), array( 'status' => 409 ) );
 		}
 
-		$check = wp_check_filetype_and_ext( $row['tmp_path'], $row['filename'], Probe::allowed_mimes() );
+		$check = wp_check_filetype_and_ext( $row['tmp_path'], $row['filename'], Probe::allowed_upload_mimes() );
 		if ( empty( $check['type'] ) ) {
 			self::discard( $row );
 			return new \WP_Error( 'ocs_bad_file', __( 'That file is not a video we can use.', 'oc-story' ), array( 'status' => 415 ) );

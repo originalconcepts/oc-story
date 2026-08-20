@@ -71,7 +71,7 @@ class LocalSource implements VideoSourceInterface {
 		$overrides = array(
 			'test_form' => false,
 			'action'    => 'ocs_upload',
-			'mimes'     => Probe::allowed_mimes(),
+			'mimes'     => Probe::allowed_upload_mimes(),
 		);
 
 		$file = array(

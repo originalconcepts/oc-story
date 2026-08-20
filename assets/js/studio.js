@@ -89,7 +89,7 @@ async function api( path, init = {} ) {
  */
 function pickVideo() {
 	return new Promise( ( resolve ) => {
-		const input = el( 'input', { type: 'file', accept: 'video/*', style: 'display:none' } );
+		const input = el( 'input', { type: 'file', accept: 'video/*,image/*', style: 'display:none' } );
 		input.addEventListener( 'change', () => {
 			resolve( input.files[ 0 ] || null );
 			input.remove();
@@ -145,6 +145,33 @@ function fail( error ) {
  * @param {File} file Picked file.
  * @return {Promise<Object>} A slide.
  */
+/**
+ * A photo becomes a slide too: resized on the device, five seconds on screen,
+ * and the only kind of slide where pins make sense — a frame that does not
+ * move under them.
+ *
+ * @param {File} file Picked image.
+ * @return {Promise<Object>} payload/poster/dimensions for upload().
+ */
+async function shrinkImage( file ) {
+	const bitmap = await createImageBitmap( file );
+	const cap = 1440;
+	const scale = Math.min( 1, cap / Math.max( bitmap.width, bitmap.height ) );
+	const width = Math.round( bitmap.width * scale );
+	const height = Math.round( bitmap.height * scale );
+
+	const canvas = document.createElement( 'canvas' );
+	canvas.width = width;
+	canvas.height = height;
+	canvas.getContext( '2d' ).drawImage( bitmap, 0, 0, width, height );
+	bitmap.close();
+
+	const blob = await new Promise( ( resolve ) => canvas.toBlob( resolve, 'image/jpeg', 0.85 ) );
+	const poster = canvas.toDataURL( 'image/jpeg', 0.7 );
+
+	return { blob, poster, width, height };
+}
+
 async function ingest( file ) {
 	let payload = file;
 	let poster = '';
@@ -152,6 +179,41 @@ async function ingest( file ) {
 	let height = 0;
 	let duration = 0;
 	let note = null;
+
+	if ( 0 === file.type.indexOf( 'image/' ) ) {
+		setState( { busy: t.compressing, progress: 0.2, note: null } );
+
+		const image = await shrinkImage( file );
+
+		setState( { busy: t.uploading } );
+
+		const uploaded = await upload( image.blob, {
+			api: cfg.api,
+			filename: file.name.replace( /\.[^.]+$/, '' ) + '.jpg',
+			poster: image.poster,
+			width: image.width,
+			height: image.height,
+			duration: 5,
+			onProgress: ( value ) => setState( { progress: 0.2 + value * 0.8 } ),
+		} );
+
+		setState( { busy: null, progress: 0, note: null } );
+
+		return {
+			id: '',
+			type: 'image',
+			source: uploaded.source,
+			ref: uploaded.ref,
+			url: uploaded.url,
+			poster: uploaded.poster,
+			poster_url: uploaded.poster_url,
+			w: uploaded.w,
+			h: uploaded.h,
+			duration: 5,
+			products: [],
+			cta: { text: '', url: '' },
+		};
+	}
 
 	if ( cfg.encode.enabled && isSupported() ) {
 		setState( { busy: t.compressing, progress: 0, note: null } );
@@ -200,6 +262,7 @@ async function ingest( file ) {
 
 	return {
 		id: '',
+		type: 'video',
 		source: uploaded.source,
 		ref: uploaded.ref,
 		url: uploaded.url,
@@ -268,6 +331,7 @@ async function addSlide() {
 function trim( slide ) {
 	return {
 		id: slide.id || '',
+		type: slide.type || 'video',
 		source: slide.source,
 		ref: slide.ref,
 		poster: slide.poster,
@@ -606,15 +670,19 @@ function productPanel() {
 	buildResults();
 	paintResults = buildResults;
 
+	// Pins only make sense on a still frame: on video the frame moves while a
+	// pin cannot, which reads as a mistake. The player enforces the same rule.
+	const pinnable = 'image' === slide.type;
+
 	const tags = el( 'div', { class: 'ocs-tags' }, slide.products.length ? slide.products.map( ( product, index ) => {
-		const pinned = null !== product.x && null !== product.y;
+		const pinned = pinnable && null !== product.x && null !== product.y;
 
 		return el( 'div', { class: 'ocs-tag' }, [
 			product.thumb
 				? el( 'img', { class: 'ocs-thumb', src: product.thumb, alt: '' } )
 				: el( 'span', { class: 'ocs-thumb' } ),
 			el( 'span', { class: 'ocs-tag__name', text: product.name } ),
-			el( 'button', {
+			pinnable ? el( 'button', {
 				class: 'ocs-btn ocs-btn--ghost ocs-tag__pin' + ( pinned ? ' is-on' : '' ),
 				type: 'button',
 				text: pinned ? String( index + 1 ) : '+',
@@ -627,7 +695,7 @@ function productPanel() {
 					product.y = pinned ? null : 0.5;
 					setState( { dirty: true } );
 				},
-			} ),
+			} ) : null,
 			el( 'button', {
 				class: 'ocs-btn ocs-btn--ghost',
 				type: 'button',
@@ -699,7 +767,10 @@ function editorView() {
 			el( 'div', { class: 'ocs-editor__body' }, [
 				el( 'div', {}, [
 					el( 'div', { class: 'ocs-stage' }, [
-						slide && slide.url
+						slide && slide.url && 'image' === slide.type
+							? el( 'img', { class: 'ocs-stage__photo', src: slide.url, alt: '' } )
+							: null,
+						slide && slide.url && 'image' !== slide.type
 							? el( 'video', {
 								src: slide.url,
 								poster: slide.poster_url || '',
@@ -708,8 +779,10 @@ function editorView() {
 								preload: 'metadata',
 							} )
 							: null,
-						slide ? stagePins( slide ) : null,
-						slide && slide.products.some( ( p ) => null !== p.x ) ? el( 'p', { class: 'ocs-stage__hint', text: t.pinHint } ) : null,
+						slide && 'image' === slide.type ? stagePins( slide ) : null,
+						slide && 'image' === slide.type && slide.products.some( ( p ) => null !== p.x )
+							? el( 'p', { class: 'ocs-stage__hint', text: t.pinHint } )
+							: null,
 					] ),
 					el( 'div', { class: 'ocs-field', style: 'margin-block-start:12px' }, [
 						el( 'label', { text: t.slides } ),

@@ -784,3 +784,27 @@ msgstr ""
 #: includes/Display/Assets.php
 msgid "Buy"
 msgstr ""
+
+#: includes
+msgid "Add to cart"
+msgstr ""
+
+#: includes
+msgid "Added ✓"
+msgstr ""
+
+#: includes
+msgid "Unavailable"
+msgstr ""
+
+#: includes
+msgid "That product is not available."
+msgstr ""
+
+#: includes
+msgid "That combination is not available."
+msgstr ""
+
+#: includes
+msgid "The shop is not available."
+msgstr ""

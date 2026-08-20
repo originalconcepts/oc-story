@@ -170,7 +170,43 @@ class Injector {
 					}
 				);
 			} else {
-				add_action( 'wp_body_open', $print );
+				// No loop is coming, so no action inside the page will fire.
+				// wp_body_open was tried here first and put the bar above the
+				// site header, which looks broken. The whole page is buffered
+				// instead and the bar lands right after the header closes —
+				// the position a person means by "the top of the page".
+				add_action(
+					'template_redirect',
+					function () use ( $emit ) {
+						ob_start(
+							function ( $html ) use ( $emit ) {
+								$bar = $emit();
+
+								if ( '' === $bar || ! is_string( $html ) ) {
+									return $html;
+								}
+
+								$pos = stripos( $html, '</header>' );
+								if ( false !== $pos ) {
+									return substr_replace( $html, $bar, $pos + 9, 0 );
+								}
+
+								if ( preg_match( '/<body[^>]*>/i', $html, $m, PREG_OFFSET_CAPTURE ) ) {
+									$at = $m[0][1] + strlen( $m[0][0] );
+									return substr_replace( $html, $bar, $at, 0 );
+								}
+
+								return $html . $bar;
+							}
+						);
+					},
+					1
+				);
+
+				// The buffer callback runs at shutdown, after get_footer — a
+				// footer fallback would beat it to the $done guard and put the
+				// bar at the bottom. This branch relies on the buffer alone.
+				return;
 			}
 		}
 

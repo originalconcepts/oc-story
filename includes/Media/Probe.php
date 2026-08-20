@@ -152,6 +152,23 @@ class Probe {
 	}
 
 	/**
+	 * Everything the studio may upload: video, plus still images for photo
+	 * slides.
+	 *
+	 * @return array<string,string>
+	 */
+	public static function allowed_upload_mimes() {
+		return array_merge(
+			self::allowed_mimes(),
+			array(
+				'jpg|jpeg' => 'image/jpeg',
+				'png'      => 'image/png',
+				'webp'     => 'image/webp',
+			)
+		);
+	}
+
+	/**
 	 * Is a server-side ffmpeg available?
 	 *
 	 * Only ever a fallback — see PLAN.md §12. Cached for a day because probing

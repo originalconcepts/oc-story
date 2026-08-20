@@ -110,12 +110,17 @@ class Products {
 		$image_id = $product->get_image_id();
 
 		return array(
-			'id'    => $product->get_id(),
-			'name'  => html_entity_decode( wp_strip_all_tags( $product->get_name() ), ENT_QUOTES, 'UTF-8' ),
-			'sku'   => $product->get_sku(),
-			'price' => self::price_text( $product ),
-			'url'   => $product->get_permalink(),
-			'thumb' => $image_id ? (string) wp_get_attachment_image_url( $image_id, 'woocommerce_thumbnail' ) : '',
+			'id'       => $product->get_id(),
+			'name'     => html_entity_decode( wp_strip_all_tags( $product->get_name() ), ENT_QUOTES, 'UTF-8' ),
+			'sku'      => $product->get_sku(),
+			'price'    => self::price_text( $product ),
+			'url'      => $product->get_permalink(),
+			'thumb'    => $image_id ? (string) wp_get_attachment_image_url( $image_id, 'woocommerce_thumbnail' ) : '',
+			// Through WooCommerce's own aggregates, which OC Reviews keeps
+			// fresh — never through comment meta directly.
+			'rating'   => round( (float) $product->get_average_rating(), 1 ),
+			'reviews'  => (int) $product->get_review_count(),
+			'variable' => $product->is_type( 'variable' ),
 		);
 	}
 

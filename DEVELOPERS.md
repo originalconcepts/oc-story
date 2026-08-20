@@ -205,6 +205,18 @@ base class; the file is `require`d inside the `elementor/widgets/register` hook
 after checking the class exists. Reaching it through the autoloader on a site
 without Elementor is a fatal on every request.
 
+**Pins are image-only, everywhere.** A pin on video stays put while the frame
+moves under it, which reads as a bug — George called it within a day. The
+studio only offers pins on photo slides and the player only renders them
+there; keep both sides of that rule together. Tapping a pin highlights the
+product's card rather than navigating: the card is where buying happens.
+
+**The cart routes are nonce-free like WooCommerce's own add-to-cart links.**
+`/product/{id}` and `/cart` run from cached pages. The risk profile matches
+core's `?add-to-cart=` GET, the attribution claim is revalidated server-side,
+and money still only moves at checkout. wc_load_cart() is what gives a custom
+REST namespace a session.
+
 **Do not "fix" the play triangle for RTL.** A play control points right in
 every language; mirrored, it reads as rewind. Same for pin coordinates: the
 video frame never mirrors, so x/y are physical, left-origin, everywhere.
