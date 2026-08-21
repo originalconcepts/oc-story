@@ -685,3 +685,12 @@
 .ocs-note--warn { border-inline-start: 3px solid #bb6a00; background: #fcf6e6; }
 .ocs-note--info { border-inline-start: 3px solid var(--ocs-accent); }
 .ocs-note a { color: var(--ocs-accent); font-weight: 600; }
+
+.ocs-tiles--big.is-locked .ocs-tile { cursor: default; opacity: .75; }
+.ocs-tiles--big.is-locked .ocs-tile[aria-pressed="true"] { opacity: 1; }
+.ocs-btn--small { padding: 4px 10px; font-size: 12px; }
+.ocs-btn--danger { color: #b32d2e; border-color: #e5c1c1; }
+.ocs-btn--danger:hover { background: #fcf0f1; }
+.ocs-table__acts { display: flex; gap: 6px; justify-content: flex-end; }
+.ocs-pv__gal--wall { display: flex; flex-wrap: wrap; gap: 3px; }
+.ocs-pv__gal--wall .ocs-pv__piece { width: calc(33.333% - 2px); height: 20px; border-radius: 3px; background: var(--ocs-accent); }

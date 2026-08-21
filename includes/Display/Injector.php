@@ -466,6 +466,17 @@ class Injector {
 		} elseif ( 'tagged' === $mode ) {
 			$ids = $context['product_id'] ? Story::for_product( $context['product_id'], $limit ) : array();
 
+			// An automatic gallery is "my videos, wherever they tag a
+			// product" — not "everybody's videos". Without this, two automatic
+			// galleries on one shop show each other's content, and a shop
+			// owner who made a second one for a different range would find it
+			// showing the first one's videos.
+			$own = array_map( 'absint', (array) $placement['stories']['ids'] );
+
+			if ( $own ) {
+				$ids = array_values( array_intersect( array_map( 'absint', $ids ), $own ) );
+			}
+
 			if ( ! $ids ) {
 				return array();
 			}

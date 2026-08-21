@@ -232,6 +232,15 @@ class WizardPage {
 			'videos'           => __( 'Videos', 'oc-story' ),
 			'status'           => __( 'Status', 'oc-story' ),
 			'live'             => __( 'Live', 'oc-story' ),
+			'duplicate'        => __( 'Duplicate', 'oc-story' ),
+			'copySuffix'       => __( ' (copy)', 'oc-story' ),
+			/* translators: %s: gallery name. */
+			'removeSure'       => __( 'Remove the gallery “%s”? Its videos are kept.', 'oc-story' ),
+			'removed'          => __( 'Gallery removed. Its videos are still in your library.', 'oc-story' ),
+			'typeLocked'       => __( 'The kind of gallery is set when it is made. To change it, duplicate this one and choose again.', 'oc-story' ),
+			'rowOrWall'        => __( 'A row or a wall?', 'oc-story' ),
+			'asSlider'         => __( 'A row that scrolls', 'oc-story' ),
+			'asGrid'           => __( 'A wall that wraps', 'oc-story' ),
 			'draft'            => __( 'Draft', 'oc-story' ),
 		);
 	}

@@ -17,7 +17,6 @@
  */
 
 ( function () {
-	var HIDDEN = 'ocs_float_hidden';
 	var WEEK = 7 * 24 * 60 * 60 * 1000;
 
 	var box = document.querySelector( '.ocs-float' );
@@ -25,6 +24,11 @@
 	if ( ! box ) {
 		return;
 	}
+
+	// Dismissal belongs to the gallery, not to the idea of a corner. A shop
+	// with one corner video on the home page and a different one on product
+	// pages would otherwise have both waved away by one tap on either.
+	var HIDDEN = 'ocs_float_hidden_' + ( box.getAttribute( 'data-ocs-bar' ) || 'x' );
 
 	/**
 	 * Whether this corner was waved away recently.

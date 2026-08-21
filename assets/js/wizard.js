@@ -164,6 +164,28 @@ function art( type, target, position ) {
 	return page;
 }
 
+/**
+ * The wall: the same cards, wrapped instead of scrolling.
+ *
+ * @return {Element} The drawing.
+ */
+function wallArt() {
+	const page = el( 'span', { class: 'ocs-pv' } );
+	const grid = el( 'span', { class: 'ocs-pv__gal ocs-pv__gal--wall' } );
+
+	for ( let i = 0; i < 6; i++ ) {
+		grid.append( el( 'span', { class: 'ocs-pv__piece' } ) );
+	}
+
+	page.append(
+		el( 'span', { class: 'ocs-pv__header' } ),
+		el( 'span', { class: 'ocs-pv__line', style: 'width:60%' } ),
+		grid
+	);
+
+	return page;
+}
+
 /* ---------------------------------------------------------------- state */
 
 const state = {
@@ -182,6 +204,46 @@ const root = document.getElementById( 'ocs-wizard' );
 function setState( patch ) {
 	Object.assign( state, patch );
 	render();
+}
+
+/**
+ * Turn a saved gallery back into something the wizard can walk through.
+ *
+ * Three things have to be recovered, and each of them was silently wrong
+ * before this existed. The kind of gallery is not stored — it is a property
+ * of the surface — so without deriving it, step one opened blank and step
+ * two had no positions to offer. And "which videos" has three stored
+ * readings, only one of which is a list: a gallery set to "all galleries" or
+ * to a collection would have shown an empty step three and then, on save,
+ * been rewritten to a list of nothing.
+ *
+ * @param {Object} saved A placement from the server.
+ * @return {Object} A draft.
+ */
+function reopen( saved ) {
+	const type = ( cfg.types || [] ).find( ( x ) => ( x.surfaces || [] ).includes( saved.surface ) );
+	const mode = ( saved.stories && saved.stories.mode ) || 'selected';
+
+	let ids = ( saved.stories && saved.stories.ids ) || [];
+
+	if ( 'all' === mode ) {
+		ids = state.stories.map( ( story ) => story.id );
+	} else if ( 'collection' === mode && saved.stories.collection ) {
+		ids = state.stories
+			.filter( ( story ) => story.collection === saved.stories.collection )
+			.map( ( story ) => story.id );
+	}
+
+	return {
+		...saved,
+		existing: true,
+		type: type ? type.id : 'cards',
+		where: {
+			ids: ( saved.where && saved.where.ids ) || [],
+			exclude: ( saved.where && saved.where.exclude ) || [],
+		},
+		stories: { mode, ids, collection: ( saved.stories && saved.stories.collection ) || '' },
+	};
 }
 
 function blank() {
@@ -230,6 +292,11 @@ async function persist( galleries ) {
 		surface: g.surface,
 		target: g.target,
 		position: g.position,
+		// Carried through untouched. A widget made before the wizard has a
+		// raw hook and no position, and dropping these would silently move it
+		// to the default spot the first time anyone opened it.
+		hook: g.hook,
+		priority: g.priority,
 		where: g.where,
 		stories: g.stories,
 		desktop: g.desktop,
@@ -273,15 +340,16 @@ function stepper() {
  * @param {Function} onPick   Called with the id.
  * @return {Element} The row.
  */
-function tiles( options, current, onPick ) {
+function tiles( options, current, onPick, locked ) {
 	return el(
 		'div',
-		{ class: 'ocs-tiles ocs-tiles--big' },
+		{ class: 'ocs-tiles ocs-tiles--big' + ( locked ? ' is-locked' : '' ) },
 		options.map( ( option ) =>
 			el( 'button', {
 				class: 'ocs-tile',
 				type: 'button',
 				'aria-pressed': current === option.id ? 'true' : 'false',
+				disabled: !! locked,
 				onClick: () => onPick( option.id ),
 			}, [
 				el( 'span', { class: 'ocs-tile__art' }, [ option.art ] ),
@@ -321,14 +389,20 @@ function stepType() {
 			el( 'span', { class: 'ocs-field__note', text: t.nameNote } ),
 		] ),
 		el( 'h2', { class: 'ocs-wz__q', text: t.whichType } ),
+		// The kind is settled once a gallery exists. A story holding five
+		// slides cannot become a slider that shows one video a card without
+		// somebody deciding what happens to the other four — so the way to
+		// change it is Duplicate, which asks from the beginning and leaves the
+		// original alone.
 		tiles( options, draft.type, ( id ) => {
 			draft.type = id;
 			draft.surface = ( cfg.types.find( ( x ) => x.id === id ) || {} ).surfaces[ 0 ];
-			// The spot is a property of the branch, so changing the branch
-			// throws away a spot that may not exist in the new one.
+			// The spot belongs to the branch, so changing the branch throws
+			// away a spot that may not exist in the new one.
 			draft.position = '';
 			setState( {} );
-		} ),
+		}, draft.existing ),
+		draft.existing ? el( 'p', { class: 'ocs-field__note', text: t.typeLocked } ) : null,
 	] );
 }
 
@@ -356,7 +430,7 @@ function stepWhere() {
 				draft.target = id;
 				draft.position = '';
 				draft.where.ids = [];
-				setState( { results: [] } );
+				setState( { results: [], pickingProducts: false } );
 			}
 		),
 	];
@@ -400,6 +474,25 @@ function stepWhere() {
 
 	if ( 'page' === draft.target ) {
 		parts.push( whichThings( 'page' ) );
+	}
+
+	// A slider and a wall are the same gallery seen two ways, so this is a
+	// display choice rather than a different kind of thing to make.
+	if ( 'cards' === draft.type ) {
+		parts.push(
+			el( 'h2', { class: 'ocs-wz__q', text: t.rowOrWall } ),
+			tiles(
+				[
+					{ id: 'slider', label: t.asSlider, art: art( 'cards', 'home', 'end_of_content' ) },
+					{ id: 'grid', label: t.asGrid, art: wallArt() },
+				],
+				draft.surface,
+				( id ) => {
+					draft.surface = id;
+					setState( {} );
+				}
+			)
+		);
 	}
 
 	return el( 'div', { class: 'ocs-wz__body' }, parts );
@@ -449,7 +542,7 @@ function whichThings( kind ) {
 						checked: auto,
 						onChange: () => {
 							draft.where.ids = [];
-							setState( { results: [] } );
+							setState( { results: [], pickingProducts: false } );
 						},
 					} ),
 					el( 'span', {}, [
@@ -677,7 +770,11 @@ function wizard() {
 
 	const ready = {
 		1: () => draft.label.trim().length > 0 && draft.type,
-		2: () => draft.target && draft.position && ( 'page' !== draft.target || draft.where.ids.length ),
+		// A category gallery with no categories named matches no page at all,
+		// and a specific-page gallery with no page is the same. Both used to
+		// be publishable, and both rendered nowhere.
+		2: () => draft.target && draft.position
+			&& ( ! [ 'page', 'category' ].includes( draft.target ) || draft.where.ids.length ),
 		3: () => draft.stories.ids.length > 0,
 	};
 
@@ -744,7 +841,12 @@ async function finish( live ) {
 	const draft = state.draft;
 
 	draft.enabled = !! live;
-	draft.stories.mode = 'selected';
+
+	// A gallery aimed at product pages with no products named is the automatic
+	// one, and automatic is a rule rather than a list: each product page shows
+	// the videos that tag it. Storing a fixed list there would put the same
+	// videos on every product, which is the opposite of what the screen said.
+	draft.stories.mode = ( 'product' === draft.target && ! draft.where.ids.length ) ? 'tagged' : 'selected';
 
 	setState( { busy: true } );
 
@@ -839,6 +941,9 @@ function listView() {
 	const rows = state.galleries.map( ( g ) => {
 		const type = ( cfg.types || [] ).find( ( x ) => ( x.surfaces || [] ).includes( g.surface ) );
 		const target = ( cfg.targets || [] ).find( ( x ) => x.id === g.target );
+		const count = 'tagged' === ( g.stories && g.stories.mode )
+			? ( g.stories.ids || [] ).length
+			: ( ( g.stories && g.stories.ids ) || [] ).length;
 
 		return el( 'tr', {}, [
 			el( 'td', {}, [
@@ -846,16 +951,43 @@ function listView() {
 					class: 'ocs-linkish',
 					type: 'button',
 					text: g.label || t.untitled,
-					onClick: () => setState( { view: 'wizard', draft: { ...g, chosen: [] }, step: 1 } ),
+					onClick: () => setState( { view: 'wizard', draft: reopen( g ), step: 1, note: null } ),
 				} ),
 			] ),
 			el( 'td', { text: type ? type.label : g.surface } ),
 			el( 'td', { text: target ? target.label : '' } ),
-			el( 'td', { text: String( ( g.stories && g.stories.ids || [] ).length ) } ),
+			el( 'td', { text: String( count ) } ),
 			el( 'td', {}, [
 				el( 'span', {
 					class: 'ocs-pill ocs-pill--' + ( g.enabled ? 'on' : 'off' ),
 					text: g.enabled ? t.live : t.draft,
+				} ),
+			] ),
+			el( 'td', { class: 'ocs-table__acts' }, [
+				// Duplicating is how a gallery changes its kind. Changing it in
+				// place would leave a story's five slides inside a surface that
+				// shows one video a card, so the copy asks the question again
+				// from step one and the original is left alone.
+				el( 'button', {
+					class: 'ocs-btn ocs-btn--small',
+					type: 'button',
+					text: t.duplicate,
+					onClick: () => {
+						const copy = reopen( g );
+
+						copy.id = '';
+						copy.existing = false;
+						copy.enabled = false;
+						copy.label = ( g.label || t.untitled ) + t.copySuffix;
+
+						setState( { view: 'wizard', draft: copy, step: 1, note: null } );
+					},
+				} ),
+				el( 'button', {
+					class: 'ocs-btn ocs-btn--small ocs-btn--danger',
+					type: 'button',
+					text: t.remove,
+					onClick: () => removeGallery( g ),
 				} ),
 			] ),
 		] );
@@ -868,7 +1000,7 @@ function listView() {
 				class: 'ocs-btn ocs-btn--primary',
 				type: 'button',
 				text: t.newGallery,
-				onClick: () => setState( { view: 'wizard', draft: blank(), step: 1 } ),
+				onClick: () => setState( { view: 'wizard', draft: blank(), step: 1, note: null } ),
 			} ),
 		] ),
 		noteBar(),
@@ -881,6 +1013,7 @@ function listView() {
 						el( 'th', { text: t.where } ),
 						el( 'th', { text: t.videos } ),
 						el( 'th', { text: t.status } ),
+						el( 'th', {} ),
 					] ),
 				] ),
 				el( 'tbody', {}, rows ),
@@ -890,6 +1023,31 @@ function listView() {
 				el( 'p', { text: t.emptyHint } ),
 			] ),
 	] );
+}
+
+/**
+ * Take a gallery off the shop.
+ *
+ * The videos are not touched — they are attachments and edits somebody made,
+ * and a gallery is only a decision about where to show them.
+ *
+ * @param {Object} gallery The gallery to remove.
+ */
+async function removeGallery( gallery ) {
+	// eslint-disable-next-line no-alert
+	if ( ! window.confirm( t.removeSure.replace( '%s', gallery.label || t.untitled ) ) ) {
+		return;
+	}
+
+	setState( { busy: true } );
+
+	try {
+		const saved = await persist( state.galleries.filter( ( g ) => g.id !== gallery.id ) );
+
+		setState( { galleries: saved, busy: false, note: { kind: 'info', text: t.removed } } );
+	} catch ( error ) {
+		setState( { busy: false, note: { kind: 'error', text: error.message } } );
+	}
 }
 
 function noteBar() {

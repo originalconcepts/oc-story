@@ -205,6 +205,12 @@ check( 'a corner offers only two sides', 2 === count( \OCS\Model\Positions::offe
 check( 'a corner clears a phone cart bar by default', 86 === $corner['mobile']['offset'] );
 check( 'and sits close to the edge on a desktop', 24 === $corner['desktop']['offset'] );
 
+// The wizard's own reading of "which videos", checked where it is stored
+// rather than where it is typed: automatic is a rule, everything else a list.
+$auto_mode = $w( array( 'surface' => 'circles', 'target' => 'product', 'position' => 'before_cart', 'stories' => array( 'mode' => 'tagged', 'ids' => array( 7, 8 ) ) ) );
+check( 'an automatic gallery keeps the tagged rule', 'tagged' === $auto_mode['stories']['mode'] );
+check( 'and still remembers which videos are its own', array( 7, 8 ) === $auto_mode['stories']['ids'] );
+
 echo "\nPlacement sanitising\n";
 $p = \OCS\Model\Placement::sanitize( array(
 	'id'      => 'PL_ABC!!',
