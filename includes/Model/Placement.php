@@ -58,6 +58,12 @@ class Placement {
 			'label'    => '',
 			'enabled'  => true,
 			'surface'  => 'circles',
+			// What the wizard asked and what the person answered. `target` and
+			// `position` are the two questions in their own words; `where`,
+			// `hook` and `priority` below are those answers resolved into the
+			// rules engine, and are derived rather than edited.
+			'target'   => 'home',
+			'position' => 'above_content',
 			'where'    => array(
 				'scope'   => 'home',
 				'ids'     => array(),
@@ -217,18 +223,47 @@ class Placement {
 
 		$label = isset( $raw['label'] ) ? trim( wp_strip_all_tags( (string) $raw['label'] ) ) : '';
 
+		$ids = self::ids( isset( $raw['where']['ids'] ) ? $raw['where']['ids'] : array() );
+
+		// A placement made by the wizard carries a position; one made before
+		// the wizard existed carries a raw hook and nothing else. Both have to
+		// keep working, so the position drives the hook when there is one and
+		// the stored hook is left alone when there is not.
+		$target   = self::target( isset( $raw['target'] ) ? $raw['target'] : '', $scope );
+		$position = isset( $raw['position'] ) ? preg_replace( '/[^a-z_]/', '', strtolower( (string) $raw['position'] ) ) : '';
+		$offered  = Positions::offered( Positions::type_of( $surface ), $target );
+
+		if ( '' !== $position && ! isset( $offered[ $position ] ) ) {
+			// The branch no longer offers it — a theme filter, or a type that
+			// changed underneath. Fall to the first spot this branch does have
+			// rather than to nothing at all.
+			$position = (string) key( $offered );
+		}
+
+		$hook     = isset( $raw['hook'] ) ? preg_replace( '/[^a-zA-Z0-9_\-]/', '', (string) $raw['hook'] ) : $defaults['hook'];
+		$priority = isset( $raw['priority'] ) ? max( 1, min( 999, (int) $raw['priority'] ) ) : $defaults['priority'];
+
+		if ( '' !== $position ) {
+			$resolved = Positions::get( $position );
+			$hook     = $resolved['hook'];
+			$priority = (int) $resolved['priority'];
+			$scope    = self::scope_for( $target, $ids );
+		}
+
 		return array(
 			'id'       => $id,
 			'label'    => mb_substr( $label, 0, 60 ),
 			'enabled'  => self::flag( isset( $raw['enabled'] ) ? $raw['enabled'] : true ),
 			'surface'  => $surface,
+			'target'   => $target,
+			'position' => $position,
 			'where'    => array(
 				'scope'   => $scope,
-				'ids'     => self::ids( isset( $raw['where']['ids'] ) ? $raw['where']['ids'] : array() ),
+				'ids'     => $ids,
 				'exclude' => self::ids( isset( $raw['where']['exclude'] ) ? $raw['where']['exclude'] : array() ),
 			),
-			'hook'     => isset( $raw['hook'] ) ? preg_replace( '/[^a-zA-Z0-9_\-]/', '', (string) $raw['hook'] ) : $defaults['hook'],
-			'priority' => isset( $raw['priority'] ) ? max( 1, min( 999, (int) $raw['priority'] ) ) : $defaults['priority'],
+			'hook'     => $hook,
+			'priority' => $priority,
 			'stories'  => array(
 				'mode'       => $mode,
 				'ids'        => self::ids( isset( $raw['stories']['ids'] ) ? $raw['stories']['ids'] : array() ),
@@ -239,6 +274,66 @@ class Placement {
 			'desktop'  => self::device( isset( $raw['desktop'] ) ? $raw['desktop'] : array(), $defaults['desktop'] ),
 			'mobile'   => self::device( isset( $raw['mobile'] ) ? $raw['mobile'] : array(), $defaults['mobile'] ),
 		);
+	}
+
+	/**
+	 * Which page target this placement is for.
+	 *
+	 * Given one, it is validated. Given nothing — every placement made before
+	 * the wizard — it is read back out of the scope the placement already has,
+	 * so an old widget opens in the new screen showing the truth about itself.
+	 *
+	 * @param string $raw   Stored target, if any.
+	 * @param string $scope Stored scope.
+	 * @return string
+	 */
+	protected static function target( $raw, $scope ) {
+		$targets = Positions::targets();
+		$raw     = preg_replace( '/[^a-z]/', '', strtolower( (string) $raw ) );
+
+		if ( isset( $targets[ $raw ] ) ) {
+			return $raw;
+		}
+
+		switch ( $scope ) {
+			case 'home':
+				return 'home';
+			case 'products':
+			case 'tagged':
+				return 'product';
+			case 'terms':
+				return 'category';
+			case 'pages':
+				return 'page';
+			default:
+				return 'site';
+		}
+	}
+
+	/**
+	 * The rules-engine scope a wizard target means.
+	 *
+	 * Product pages are the one target with two readings, and the list of
+	 * products is what separates them: none named means "wherever these videos
+	 * tag a product", some named means "these products".
+	 *
+	 * @param string $target Target key.
+	 * @param array  $ids    Chosen ids.
+	 * @return string
+	 */
+	protected static function scope_for( $target, array $ids ) {
+		switch ( $target ) {
+			case 'home':
+				return 'home';
+			case 'product':
+				return $ids ? 'products' : 'tagged';
+			case 'category':
+				return 'terms';
+			case 'page':
+				return 'pages';
+			default:
+				return 'site';
+		}
 	}
 
 	/**

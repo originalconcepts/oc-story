@@ -88,6 +88,26 @@ class Injector {
 				continue;
 			}
 
+			if ( 'content_end' === $placement['hook'] ) {
+				$this->attach_content_end( $placement, $context );
+				continue;
+			}
+
+			// A surface that places itself — the floating video lives in the
+			// corner of the viewport and has no anchor in the document. It is
+			// printed once, late, and the CSS decides the corner.
+			if ( 'ocs_floating' === $placement['hook'] ) {
+				add_action(
+					'wp_footer',
+					function () use ( $placement, $context ) {
+						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						echo self::render( $placement, $context );
+					},
+					(int) $placement['priority']
+				);
+				continue;
+			}
+
 			add_action(
 				$placement['hook'],
 				function () use ( $placement, $context ) {
@@ -97,6 +117,88 @@ class Injector {
 				(int) $placement['priority']
 			);
 		}
+	}
+
+	/**
+	 * The mirror of `auto`: the bottom of what the page had to say.
+	 *
+	 * Same reasoning, same three cases, opposite end. A slider belongs after
+	 * the content far more often than before it — someone who has just read
+	 * about a sofa is exactly who wants to watch it being used.
+	 *
+	 * @param array $placement Placement.
+	 * @param array $context   Request context.
+	 */
+	protected function attach_content_end( array $placement, array $context ) {
+		$done = false;
+
+		$emit = function () use ( &$done, $placement, $context ) {
+			if ( $done ) {
+				return '';
+			}
+			$done = true;
+
+			return self::render( $placement, $context );
+		};
+
+		$is_woo = $context['is_product']
+			|| $context['is_shop']
+			|| ( function_exists( 'is_product_category' ) && ( is_product_category() || is_product_tag() ) );
+
+		if ( $is_woo ) {
+			add_action(
+				'woocommerce_after_main_content',
+				function () use ( $emit ) {
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					echo $emit();
+				},
+				(int) $placement['priority']
+			);
+
+			return;
+		}
+
+		if ( is_singular() ) {
+			add_filter(
+				'the_content',
+				function ( $content ) use ( $emit ) {
+					if ( ! is_main_query() || ! in_the_loop() ) {
+						return $content;
+					}
+
+					return $content . $emit();
+				},
+				20
+			);
+
+			return;
+		}
+
+		// An archive with a loop ends at loop_end; one without never starts,
+		// and the honest last resort is the top of the footer.
+		$has_loop = isset( $GLOBALS['wp_query'] ) && (int) $GLOBALS['wp_query']->post_count > 0;
+
+		if ( $has_loop ) {
+			add_action(
+				'loop_end',
+				function ( $query ) use ( $emit ) {
+					if ( $query instanceof \WP_Query && $query->is_main_query() ) {
+						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						echo $emit();
+					}
+				}
+			);
+
+			return;
+		}
+
+		add_action(
+			'get_footer',
+			function () use ( $emit ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				echo $emit();
+			}
+		);
 	}
 
 	/**

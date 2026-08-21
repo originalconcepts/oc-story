@@ -41,6 +41,7 @@ function esc_url_raw( $u ) {
 require OCS_PATH . 'includes/Core/Settings.php';
 require OCS_PATH . 'includes/Core/Features.php';
 require OCS_PATH . 'includes/Model/Story.php';
+require OCS_PATH . 'includes/Model/Positions.php';
 require OCS_PATH . 'includes/Model/Placement.php';
 require OCS_PATH . 'includes/Media/Probe.php';
 require OCS_PATH . 'includes/Media/ChunkedUpload.php';
@@ -144,6 +145,52 @@ check( 'payload marks a video slide', 'v' === $payload[0]['s'][1]['ty'] );
 $cta = $n( array( array( 'ref' => '10', 'cta' => array( 'text' => '<b>Shop</b>', 'url' => 'javascript:alert(1)' ) ) ) );
 check( 'strips tags from cta text', $cta[0]['cta']['text'] === 'Shop' );
 check( 'rejects a non-url cta link', $cta[0]['cta']['url'] === '' );
+
+echo "\nThe wizard's answers, resolved\n";
+$w = function ( array $raw ) {
+	return \OCS\Model\Placement::sanitize( array_merge( array( 'id' => 'pl_1' ), $raw ) );
+};
+
+$auto = $w( array( 'surface' => 'circles', 'target' => 'product', 'position' => 'before_cart' ) );
+check( 'a product gallery with no products chosen is the tagged scope', 'tagged' === $auto['where']['scope'] );
+check( 'before-cart resolves to the summary hook', 'woocommerce_single_product_summary' === $auto['hook'] );
+check( 'before-cart sits above the button', 25 === $auto['priority'] );
+
+$named = $w( array( 'surface' => 'circles', 'target' => 'product', 'position' => 'after_cart', 'where' => array( 'ids' => array( 4, 9 ) ) ) );
+check( 'naming products narrows the scope', 'products' === $named['where']['scope'] );
+check( 'after-cart sits below the button', 35 === $named['priority'] );
+
+$cat = $w( array( 'surface' => 'slider', 'target' => 'category', 'position' => 'below_products', 'where' => array( 'ids' => array( 12 ) ) ) );
+check( 'a category gallery uses the term scope', 'terms' === $cat['where']['scope'] );
+check( 'below-products resolves to the loop hook', 'woocommerce_after_shop_loop' === $cat['hook'] );
+
+$every = $w( array( 'surface' => 'circles', 'target' => 'site', 'position' => 'above_content' ) );
+check( 'every page of the shop is the site scope', 'site' === $every['where']['scope'] );
+check( 'above content is the auto ladder', 'auto' === $every['hook'] );
+
+$mine = $w( array( 'surface' => 'slider', 'target' => 'custom', 'position' => 'custom' ) );
+check( 'placing it myself hooks nothing', 'manual' === $mine['hook'] );
+
+$gone = $w( array( 'surface' => 'circles', 'target' => 'home', 'position' => 'below_products' ) );
+check( 'a position this branch does not offer falls to one it does', 'above_content' === $gone['position'] );
+
+// Every widget made before the wizard existed still has to route exactly as
+// it did — this is the whole reason the position is optional.
+$legacy = $w( array( 'surface' => 'circles', 'where' => array( 'scope' => 'site' ), 'hook' => 'wp_body_open', 'priority' => 7 ) );
+check( 'a widget from before the wizard keeps its hook', 'wp_body_open' === $legacy['hook'] );
+check( 'and its priority', 7 === $legacy['priority'] );
+check( 'and its scope', 'site' === $legacy['where']['scope'] );
+check( 'and is shown as the target it always was', 'site' === $legacy['target'] );
+
+$old_product = $w( array( 'surface' => 'circles', 'where' => array( 'scope' => 'tagged' ), 'hook' => 'auto' ) );
+check( 'a tagged widget reads back as a product gallery', 'product' === $old_product['target'] );
+
+check( 'circles are a story', 'story' === \OCS\Model\Positions::type_of( 'circles' ) );
+check( 'a wall is cards', 'cards' === \OCS\Model\Positions::type_of( 'grid' ) );
+check( 'the product branch offers four spots', 4 === count( \OCS\Model\Positions::offered( 'story', 'product' ) ) );
+check( 'every branch ends in the shortcode', isset( \OCS\Model\Positions::offered( 'cards', 'category' )['custom'] ) );
+check( 'the summary hooks are flagged as theme-dependent', \OCS\Model\Positions::needs_theme_support( 'before_cart' ) );
+check( 'the auto ladder is not', ! \OCS\Model\Positions::needs_theme_support( 'above_content' ) );
 
 echo "\nPlacement sanitising\n";
 $p = \OCS\Model\Placement::sanitize( array(
