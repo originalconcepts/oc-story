@@ -27,11 +27,15 @@ class Placement {
 	const OPTION = 'ocs_placements';
 
 	/**
-	 * Surfaces that ship in 0.1.
+	 * Surfaces that ship in the box.
+	 *
+	 * This list and `SurfaceManager::all()` have to agree: a surface the
+	 * manager can build but this list has not heard of is silently rewritten
+	 * to circles the moment anybody saves a placement using it.
 	 *
 	 * @var string[]
 	 */
-	const SURFACES = array( 'circles', 'slider', 'grid', 'product' );
+	const SURFACES = array( 'circles', 'slider', 'grid', 'product', 'floating' );
 
 	/**
 	 * Where a placement can apply.

@@ -193,7 +193,14 @@ check( 'every branch ends in the shortcode', isset( \OCS\Model\Positions::offere
 check( 'the summary hooks are flagged as theme-dependent', \OCS\Model\Positions::needs_theme_support( 'before_cart' ) );
 check( 'the auto ladder is not', ! \OCS\Model\Positions::needs_theme_support( 'above_content' ) );
 
+// The surface list and the surface registry have to agree, and a mismatch is
+// silent: an unknown surface is rewritten to circles on save, which would
+// route a corner video into the top of the page.
+check( 'the corner is a surface a placement may name', in_array( 'floating', \OCS\Model\Placement::surfaces(), true ) );
+check( 'every registered surface may be named', array() === array_diff( array_keys( \OCS\Surfaces\SurfaceManager::all() ), \OCS\Model\Placement::surfaces() ) );
+
 $corner = $w( array( 'surface' => 'floating', 'target' => 'product', 'position' => 'side_end' ) );
+check( 'a corner keeps the surface it was given', 'floating' === $corner['surface'] );
 check( 'a floating video is its own type', 'floating' === \OCS\Model\Positions::type_of( 'floating' ) );
 check( 'and prints itself late rather than into the document', 'ocs_floating' === $corner['hook'] );
 check( 'a corner offers only two sides', 2 === count( \OCS\Model\Positions::offered( 'floating', 'home' ) ) );

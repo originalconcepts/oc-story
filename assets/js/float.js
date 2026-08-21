@@ -75,6 +75,17 @@
 		video.preload = 'auto';
 		video.src = src;
 
+		// The play mark goes only once the video is really running. A triangle
+		// over moving footage is a lie, and hiding it the moment the element
+		// exists is a different lie — autoplay can still be refused.
+		video.addEventListener( 'playing', function () {
+			box.classList.add( 'is-playing' );
+		} );
+
+		video.addEventListener( 'pause', function () {
+			box.classList.remove( 'is-playing' );
+		} );
+
 		box.querySelector( '.ocs-float__open' ).append( video );
 
 		play();

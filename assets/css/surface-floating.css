@@ -9,7 +9,7 @@
 /* The play mark is never mirrored: a triangle points at the future, and the
    future is to the right of the button in every language. */
 .ocs-float__play{position:absolute;left:50%;top:50%;z-index:2;width:0;height:0;margin:-9px 0 0 -5px;border-style:solid;border-width:9px 0 9px 14px;border-color:transparent transparent transparent rgba(255,255,255,.92);filter:drop-shadow(0 1px 4px rgba(0,0,0,.5));pointer-events:none}
-.ocs-float__video ~ .ocs-float__play{display:none}
+.ocs-float.is-playing .ocs-float__play{display:none}
 .ocs-float__close{position:absolute;top:-9px;inset-inline-end:-9px;z-index:3;width:24px;height:24px;padding:0;border:0;border-radius:50%;background:#1d2327;color:#fff;font-size:15px;line-height:24px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)}
 /* A phone's sticky add-to-cart bar lives exactly here, so the corner starts
    above it rather than on top of the one control that makes the shop money. */

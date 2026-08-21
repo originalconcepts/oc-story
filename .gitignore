@@ -19,3 +19,4 @@ Thumbs.db
 *.local
 .preview.html
 .preview-wrapped.html
+.float-harness.html
