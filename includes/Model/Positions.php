@@ -251,6 +251,33 @@ class Positions {
 	}
 
 	/**
+	 * Read a position back out of the hook a placement already routes through.
+	 *
+	 * Every widget made before the wizard existed has a hook and no position,
+	 * and the wizard treats a missing position as an unanswered question — so
+	 * those galleries opened with step two blank and step three locked, and
+	 * the only way forward was to choose again something they had already
+	 * chosen.
+	 *
+	 * Only an exact match counts. A hook that no position maps to keeps its
+	 * empty position and its raw hook, because guessing would move somebody's
+	 * gallery to a spot they never picked.
+	 *
+	 * @param string $hook     Hook name.
+	 * @param int    $priority Hook priority.
+	 * @return string Position key, or '' when nothing matches exactly.
+	 */
+	public static function for_hook( $hook, $priority ) {
+		foreach ( self::catalogue() as $key => $spot ) {
+			if ( $spot['hook'] === $hook && (int) $spot['priority'] === (int) $priority ) {
+				return $key;
+			}
+		}
+
+		return '';
+	}
+
+	/**
 	 * Whether this position depends on the theme using WooCommerce templates.
 	 *
 	 * @param string $key Position key.

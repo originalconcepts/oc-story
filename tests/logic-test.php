@@ -186,6 +186,20 @@ check( 'and is shown as the target it always was', 'site' === $legacy['target'] 
 $old_product = $w( array( 'surface' => 'circles', 'where' => array( 'scope' => 'tagged' ), 'hook' => 'auto' ) );
 check( 'a tagged widget reads back as a product gallery', 'product' === $old_product['target'] );
 
+// Both of the galleries on the live demo route through hook 'auto' at 15 and
+// carry no position. Without reading one back, they open in the wizard with
+// step two unanswered and step three locked.
+$pre = $w( array( 'surface' => 'circles', 'where' => array( 'scope' => 'site' ), 'hook' => 'auto', 'priority' => 15 ) );
+check( 'a pre-wizard widget is shown the spot it already uses', 'above_content' === $pre['position'] );
+check( 'and routing is untouched by saying so', 'auto' === $pre['hook'] && 15 === $pre['priority'] );
+
+$odd = $w( array( 'surface' => 'circles', 'where' => array( 'scope' => 'site' ), 'hook' => 'wp_body_open', 'priority' => 7 ) );
+check( 'a hook no position names keeps an empty position', '' === $odd['position'] );
+check( 'and keeps its own hook', 'wp_body_open' === $odd['hook'] && 7 === $odd['priority'] );
+
+$cards_pre = $w( array( 'surface' => 'slider', 'where' => array( 'scope' => 'pages', 'ids' => array( 597 ) ), 'hook' => 'auto', 'priority' => 15 ) );
+check( 'and a slider on one page reads back the same way', 'above_content' === $cards_pre['position'] );
+
 check( 'circles are a story', 'story' === \OCS\Model\Positions::type_of( 'circles' ) );
 check( 'a wall is cards', 'cards' === \OCS\Model\Positions::type_of( 'grid' ) );
 check( 'the product branch offers four spots', 4 === count( \OCS\Model\Positions::offered( 'story', 'product' ) ) );

@@ -249,6 +249,19 @@ class Placement {
 		$hook     = isset( $raw['hook'] ) ? preg_replace( '/[^a-zA-Z0-9_\-]/', '', (string) $raw['hook'] ) : $defaults['hook'];
 		$priority = isset( $raw['priority'] ) ? max( 1, min( 999, (int) $raw['priority'] ) ) : $defaults['priority'];
 
+		// No position stored: this placement predates the wizard. If its hook
+		// is one a position names exactly, say so — the placement then opens
+		// with step two already answered instead of looking half-made. The
+		// derivation is lossless by construction: the position it finds
+		// resolves back to the same hook and priority.
+		if ( '' === $position ) {
+			$guess = Positions::for_hook( $hook, $priority );
+
+			if ( '' !== $guess && isset( $offered[ $guess ] ) ) {
+				$position = $guess;
+			}
+		}
+
 		if ( '' !== $position ) {
 			$resolved = Positions::get( $position );
 			$hook     = $resolved['hook'];

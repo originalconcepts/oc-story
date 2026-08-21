@@ -585,9 +585,14 @@
 /* A drawing of the page, with the gallery where it would go. Every position
    tile is this same drawing with one child moved — which is the honest way to
    show a difference that IS only a position. */
+/* The drawing is a diagram, not a layout: it is capped at the size it was
+   drawn for and everything inside it is a share of that box, so it stays a
+   true miniature whatever the tile does. Fixed pixels inside a box whose
+   height comes from an aspect ratio is what pushed the longest branches past
+   the bottom edge. */
 .ocs-pv {
 	display: flex; flex-direction: column; gap: 4px;
-	position: relative; width: 100%; aspect-ratio: 4 / 3;
+	position: relative; width: min(148px, 100%); margin-inline: auto; aspect-ratio: 4 / 3;
 	padding: 6px; border: 1px solid #dcdcde; border-radius: 5px;
 	background: #fff; overflow: hidden;
 }
@@ -609,7 +614,7 @@
 .ocs-pv__grid { display: flex; flex-wrap: wrap; gap: 4px; }
 .ocs-pv__cell { width: calc(33.333% - 3px); height: 16px; border-radius: 3px; background: #eef0f1; }
 
-.ocs-pv__gal { display: flex; gap: 4px; }
+.ocs-pv__gal { display: flex; gap: 4px; align-items: center; }
 .ocs-pv__gal--story .ocs-pv__piece {
 	width: 12px; height: 12px; border-radius: 50%;
 	background: #fff; border: 2px solid var(--ocs-accent);
@@ -687,7 +692,11 @@
 .ocs-linkish { border: 0; background: none; padding: 0; color: var(--ocs-accent); cursor: pointer; font-weight: 600; }
 
 @media (max-width: 782px) {
-	.ocs-tiles--big .ocs-tile { width: calc(50% - 7px); }
+	/* The tile keeps its width and the row wraps around it. Stretching two
+	   tiles across a phone shrank the drawing inside, and a drawing built
+	   from fixed parts in a box whose height follows its width is a drawing
+	   that runs past its own frame. */
+	.ocs-tiles--big .ocs-tile { width: 168px; max-width: 100%; }
 	.ocs-steps__item { padding: 6px 10px; font-size: 12px; }
 }
 
