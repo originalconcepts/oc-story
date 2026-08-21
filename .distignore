@@ -9,6 +9,7 @@ bin
 build
 dist
 tests
+scripts
 node_modules
 vendor/bin
 *.zip

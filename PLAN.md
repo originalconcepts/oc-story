@@ -373,12 +373,17 @@ Admin, `manage_woocommerce` + nonce:
 
 Hard numbers. A build that misses one of these is not shippable.
 
+Every number below measures the **built** file — the `.min` one a shop
+actually downloads, written by `scripts/minify.py` and proved current by CI.
+They were tightened when minification landed: a budget still carrying the old
+headroom would be a budget that had stopped asking anything.
+
 | Asset | Budget | How |
 |---|---|---|
 | Critical CSS | **≤ 2.0 KB** per surface, inlined | only the surfaces actually on the page |
-| `bar.js` | **≤ 4.0 KB** gzip, `defer` | tap listener and `import()` only |
-| `player.js` | **≤ 16 KB** gzip | dynamic chunk, first tap only |
-| `player.css` | **≤ 5 KB** gzip | ships with the chunk |
+| `bar.js` | **≤ 2.0 KB** gzip, `defer` | tap listener and `import()` only |
+| `player.js` | **≤ 12 KB** gzip | dynamic chunk, first tap only |
+| `player.css` | **≤ 4 KB** gzip | ships with the chunk |
 | Circle poster | **≤ 20 KB**, WebP 320×320 q78 | `decoding=async`, `fetchpriority=low` |
 | Slide poster | **≤ 45 KB**, WebP 540×960 | loaded with the player, not the page |
 | Video per slide | **≤ 10 MB** for 30 s, 720×1280, faststart | client encode |
@@ -386,7 +391,7 @@ Hard numbers. A build that misses one of these is not shippable.
 
 | Page metric | Budget |
 |---|---|
-| Bytes added before first interaction | **≤ 4 KB JS + posters**, no video |
+| Bytes added before first interaction | **≤ 2 KB JS + posters**, no video |
 | Blocking requests added | **0** |
 | Contribution to LCP | **0 ms** — nothing render-blocking |
 | CLS | **0** — `aspect-ratio` and explicit dimensions on every circle |

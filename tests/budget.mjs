@@ -8,13 +8,32 @@
  *   node tests/budget.mjs
  */
 
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const root = join( dirname( fileURLToPath( import.meta.url ) ), '..' );
 
+/**
+ * The file a shopper actually downloads.
+ *
+ * The budget is about what crosses the wire, and what crosses the wire is
+ * the built file. Measuring the readable source would have the budget shrink
+ * by a third the day minification landed, for no gain to anybody.
+ *
+ * @param {string} file Path under the plugin root.
+ * @return {string} The built path, or the source when there is no build.
+ */
+function shipped( file ) {
+	const min = file.replace( /\.(js|css)$/, '.min.$1' );
+
+	return existsSync( join( root, min ) ) ? min : file;
+}
+
+// These numbers measure the built file, not the readable source. They were
+// tightened when minification landed — a budget that still had the old
+// headroom would be a budget that had stopped asking anything.
 const BUDGET = [
 	// Inlined into the page, so what counts is the raw size added to the HTML.
 	// Over the wire it is compressed with everything else. Only the surfaces
@@ -27,21 +46,21 @@ const BUDGET = [
 	{ file: 'assets/css/surface-floating.css', raw: 2048, why: 'corner video, inlined' },
 
 	// The only script the storefront loads before an interaction.
-	{ file: 'assets/js/bar.js', gzip: 4096, why: 'initial script' },
+	{ file: 'assets/js/bar.js', gzip: 2048, why: 'initial script' },
 
 	// Product pages only, and only when attribution is on.
-	{ file: 'assets/js/attr.js', gzip: 1024, why: 'attribution helper' },
+	{ file: 'assets/js/attr.js', gzip: 640, why: 'attribution helper' },
 
 	// Only where a card surface previews, and it buys a lot for the size: one
 	// shared video element, viewport-gated, hover-driven. Raised from 2048
 	// deliberately when the geometry fallback landed — a conditionally loaded
 	// chunk on a minority of pages is the right place to spend 200 bytes.
-	{ file: 'assets/js/preview.js', gzip: 2560, why: 'card previews' },
+	{ file: 'assets/js/preview.js', gzip: 2048, why: 'card previews' },
 
 	// Only on a page carrying a corner video. It buys the whole of that
 	// surface's manners: the week-long dismissal, the wait until the page has
 	// loaded, and pausing when nobody is looking.
-	{ file: 'assets/js/float.js', gzip: 2048, why: 'corner video behaviour' },
+	{ file: 'assets/js/float.js', gzip: 1280, why: 'corner video behaviour' },
 
 	// The upload screen a share link opens. Not part of the storefront at all
 	// — nobody shopping ever loads it — but it runs on a phone over mobile
@@ -50,8 +69,8 @@ const BUDGET = [
 	{ file: 'assets/css/share.css', gzip: 2048, why: 'phone upload screen' },
 
 	// Imported on the first tap, never before.
-	{ file: 'assets/js/player.js', gzip: 16384, why: 'player chunk' },
-	{ file: 'assets/css/player.css', gzip: 5120, why: 'player stylesheet' },
+	{ file: 'assets/js/player.js', gzip: 12288, why: 'player chunk' },
+	{ file: 'assets/css/player.css', gzip: 4096, why: 'player stylesheet' },
 ];
 
 // A page carrying a shortcode gets every surface, because which one it will
@@ -63,12 +82,12 @@ const WORST_CASE = { files: [
 	'assets/css/surface-product.css',
 	'assets/css/surface-grid.css',
 	'assets/css/surface-floating.css',
-], raw: 7168, why: 'every surface at once (a page with a shortcode)' };
+], raw: 6144, why: 'every surface at once (a page with a shortcode)' };
 
 let failed = 0;
 
 for ( const item of BUDGET ) {
-	const bytes = readFileSync( join( root, item.file ) );
+	const bytes = readFileSync( join( root, shipped( item.file ) ) );
 	const size = item.gzip ? gzipSync( bytes, { level: 9 } ).length : bytes.length;
 	const limit = item.gzip || item.raw;
 	const unit = item.gzip ? 'gzip' : 'raw ';
@@ -84,7 +103,7 @@ for ( const item of BUDGET ) {
 	);
 }
 
-const worst = WORST_CASE.files.reduce( ( total, file ) => total + readFileSync( join( root, file ) ).length, 0 );
+const worst = WORST_CASE.files.reduce( ( total, file ) => total + readFileSync( join( root, shipped( file ) ) ).length, 0 );
 const worstOk = worst <= WORST_CASE.raw;
 
 if ( ! worstOk ) {

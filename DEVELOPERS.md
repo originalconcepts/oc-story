@@ -273,6 +273,14 @@ late.
 **The events endpoint answers 204 to everything.** An error body invites
 retries and tells a prober what the filter rejected.
 
+**The `.min` files are committed, and CI proves they match.** This plugin is
+deployed by `git pull`, and git does not preserve modification times — so the
+theme's rule, "use the built file only when it is newer than its source",
+would be a coin toss on every deploy. The freshness question is answered once
+in CI (`scripts/minify.py`, then `git diff --exit-code -- assets`) rather than
+on every page load, and `Assets::built()` simply prefers the built file unless
+`SCRIPT_DEBUG` is on.
+
 **A relative import drops the version.** Every storefront asset carries a
 version — that rule has been here since a stale `player.js` cost a whole
 evening — and `import './uploader.js'` walks straight around it: the query

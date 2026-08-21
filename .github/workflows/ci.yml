@@ -53,6 +53,43 @@ jobs:
           fi
           exit $status
 
+  assets:
+    runs-on: ubuntu-latest
+    name: Built assets
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install the minifiers
+        run: pip install rjsmin rcssmin
+
+      # The .min files are committed, because they are what a shop downloads
+      # and because this plugin is deployed by `git pull` — which does not
+      # preserve modification times, so "is the build newer than its source"
+      # cannot be asked at runtime. Instead it is answered here, once, before
+      # anything can ship: rebuild them all and fail if anything moved.
+      - name: The committed builds match their sources
+        run: |
+          python3 scripts/minify.py
+          if ! git diff --quiet -- assets; then
+            {
+              echo '### A built asset is out of date'
+              echo ''
+              echo 'Run `python3 scripts/minify.py` and commit the result.'
+              echo ''
+              echo '```'
+              git diff --stat -- assets
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            git diff --stat -- assets
+            exit 1
+          fi
+
   js:
     runs-on: ubuntu-latest
     name: JavaScript

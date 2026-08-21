@@ -23,6 +23,29 @@ defined( 'ABSPATH' ) || exit;
 class Assets {
 
 	/**
+	 * The built version of an asset the storefront downloads.
+	 *
+	 * Freshness is guaranteed before the code ships rather than checked while
+	 * a shopper waits: CI regenerates every one of these and fails if the
+	 * result differs from what is committed. The alternative — comparing
+	 * modification times at runtime, the way the theme does — cannot work
+	 * here, because this plugin is deployed by `git pull` and git does not
+	 * preserve them.
+	 *
+	 * @param string $relative Path under assets/.
+	 * @return string The same path, or its .min sibling.
+	 */
+	public static function built( $relative ) {
+		if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
+			return $relative;
+		}
+
+		$min = preg_replace( '/\.(js|css)$/', '.min.$1', $relative );
+
+		return file_exists( OCS_PATH . $min ) ? $min : $relative;
+	}
+
+	/**
 	 * Cached critical CSS, keyed by the set of surfaces it covers.
 	 *
 	 * @var array<string,string>
@@ -49,7 +72,7 @@ class Assets {
 			function_exists( 'is_product' ) && is_product()
 			&& Settings::is( 'analytics_enabled' ) && Settings::is( 'attribution_enabled' )
 		) {
-			wp_enqueue_script( 'ocs-attr', OCS_URL . 'assets/js/attr.js', array(), OCS_VERSION, true );
+			wp_enqueue_script( 'ocs-attr', OCS_URL . self::built( 'assets/js/attr.js' ), array(), OCS_VERSION, true );
 			wp_add_inline_script(
 				'ocs-attr',
 				'window.ocsAttrCfg=' . wp_json_encode(
@@ -77,19 +100,19 @@ class Assets {
 		wp_enqueue_style( 'ocs-bar' );
 		wp_add_inline_style( 'ocs-bar', $this->critical_css() . $this->theme_vars() );
 
-		wp_enqueue_script( 'ocs-bar', OCS_URL . 'assets/js/bar.js', array(), OCS_VERSION, true );
+		wp_enqueue_script( 'ocs-bar', OCS_URL . self::built( 'assets/js/bar.js' ), array(), OCS_VERSION, true );
 
 		// The preview chunk rides along only where a card surface is actually
 		// rendering and previews are switched on — never on a circles-only
 		// page, and never at all when the setting is off.
 		if ( Settings::is( 'card_autoplay' ) && array_intersect( array( 'slider', 'grid', 'product' ), Injector::surfaces() ) ) {
-			wp_enqueue_script( 'ocs-preview', OCS_URL . 'assets/js/preview.js', array(), OCS_VERSION, true );
+			wp_enqueue_script( 'ocs-preview', OCS_URL . self::built( 'assets/js/preview.js' ), array(), OCS_VERSION, true );
 		}
 
 		// The corner video's own behaviour: whether to show at all, and when
 		// to start playing. Loaded only where one is on the page.
 		if ( in_array( 'floating', Injector::surfaces(), true ) ) {
-			wp_enqueue_script( 'ocs-float', OCS_URL . 'assets/js/float.js', array(), OCS_VERSION, true );
+			wp_enqueue_script( 'ocs-float', OCS_URL . self::built( 'assets/js/float.js' ), array(), OCS_VERSION, true );
 		}
 
 		// The player chunk is imported by URL, so the path has to survive a
@@ -99,8 +122,8 @@ class Assets {
 			'ocs-bar',
 			'window.ocsCfg=' . wp_json_encode(
 				array(
-					'player' => OCS_URL . 'assets/js/player.js?v=' . OCS_VERSION,
-					'css'    => OCS_URL . 'assets/css/player.css?v=' . OCS_VERSION,
+					'player' => OCS_URL . self::built( 'assets/js/player.js' ) . '?v=' . OCS_VERSION,
+					'css'    => OCS_URL . self::built( 'assets/css/player.css' ) . '?v=' . OCS_VERSION,
 					'events' => Settings::is( 'analytics_enabled' ) ? rest_url( 'oc-story/v1/events' ) : '',
 					'api'    => rest_url( 'oc-story/v1' ),
 					'ring'   => Settings::get( 'ring_style', 'gradient' ),
@@ -237,7 +260,7 @@ class Assets {
 			$css = '';
 
 			foreach ( $surfaces as $id ) {
-				$file = OCS_PATH . 'assets/css/surface-' . sanitize_key( $id ) . '.css';
+				$file = OCS_PATH . self::built( 'assets/css/surface-' . sanitize_key( $id ) . '.css' );
 
 				if ( is_readable( $file ) ) {
 					// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_get_contents

@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.9.3
+Stable tag: 0.9.4
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,11 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.9.4 =
+* Everything the storefront downloads is now minified: half the bytes for the
+  same behaviour. The initial script is 1.3 KB gzipped and the player chunk
+  7.6 KB.
 
 = 0.9.3 =
 * A video uploaded through a phone link arrived with no cover image and no
