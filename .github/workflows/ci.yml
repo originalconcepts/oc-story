@@ -32,8 +32,26 @@ jobs:
           find . -path ./vendor -prune -o -name '*.php' -print0 \
             | xargs -0 -n1 -P4 php -l
 
+      # The harness names every check it runs, and the failing lines are the
+      # whole diagnosis — but a run's logs are readable only by someone with
+      # write access to the repository, and the person who most needs them is
+      # often not that someone. The job summary is public to anyone who can
+      # see the run, so the failures go there too.
       - name: Run the logic test harness
-        run: php tests/logic-test.php
+        run: |
+          set +e
+          php tests/logic-test.php | tee /tmp/logic.txt
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            {
+              echo "### Logic harness — PHP ${{ matrix.php }}"
+              echo ''
+              echo '```'
+              grep -E 'FAIL|Fatal|Parse error|^[0-9]+ passed' /tmp/logic.txt | head -40
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit $status
 
   js:
     runs-on: ubuntu-latest
