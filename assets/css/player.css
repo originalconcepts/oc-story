@@ -57,7 +57,9 @@
 .ocsp__stars-base{position:relative;display:inline-block;color:#d4d4d4;letter-spacing:1px}
 .ocsp__stars-fill{position:absolute;top:0;inset-inline-start:0;overflow:hidden;white-space:nowrap;color:#f6a723;letter-spacing:1px}
 .ocsp__stars-count{color:#777;font-size:11px}
-.ocsp__product-cta{flex:0 0 auto;background:#111;color:#fff;border:0;font:inherit;font-size:13px;font-weight:600;line-height:1;padding:12px 18px;border-radius:999px;cursor:pointer}
+.ocsp__product-cta{flex:0 0 auto;background:var(--ocs-cta,#111);color:#fff;border:0;font:inherit;font-size:13px;font-weight:600;line-height:1;padding:12px 18px;border-radius:999px;cursor:pointer}
+/* The same button, said with one character. */
+.ocsp__product-cta--plus{width:40px;height:40px;padding:0;font-size:24px;font-weight:400;display:grid;place-items:center}
 .ocsp__product-cta.is-added{background:#0a7a3d}
 .ocsp__product.is-hot{outline:3px solid #f6a723;outline-offset:2px}
 

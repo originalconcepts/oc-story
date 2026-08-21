@@ -26,6 +26,11 @@ function track( type, extra ) {
 
 let ui = null;
 let state = null;
+// Whether the last thing the viewer did was ask for this story again. Lives
+// up here with the rest of the player's memory because `go()` reads it, and
+// `go()` runs from a keypress that can arrive before the file has finished
+// evaluating.
+let rewound = false;
 
 /* ------------------------------------------------------------------ build */
 
@@ -270,9 +275,16 @@ function paintProducts() {
 
 			info.append( el( 'span', 'ocsp__product-price', { text: product.p } ) );
 
-			const cta = el( 'button', 'ocsp__product-cta', {
+			// A word, or just a plus. Both do the same thing; the plus is for
+			// a shop whose cards are already crowded, and it keeps its label
+			// for anyone listening rather than looking.
+			const plus = 'plus' === state.cfg.cta;
+			const label = ( state.cfg.i18n && state.cfg.i18n.buy ) || 'Buy';
+
+			const cta = el( 'button', 'ocsp__product-cta' + ( plus ? ' ocsp__product-cta--plus' : '' ), {
 				type: 'button',
-				text: ( state.cfg.i18n && state.cfg.i18n.buy ) || 'Buy',
+				text: plus ? '+' : label,
+				'aria-label': plus ? label : false,
 			} );
 
 			cta.addEventListener( 'click', ( e ) => {
@@ -787,6 +799,19 @@ function go( direction ) {
 
 	if ( at >= 0 && at < current.s.length ) {
 		state.qi = at;
+		rewound = false;
+		play();
+		return;
+	}
+
+	// Back from the first slide starts this story again. Leaving for the
+	// story before it on the first press is the wrong reading of "back" when
+	// somebody has just watched something and wants to see it again — and it
+	// is a long way to come back from. The second press in a row is the one
+	// that leaves.
+	if ( direction < 0 && ! rewound ) {
+		rewound = true;
+		state.qi = 0;
 		play();
 		return;
 	}
@@ -794,6 +819,7 @@ function go( direction ) {
 	const nextStory = state.si + direction;
 
 	if ( nextStory < 0 ) {
+		rewound = false;
 		state.qi = 0;
 		play();
 		return;
@@ -806,6 +832,7 @@ function go( direction ) {
 
 	cube( direction, () => {
 		state.si = nextStory;
+		rewound = false;
 		state.qi = direction > 0 ? 0 : state.stories[ nextStory ].s.length - 1;
 		state.onSeen( story().i );
 		track( 'o' );
@@ -1086,17 +1113,12 @@ function bindStrip() {
 			return;
 		}
 
-		// The cards are links wrapping images, and both of those start a
-		// native drag of their own the moment the mouse moves — which cancels
-		// our pointer stream and is why dragging did nothing at all.
-		e.preventDefault();
-
-		// And once the drag is ours, keep it: without capture, a hand that
-		// strays off the row mid-drag drops it.
-		try {
-			ui.products.setPointerCapture( e.pointerId );
-		} catch ( err ) {}
-
+		// Nothing is claimed here. Capturing the pointer on the row — and
+		// cancelling the press — retargets the click that follows to the row
+		// itself, so pressing a product card or Buy did nothing at all: the
+		// click never reached them. The cards' own `draggable="false"` is
+		// what stops the browser dragging them; this handler only needs to
+		// remember where the press began.
 		holdingStrip = true;
 		dragged = false;
 		fromX = e.clientX;
@@ -1110,12 +1132,21 @@ function bindStrip() {
 
 		const dx = e.clientX - fromX;
 
-		if ( Math.abs( dx ) > 4 ) {
+		if ( ! dragged && Math.abs( dx ) > 4 ) {
+			// Now it is a drag rather than a press, so take the pointer —
+			// late, once there is something to keep hold of. A hand that
+			// strays off the row mid-drag would otherwise drop it.
 			dragged = true;
 			ui.products.classList.add( 'is-dragging' );
+
+			try {
+				ui.products.setPointerCapture( e.pointerId );
+			} catch ( err ) {}
 		}
 
-		ui.products.scrollLeft = fromScroll - dx;
+		if ( dragged ) {
+			ui.products.scrollLeft = fromScroll - dx;
+		}
 	} );
 
 	const release = () => {
@@ -1452,6 +1483,7 @@ export function open( stories, index, ctx ) {
 	ui.root.setAttribute( 'data-open', '1' );
 	ui.close.focus( { preventScroll: true } );
 
+	rewound = false;
 	state.onSeen( story().i );
 	track( 'o' );
 	play();

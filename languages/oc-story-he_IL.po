@@ -1386,3 +1386,23 @@ msgstr "שמור וחזור"
 #: includes
 msgid "Back to the gallery"
 msgstr "חזרה לגלריה"
+
+#: includes
+msgid "The button on a product"
+msgstr "הכפתור על מוצר"
+
+#: includes
+msgid "A button with words"
+msgstr "כפתור עם מילים"
+
+#: includes
+msgid "A round plus"
+msgstr "עיגול עם פלוס"
+
+#: includes
+msgid "What it says. A plus still says this to a screen reader."
+msgstr "מה כתוב עליו. גם עיגול פלוס אומר את זה לקורא מסך."
+
+#: includes
+msgid "Its colour. Empty means near-black."
+msgstr "הצבע שלו. ריק = כמעט שחור."

@@ -54,9 +54,17 @@ class SettingsPage {
 			$nav = 'arrows';
 		}
 
+		$cta = isset( $post['cta_style'] ) ? (string) $post['cta_style'] : 'button';
+		if ( ! in_array( $cta, array( 'button', 'plus' ), true ) ) {
+			$cta = 'button';
+		}
+
 		Settings::update(
 			array(
 				'gallery_nav'              => $nav,
+				'cta_style'                => $cta,
+				'cta_label'                => mb_substr( trim( wp_strip_all_tags( (string) ( $post['cta_label'] ?? '' ) ) ), 0, 24 ),
+				'cta_color'                => sanitize_hex_color( (string) ( $post['cta_color'] ?? '' ) ),
 				'backdrop'                 => empty( $post['backdrop'] ) ? 'solid' : 'dim',
 				// Look.
 				'ring_style'               => $style,
@@ -149,6 +157,23 @@ class SettingsPage {
 								<option value="none" <?php selected( $s['gallery_nav'], 'none' ); ?>><?php esc_html_e( 'Nothing — swipe and keys only', 'oc-story' ); ?></option>
 							</select>
 							<p class="description"><?php esc_html_e( 'Phones always swipe; this is what a desktop shows.', 'oc-story' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="ocs-cta"><?php esc_html_e( 'The button on a product', 'oc-story' ); ?></label></th>
+						<td>
+							<select name="cta_style" id="ocs-cta">
+								<option value="button" <?php selected( $s['cta_style'], 'button' ); ?>><?php esc_html_e( 'A button with words', 'oc-story' ); ?></option>
+								<option value="plus" <?php selected( $s['cta_style'], 'plus' ); ?>><?php esc_html_e( 'A round plus', 'oc-story' ); ?></option>
+							</select>
+							<p>
+								<input type="text" name="cta_label" value="<?php echo esc_attr( $s['cta_label'] ); ?>" class="regular-text" maxlength="24" placeholder="<?php esc_attr_e( 'Buy', 'oc-story' ); ?>">
+								<span class="description"><?php esc_html_e( 'What it says. A plus still says this to a screen reader.', 'oc-story' ); ?></span>
+							</p>
+							<p>
+								<input type="text" name="cta_color" value="<?php echo esc_attr( $s['cta_color'] ); ?>" class="ocs-color" placeholder="#111111">
+								<span class="description"><?php esc_html_e( 'Its colour. Empty means near-black.', 'oc-story' ); ?></span>
+							</p>
 						</td>
 					</tr>
 					<tr>

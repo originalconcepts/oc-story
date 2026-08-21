@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.7.1
+Stable tag: 0.7.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,14 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.7.2 =
+* Pressing a product card or its Buy button inside an open video did nothing.
+  Both work again.
+* Going back at the start of a video restarts that video. A second press is
+  the one that goes to the video before it.
+* The button on a product card can be a word of your choosing or a round
+  plus, in a colour you set — OC Story → Settings.
 
 = 0.7.1 =
 * Tapping anything inside an open video — a product, Buy, a reaction —

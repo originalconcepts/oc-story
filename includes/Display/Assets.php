@@ -106,13 +106,16 @@ class Assets {
 					'ring'   => Settings::get( 'ring_style', 'gradient' ),
 					'next'   => Settings::is( 'advance_to_next_story' ),
 					'nav'    => (string) Settings::get( 'gallery_nav', 'arrows' ),
+					'cta'    => (string) Settings::get( 'cta_style', 'button' ),
 					'dim'    => 'dim' === Settings::get( 'backdrop', 'dim' ),
 					'i18n'   => array(
 						'close' => __( 'Close', 'oc-story' ),
 						'prev'  => __( 'Previous', 'oc-story' ),
 						'next'  => __( 'Next', 'oc-story' ),
 						'shop'  => __( 'View product', 'oc-story' ),
-						'buy'         => __( 'Buy', 'oc-story' ),
+						'buy'         => '' !== trim( (string) Settings::get( 'cta_label', '' ) )
+							? (string) Settings::get( 'cta_label', '' )
+							: __( 'Buy', 'oc-story' ),
 						'add'         => __( 'Add to cart', 'oc-story' ),
 						'added'       => __( 'Added ✓', 'oc-story' ),
 						'unavailable' => __( 'Unavailable', 'oc-story' ),
@@ -150,6 +153,11 @@ class Assets {
 			$vars[] = '--ocs-ring:transparent';
 		}
 
+		$cta = sanitize_hex_color( (string) Settings::get( 'cta_color', '' ) );
+		if ( $cta ) {
+			$vars[] = '--ocs-cta:' . $cta;
+		}
+
 		$seen = sanitize_hex_color( (string) Settings::get( 'ring_seen_color', '' ) );
 		if ( $seen && '#c7c7c7' !== $seen ) {
 			$vars[] = '--ocs-seen:' . $seen;
@@ -159,7 +167,9 @@ class Assets {
 			return '';
 		}
 
-		return '.ocs-bar{' . implode( ';', $vars ) . '}';
+		// The player is a full-screen layer outside any bar, so the shop's
+		// colours are declared on the root as well — one rule, both places.
+		return ':root{' . implode( ';', $vars ) . '}.ocs-bar{' . implode( ';', $vars ) . '}';
 	}
 
 	/**

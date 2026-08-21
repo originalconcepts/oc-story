@@ -64,6 +64,12 @@ class Settings {
 
 			// --- Look ------------------------------------------------------------
 			'accent_color'           => '',
+			// The button on a product card inside the player. A shop that
+			// sells one thing says "Buy"; a shop with a long catalogue often
+			// wants nothing but a plus.
+			'cta_style'              => 'button', // 'button' | 'plus'.
+			'cta_label'              => '',
+			'cta_color'              => '',
 			'ring_style'             => 'gradient', // 'gradient' | 'solid' | 'none'.
 			'ring_color'             => '#d6249f',
 			'ring_seen_color'        => '#c7c7c7',
