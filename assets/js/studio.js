@@ -329,7 +329,14 @@ async function load() {
 
 async function newStory() {
 	const file = await pickVideo();
+
 	if ( ! file ) {
+		// Nothing chosen. Inside the wizard that means "never mind", so hand
+		// the screen back rather than leaving an empty editor behind.
+		if ( shell.onDone ) {
+			done();
+		}
+
 		return;
 	}
 
@@ -794,34 +801,46 @@ function editorView() {
 		el( 'div', { class: 'ocs-editor' }, [
 			el( 'div', { class: 'ocs-editor__head' }, [
 				el( 'strong', { text: story.title || cfg.labels.untitled } ),
-				// State and action are separate on purpose. One control that
-				// reads "Live" and toggles when pressed cannot be read: it looks
-				// like a label until it is too late.
-				el( 'span', {
-					class: 'ocs-pill' + ( 'publish' === story.status ? ' ocs-pill--live' : '' ),
-					text: 'publish' === story.status ? t.published : t.draft,
-				} ),
-				el( 'button', {
-					class: 'ocs-btn' + ( 'publish' === story.status ? '' : ' ocs-btn--primary' ),
-					type: 'button',
-					disabled: !! state.busy,
-					text: 'publish' === story.status ? t.unpublish : t.publish,
-					// Publishing IS the save. A button that says "publish" and
-					// quietly waits for a second button is how a story stays a
-					// draft while its owner is looking at the shop wondering
-					// where it is — which is exactly what happened.
-					onClick: () => {
-						story.status = 'publish' === story.status ? 'draft' : 'publish';
-						state.dirty = true;
-						save();
-					},
-				} ),
+				// Inside the wizard the video's own published state is not the
+				// person's business — the gallery decides that when it is
+				// published, and a second publish button here asking the same
+				// question a different way is where George got stuck. So the
+				// state pill and its toggle belong to the standalone screen
+				// only, and here there is one button that finishes the job.
+				shell.onDone
+					? null
+					: el( 'span', {
+						class: 'ocs-pill' + ( 'publish' === story.status ? ' ocs-pill--live' : '' ),
+						text: 'publish' === story.status ? t.published : t.draft,
+					} ),
+				shell.onDone
+					? null
+					: el( 'button', {
+						class: 'ocs-btn' + ( 'publish' === story.status ? '' : ' ocs-btn--primary' ),
+						type: 'button',
+						disabled: !! state.busy,
+						text: 'publish' === story.status ? t.unpublish : t.publish,
+						// Publishing IS the save. A button that says "publish"
+						// and quietly waits for a second button is how a story
+						// stays a draft while its owner is looking at the shop
+						// wondering where it is — which is exactly what
+						// happened.
+						onClick: () => {
+							story.status = 'publish' === story.status ? 'draft' : 'publish';
+							state.dirty = true;
+							save();
+						},
+					} ),
 				el( 'button', {
 					class: 'ocs-btn ocs-btn--primary',
 					type: 'button',
 					disabled: !! state.busy,
-					text: state.dirty ? t.save : t.saved,
-					onClick: save,
+					text: shell.onDone ? ( t.saveAndBack || t.save ) : ( state.dirty ? t.save : t.saved ),
+					onClick: shell.onDone
+						? () => {
+							save().then( () => done() );
+						}
+						: save,
 				} ),
 			] ),
 			el( 'div', { class: 'ocs-editor__body' }, [
@@ -915,6 +934,15 @@ function editorView() {
 
 function render() {
 	if ( ! root ) {
+		return;
+	}
+
+	// Inside the wizard there is no library to show. Rendering one while the
+	// file dialog was still open put the whole video list behind it, and
+	// clicking anything in it opened a second editor on top — which is what
+	// made step three unusable.
+	if ( shell.onDone && ! state.editing ) {
+		root.replaceChildren( el( 'div', { class: 'ocs-boot', text: t.saving || '' } ) );
 		return;
 	}
 

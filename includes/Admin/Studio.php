@@ -146,6 +146,8 @@ class Studio {
 			'published'      => __( 'Live', 'oc-story' ),
 			'draft'          => __( 'Draft', 'oc-story' ),
 			'save'           => __( 'Save', 'oc-story' ),
+			'saveAndBack'    => __( 'Save and go back', 'oc-story' ),
+			'backToGallery'  => __( 'Back to the gallery', 'oc-story' ),
 			'saving'         => __( 'Saving…', 'oc-story' ),
 			'saved'          => __( 'Saved', 'oc-story' ),
 			'close'          => __( 'Close', 'oc-story' ),

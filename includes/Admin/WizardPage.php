@@ -225,6 +225,19 @@ class WizardPage {
 			'checkMissing'     => __( 'Published, but it did not appear where you put it.', 'oc-story' ),
 			'checkUnknown'     => __( 'Published. The shop could not be reached to confirm where it landed.', 'oc-story' ),
 			'viewOnShop'       => __( 'See it on the shop', 'oc-story' ),
+			'viewGallery'      => __( 'See the gallery on the shop', 'oc-story' ),
+			'backToGalleries'  => __( 'Back to galleries', 'oc-story' ),
+			'uploadNew'        => __( 'Upload a video', 'oc-story' ),
+			'uploadNewNote'    => __( 'From this device. It is made smaller here in the browser before it is sent.', 'oc-story' ),
+			'pickExisting'     => __( 'Choose one you already have', 'oc-story' ),
+			/* translators: %d: number of videos. */
+			'pickExistingNote' => __( '%d in your library, with the products already tagged on them.', 'oc-story' ),
+			'pickExistingNone' => __( 'Nothing in your library yet.', 'oc-story' ),
+			/* translators: %d: number of products. */
+			'taggedProducts'   => __( '%d products tagged', 'oc-story' ),
+			'noProducts'       => __( 'No products tagged', 'oc-story' ),
+			'editVideo'        => __( 'Edit this video', 'oc-story' ),
+			'cancel'           => __( 'Cancel', 'oc-story' ),
 			'draftSaved'       => __( 'Saved as a draft — nobody sees it yet.', 'oc-story' ),
 
 			'type'             => __( 'Kind', 'oc-story' ),

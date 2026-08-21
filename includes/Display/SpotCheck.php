@@ -38,14 +38,21 @@ class SpotCheck {
 			return self::result( 'skipped', '', __( 'A draft is not on the shop yet, so there is nothing to look for.', 'oc-story' ) );
 		}
 
+		// A gallery placed by hand has no spot of ours to verify, but the
+		// person still just finished making it and wants to see the shop. The
+		// home page is the honest answer to "show me".
 		if ( 'manual' === $placement['hook'] ) {
-			return self::result( 'skipped', '', __( 'You are placing this one yourself, so there is no spot to check.', 'oc-story' ) );
+			return self::result(
+				'skipped',
+				home_url( '/' ),
+				__( 'You are placing this one yourself, so there is no spot to check.', 'oc-story' )
+			);
 		}
 
 		$url = self::sample_url( $placement );
 
 		if ( '' === $url ) {
-			return self::result( 'unknown', '', __( 'No page of that kind exists yet to look at.', 'oc-story' ) );
+			return self::result( 'unknown', home_url( '/' ), __( 'No page of that kind exists yet to look at.', 'oc-story' ) );
 		}
 
 		// A query argument nothing reads, purely so no cache — ours, a plugin's

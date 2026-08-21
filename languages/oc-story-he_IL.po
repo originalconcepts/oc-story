@@ -1338,3 +1338,51 @@ msgstr "הופעל. בודק באתר…"
 #: includes
 msgid "Switched off. Nobody sees it now."
 msgstr "כובה. אף אחד לא רואה את זה עכשיו."
+
+#: includes
+msgid "See the gallery on the shop"
+msgstr "צפה בגלריה באתר"
+
+#: includes
+msgid "Back to galleries"
+msgstr "חזרה לגלריות"
+
+#: includes
+msgid "From this device. It is made smaller here in the browser before it is sent."
+msgstr "מהמכשיר הזה. הוא נדחס כאן בדפדפן לפני השליחה."
+
+#: includes
+msgid "Choose one you already have"
+msgstr "בחר סרטון קיים"
+
+#: includes
+msgid "%d in your library, with the products already tagged on them."
+msgstr "%d בספרייה שלך, עם המוצרים שכבר מתויגים עליהם."
+
+#: includes
+msgid "Nothing in your library yet."
+msgstr "אין עדיין כלום בספרייה."
+
+#: includes
+msgid "%d products tagged"
+msgstr "%d מוצרים מתויגים"
+
+#: includes
+msgid "No products tagged"
+msgstr "אין מוצרים מתויגים"
+
+#: includes
+msgid "Edit this video"
+msgstr "ערוך את הסרטון"
+
+#: includes
+msgid "Cancel"
+msgstr "ביטול"
+
+#: includes
+msgid "Save and go back"
+msgstr "שמור וחזור"
+
+#: includes
+msgid "Back to the gallery"
+msgstr "חזרה לגלריה"

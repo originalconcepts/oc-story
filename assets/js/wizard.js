@@ -815,17 +815,18 @@ function stepContent() {
 	// item. A story gallery holds several stories; a slider holds several
 	// videos, one to a card.
 	const single = 'floating' === draft.type;
-	const addLabel = 'story' === draft.type ? t.addStory : t.addVideo;
+	const full = single && chosen.length > 0;
 
 	const cards = chosen.map( ( story ) =>
 		el( 'div', { class: 'ocs-piece', 'data-type': draft.type }, [
 			el( 'button', {
 				class: 'ocs-piece__open',
 				type: 'button',
+				title: t.editVideo,
 				onClick: () => openEditor( story.id ),
 			}, [
-				story.poster
-					? el( 'img', { src: story.poster, alt: '' } )
+				story.poster_url || story.thumb_url
+					? el( 'img', { src: story.thumb_url || story.poster_url, alt: '' } )
 					: el( 'span', { class: 'ocs-piece__blank' } ),
 			] ),
 			el( 'span', { class: 'ocs-piece__name', text: story.title || t.untitled } ),
@@ -842,23 +843,111 @@ function stepContent() {
 		] )
 	);
 
-	if ( ! single || ! chosen.length ) {
-		cards.push(
-			el( 'button', {
-				class: 'ocs-piece ocs-piece--add',
-				type: 'button',
-				onClick: () => openEditor( null ),
-			}, [
-				el( 'span', { class: 'ocs-piece__plus', text: '+' } ),
-				el( 'span', { class: 'ocs-piece__name', text: addLabel } ),
-			] )
-		);
-	}
-
 	return el( 'div', { class: 'ocs-wz__body' }, [
 		el( 'h2', { class: 'ocs-wz__q', text: 'story' === draft.type ? t.theStories : t.theVideos } ),
-		el( 'p', { class: 'ocs-field__note', text: single ? t.floatingNote : '' } ),
-		el( 'div', { class: 'ocs-pieces', 'data-type': draft.type }, cards ),
+		single ? el( 'p', { class: 'ocs-field__note', text: t.floatingNote } ) : null,
+		chosen.length ? el( 'div', { class: 'ocs-pieces', 'data-type': draft.type }, cards ) : null,
+
+		// Two ways in, both named. What was here was one "+" that opened the
+		// video editor, which opened a file dialog and painted the whole
+		// library behind it at the same time — so the question "am I making
+		// one or picking one?" was answered by neither.
+		full
+			? null
+			: el( 'div', { class: 'ocs-ways' }, [
+				el( 'button', {
+					class: 'ocs-way',
+					type: 'button',
+					onClick: () => openEditor( null ),
+				}, [
+					el( 'span', { class: 'ocs-way__mark', text: '↑' } ),
+					el( 'span', {}, [
+						el( 'b', { text: t.uploadNew } ),
+						el( 'span', { class: 'ocs-field__note', text: t.uploadNewNote } ),
+					] ),
+				] ),
+				el( 'button', {
+					class: 'ocs-way',
+					type: 'button',
+					disabled: ! available().length,
+					onClick: () => setState( { picking: true } ),
+				}, [
+					el( 'span', { class: 'ocs-way__mark', text: '≡' } ),
+					el( 'span', {}, [
+						el( 'b', { text: t.pickExisting } ),
+						el( 'span', {
+							class: 'ocs-field__note',
+							text: available().length
+								? t.pickExistingNote.replace( '%d', String( available().length ) )
+								: t.pickExistingNone,
+						} ),
+					] ),
+				] ),
+			] ),
+
+		state.picking ? library() : null,
+	] );
+}
+
+/**
+ * Videos not already in this gallery.
+ *
+ * @return {Array} Stories.
+ */
+function available() {
+	if ( ! state.draft ) {
+		return [];
+	}
+
+	return state.stories.filter( ( story ) => ! state.draft.stories.ids.includes( story.id ) );
+}
+
+/**
+ * The shop's videos, to pick from.
+ *
+ * A video brings its tagged products with it — that is what makes picking an
+ * existing one worth doing rather than uploading the same clip twice — so the
+ * count is on the card.
+ *
+ * @return {Element} The picker.
+ */
+function library() {
+	const draft = state.draft;
+
+	const cards = available().map( ( story ) => {
+		const tagged = ( story.slides || [] ).reduce(
+			( sum, slide ) => sum + ( ( slide.products || [] ).length ),
+			0
+		);
+
+		return el( 'button', { class: 'ocs-lib__item', type: 'button', onClick: () => {
+			draft.stories.ids.push( story.id );
+			setState( { picking: false } );
+		} }, [
+			story.thumb_url || story.poster_url
+				? el( 'img', { src: story.thumb_url || story.poster_url, alt: '' } )
+				: el( 'span', { class: 'ocs-piece__blank' } ),
+			el( 'span', { class: 'ocs-lib__name', text: story.title || t.untitled } ),
+			el( 'span', {
+				class: 'ocs-lib__meta',
+				text: tagged
+					? t.taggedProducts.replace( '%d', String( tagged ) )
+					: t.noProducts,
+			} ),
+		] );
+	} );
+
+	return el( 'div', { class: 'ocs-lib' }, [
+		el( 'div', { class: 'ocs-lib__head' }, [
+			el( 'h3', { text: t.pickExisting } ),
+			el( 'button', {
+				class: 'ocs-btn ocs-btn--small',
+				type: 'button',
+				text: t.cancel,
+				onClick: () => setState( { picking: false } ),
+			} ),
+		] ),
+		el( 'div', { class: 'ocs-lib__grid' }, cards ),
 	] );
 }
 
@@ -1011,19 +1100,31 @@ async function finish( live ) {
 		// look for is whichever came back that was not there before.
 		const mine = saved.find( ( g ) => ! before.includes( g.id ) ) || saved.find( ( g ) => g.id === draft.id );
 
+		if ( ! live ) {
+			setState( {
+				galleries: saved,
+				view: 'list',
+				draft: null,
+				step: 1,
+				busy: false,
+				note: { kind: 'info', text: t.draftSaved },
+			} );
+
+			return;
+		}
+
+		// Publishing ends somewhere rather than dropping the person back on a
+		// list with a line of text. It says what happened and offers the two
+		// things anybody wants next: see it, or make another.
 		setState( {
 			galleries: saved,
-			view: 'list',
-			draft: null,
-			step: 1,
+			view: 'done',
+			done: { gallery: mine, outcome: null },
 			busy: false,
-			note: {
-				kind: live ? 'ok' : 'info',
-				text: live ? t.publishing : t.draftSaved,
-			},
+			note: null,
 		} );
 
-		if ( live && mine ) {
+		if ( mine ) {
 			verify( mine );
 		}
 	} catch ( error ) {
@@ -1042,40 +1143,99 @@ async function finish( live ) {
  * @param {Object} gallery The saved gallery.
  */
 async function verify( gallery ) {
+	let outcome = null;
+
 	try {
-		const outcome = await api( '/admin/placements/' + gallery.id + '/check', { method: 'POST' } );
-
-		if ( 'skipped' === outcome.status ) {
-			// Nothing to look for — a gallery placed by hand. Say plainly that
-			// it is published rather than leaving "checking the shop…" on
-			// screen forever.
-			setState( { note: { kind: 'ok', text: t.published } } );
-			return;
-		}
-
-		const kind = { found: 'ok', missing: 'warn', unknown: 'info' }[ outcome.status ] || 'info';
-		const text = {
-			found: t.checkFound,
-			missing: t.checkMissing,
-			unknown: t.checkUnknown,
-		}[ outcome.status ];
-
-		setState( {
-			note: {
-				kind,
-				text: outcome.reason ? text + ' ' + outcome.reason : text,
-				// A fresh query string on the link, so what opens is the page
-				// as it is now rather than a copy a cache made a minute ago.
-				link: outcome.url ? outcome.url + ( outcome.url.includes( '?' ) ? '&' : '?' ) + 'ocs=' + Date.now() : '',
-				linkText: t.viewOnShop,
-			},
-		} );
+		outcome = await api( '/admin/placements/' + gallery.id + '/check', { method: 'POST' } );
 	} catch ( error ) {
 		// A gallery that saved is published whether or not we could look at
 		// it. Failing to check is not failing to publish, and must not read
 		// like it.
-		setState( { note: { kind: 'info', text: t.published } } );
+		outcome = { status: 'unknown', url: '', reason: '' };
 	}
+
+	if ( 'done' === state.view ) {
+		setState( { done: { gallery, outcome } } );
+		return;
+	}
+
+	// Switched on from the list rather than published from the wizard: one
+	// line, in place.
+	const kind = { found: 'ok', missing: 'warn', unknown: 'info', skipped: 'ok' }[ outcome.status ] || 'info';
+	const text = {
+		found: t.checkFound,
+		missing: t.checkMissing,
+		unknown: t.checkUnknown,
+		skipped: t.published,
+	}[ outcome.status ];
+
+	setState( {
+		note: {
+			kind,
+			text: outcome.reason && 'skipped' !== outcome.status ? text + ' ' + outcome.reason : text,
+			link: fresh( outcome.url ),
+			linkText: t.viewOnShop,
+		},
+	} );
+}
+
+/**
+ * A link that no cache can answer with yesterday's copy.
+ *
+ * @param {string} url Page URL.
+ * @return {string} The same page, asked for anew.
+ */
+function fresh( url ) {
+	if ( ! url ) {
+		return '';
+	}
+
+	return url + ( url.includes( '?' ) ? '&' : '?' ) + 'ocs=' + Date.now();
+}
+
+/**
+ * What a finished gallery looks like.
+ *
+ * @return {Element} The panel.
+ */
+function doneView() {
+	const gallery = state.done.gallery || {};
+	const outcome = state.done.outcome;
+	const status = outcome ? outcome.status : '';
+	const bad = 'missing' === status;
+
+	const heading = {
+		found: t.checkFound,
+		missing: t.checkMissing,
+		unknown: t.checkUnknown,
+		skipped: t.published,
+	}[ status ] || t.publishing;
+
+	return el( 'div', { class: 'ocs-done' }, [
+		el( 'span', { class: 'ocs-done__mark' + ( bad ? ' is-warn' : '' ), text: bad ? '!' : '✓' } ),
+		el( 'h1', { text: gallery.label || t.untitled } ),
+		el( 'p', { class: 'ocs-done__what', text: heading } ),
+		outcome && outcome.reason && 'found' !== status
+			? el( 'p', { class: 'ocs-field__note', text: outcome.reason } )
+			: null,
+		el( 'div', { class: 'ocs-done__acts' }, [
+			outcome && outcome.url
+				? el( 'a', {
+					class: 'ocs-btn ocs-btn--primary',
+					href: fresh( outcome.url ),
+					target: '_blank',
+					rel: 'noopener',
+					text: t.viewGallery,
+				} )
+				: null,
+			el( 'button', {
+				class: 'ocs-btn',
+				type: 'button',
+				text: t.backToGalleries,
+				onClick: () => setState( { view: 'list', draft: null, done: null, step: 1, note: null } ),
+			} ),
+		] ),
+	] );
 }
 
 function listView() {
@@ -1292,7 +1452,9 @@ function render() {
 		return;
 	}
 
-	root.replaceChildren( 'wizard' === state.view ? wizard() : listView() );
+	root.replaceChildren(
+		'wizard' === state.view ? wizard() : ( 'done' === state.view ? doneView() : listView() )
+	);
 	root.removeAttribute( 'data-loading' );
 }
 
