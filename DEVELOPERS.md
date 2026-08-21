@@ -273,6 +273,23 @@ late.
 **The events endpoint answers 204 to everything.** An error body invites
 retries and tells a prober what the filter rejected.
 
+**Two lists of the same thing will disagree.** `Placement::SURFACES` and
+`SurfaceManager::all()` are both "the surfaces that exist", and a surface in
+one but not the other is rewritten to circles on save with no error anywhere.
+Same shape, same day: the wizard resolved "all galleries" into real ids while
+the list counted the stored (empty) ids and printed 0. Where two readings of
+one fact exist, make them one function.
+
+**"Which videos" has three stored readings and only one is a list.** `all`,
+`collection` and `selected` all live in `stories.mode`. Anything that shows or
+edits a gallery has to resolve the first two, or it shows nothing — and, if it
+then saves, writes that nothing back. George's site-wide bar is `all`.
+
+**A draft has to be a draft everywhere.** The shortcode, the block and the
+Elementor widget each fetch a placement by id and render it; none of them
+checked `enabled`, so "nobody sees it yet" stopped being true the moment the
+shortcode was pasted anywhere.
+
 **Nested handlers make a double tap out of one tap.** The tap zones live
 inside the stage, so a single tap ran the stage's pointerup handler and the
 zone's; the second read the first's timestamp and called it a double tap.
