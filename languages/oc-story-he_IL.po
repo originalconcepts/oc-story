@@ -1330,3 +1330,11 @@ msgstr "— בנה אחת כאן —"
 #: includes
 msgid "A gallery made in OC Story → Galleries."
 msgstr "גלריה שנוצרה ב־OC Story ← גלריות."
+
+#: includes
+msgid "Switched on. Checking the shop…"
+msgstr "הופעל. בודק באתר…"
+
+#: includes
+msgid "Switched off. Nobody sees it now."
+msgstr "כובה. אף אחד לא רואה את זה עכשיו."
