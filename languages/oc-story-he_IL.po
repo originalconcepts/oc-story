@@ -1434,3 +1434,11 @@ msgstr "לא בעמוד הסל, הקופה או התודה"
 #: includes
 msgid "A shopper on those pages is paying. Anything that pulls them away costs the sale."
 msgstr "לקוח בעמודים האלה משלם. כל דבר שמסיט אותו עולה במכירה."
+
+#: includes
+msgid "Back"
+msgstr "הקודם"
+
+#: includes
+msgid "That page answered %d."
+msgstr "העמוד הזה החזיר %d."

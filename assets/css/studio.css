@@ -578,7 +578,12 @@
 /* The base tiles are a grid of small squares; these are page drawings and
    want a fixed width, so this row is a flex wrap instead. */
 .ocs-tiles--big { display: flex; flex-wrap: wrap; gap: 14px; }
-.ocs-tiles--big .ocs-tile { width: 168px; align-items: stretch; text-align: center; }
+/* `flex: 0 0 auto` is the whole fix for drawings that ran past their frames.
+   A flex item shrinks by default, so six tiles that do not quite fit a row
+   were being squeezed narrower rather than wrapping — and the drawing inside
+   is built from fixed parts in a box whose height follows its width, so a
+   squeezed tile is a clipped drawing. They wrap now. */
+.ocs-tiles--big .ocs-tile { flex: 0 0 auto; width: 168px; max-width: 100%; align-items: stretch; text-align: center; }
 .ocs-tiles--big .ocs-tile__art { width: 100%; height: auto; display: block; }
 .ocs-tile__note { font-size: 11px; color: #787c82; line-height: 1.35; }
 
