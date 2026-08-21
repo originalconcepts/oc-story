@@ -220,19 +220,26 @@ function setState( patch ) {
  * @param {Object} saved A placement from the server.
  * @return {Object} A draft.
  */
-function reopen( saved ) {
-	const type = ( cfg.types || [] ).find( ( x ) => ( x.surfaces || [] ).includes( saved.surface ) );
+function videosIn( saved ) {
 	const mode = ( saved.stories && saved.stories.mode ) || 'selected';
 
-	let ids = ( saved.stories && saved.stories.ids ) || [];
-
 	if ( 'all' === mode ) {
-		ids = state.stories.map( ( story ) => story.id );
-	} else if ( 'collection' === mode && saved.stories.collection ) {
-		ids = state.stories
+		return state.stories.map( ( story ) => story.id );
+	}
+
+	if ( 'collection' === mode && saved.stories.collection ) {
+		return state.stories
 			.filter( ( story ) => story.collection === saved.stories.collection )
 			.map( ( story ) => story.id );
 	}
+
+	return ( saved.stories && saved.stories.ids ) || [];
+}
+
+function reopen( saved ) {
+	const type = ( cfg.types || [] ).find( ( x ) => ( x.surfaces || [] ).includes( saved.surface ) );
+	const mode = ( saved.stories && saved.stories.mode ) || 'selected';
+	const ids = videosIn( saved );
 
 	return {
 		...saved,
@@ -406,13 +413,29 @@ function stepType() {
 	] );
 }
 
+/**
+ * Which page targets make sense for a kind of gallery.
+ *
+ * A corner video has no "place it myself": the corner is the placement, and
+ * offering the choice would mean picking a side and then being told to paste
+ * a shortcode that pins it to that side anyway.
+ *
+ * @param {string} type Gallery type.
+ * @return {Array} Targets.
+ */
+function targetsFor( type ) {
+	const all = cfg.targets || [];
+
+	return 'floating' === type ? all.filter( ( x ) => 'custom' !== x.id ) : all;
+}
+
 /** Step two: which pages, then where on them, then which ones exactly. */
 function stepWhere() {
 	const draft = state.draft;
 	const parts = [
 		el( 'h2', { class: 'ocs-wz__q', text: t.whichPages } ),
 		tiles(
-			( cfg.targets || [] ).map( ( target ) => {
+			targetsFor( draft.type ).map( ( target ) => {
 				// Draw each kind of page with the gallery in the first spot
 				// that page actually offers. Drawing them all in one fixed
 				// spot leaves half the tiles showing a page with no gallery
@@ -956,9 +979,9 @@ function listView() {
 	const rows = state.galleries.map( ( g ) => {
 		const type = ( cfg.types || [] ).find( ( x ) => ( x.surfaces || [] ).includes( g.surface ) );
 		const target = ( cfg.targets || [] ).find( ( x ) => x.id === g.target );
-		const count = 'tagged' === ( g.stories && g.stories.mode )
-			? ( g.stories.ids || [] ).length
-			: ( ( g.stories && g.stories.ids ) || [] ).length;
+		// The same reading the wizard uses, so the list never says a gallery
+		// has no videos while three of them are on the shop.
+		const count = videosIn( g ).length;
 
 		return el( 'tr', {}, [
 			el( 'td', {}, [
