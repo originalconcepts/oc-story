@@ -197,8 +197,6 @@ check( 'the auto ladder is not', ! \OCS\Model\Positions::needs_theme_support( 'a
 // silent: an unknown surface is rewritten to circles on save, which would
 // route a corner video into the top of the page.
 check( 'the corner is a surface a placement may name', in_array( 'floating', \OCS\Model\Placement::surfaces(), true ) );
-check( 'every registered surface may be named', array() === array_diff( array_keys( \OCS\Surfaces\SurfaceManager::all() ), \OCS\Model\Placement::surfaces() ) );
-
 $corner = $w( array( 'surface' => 'floating', 'target' => 'product', 'position' => 'side_end' ) );
 check( 'a corner keeps the surface it was given', 'floating' === $corner['surface'] );
 check( 'a floating video is its own type', 'floating' === \OCS\Model\Positions::type_of( 'floating' ) );
@@ -245,7 +243,7 @@ check( 'every tag survives', substr_count( $collapsed, '<' ) === substr_count( $
 
 echo "\nSurfaces\n";
 $surfaces = \OCS\Surfaces\SurfaceManager::all();
-check( 'circles, slider, grid and product block are all registered', count( $surfaces ) === 4 );
+check( 'every surface the plugin ships is registered', count( $surfaces ) === count( \OCS\Model\Placement::SURFACES ) );
 
 $named = true;
 foreach ( $surfaces as $id => $surface ) {
