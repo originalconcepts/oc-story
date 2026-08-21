@@ -228,6 +228,11 @@ class WizardPage {
 			'publish'          => __( 'Save and publish', 'oc-story' ),
 			'saveDraft'        => __( 'Save as a draft', 'oc-story' ),
 			'published'        => __( 'Published. It is on the shop now.', 'oc-story' ),
+			'publishing'       => __( 'Published. Checking the shop…', 'oc-story' ),
+			'checkFound'       => __( 'Published, and it is showing where you put it.', 'oc-story' ),
+			'checkMissing'     => __( 'Published, but it did not appear where you put it.', 'oc-story' ),
+			'checkUnknown'     => __( 'Published. The shop could not be reached to confirm where it landed.', 'oc-story' ),
+			'viewOnShop'       => __( 'See it on the shop', 'oc-story' ),
 			'draftSaved'       => __( 'Saved as a draft — nobody sees it yet.', 'oc-story' ),
 
 			'type'             => __( 'Kind', 'oc-story' ),

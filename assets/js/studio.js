@@ -131,7 +131,13 @@ export function mount( node, options = {} ) {
 	state.editing = null;
 	state.note = null;
 
-	render();
+	// Called from the wizard, this arrives mid-flow and the editor is a
+	// moment away. Painting the list of every video in the shop in that gap
+	// is a flash of somewhere the person did not ask to go, so the screen
+	// they were on stays up until there is an editor to replace it with.
+	if ( ! ( 'story' in options ) ) {
+		render();
+	}
 
 	load().then( () => {
 		if ( options.story ) {
@@ -911,8 +917,16 @@ function done() {
 
 	state.editing = null;
 
-	if ( 'function' === typeof shell.onDone ) {
-		shell.onDone( made );
+	// Let go of the node before handing back. A save or a load still in
+	// flight would otherwise finish later and repaint the editor over the
+	// screen the wizard has already put back.
+	root = null;
+
+	const back = shell.onDone;
+	shell = {};
+
+	if ( 'function' === typeof back ) {
+		back( made );
 	}
 }
 

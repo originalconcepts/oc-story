@@ -679,3 +679,9 @@
 /* Chosen by hand: the gallery is drawn floating in dashes, because where it
    ends up is the one thing this picture cannot honestly say. */
 .ocs-pv__gal--loose { padding: 4px; border: 1px dashed var(--ocs-accent); border-radius: 4px; }
+
+.ocs-note { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+.ocs-note--ok { border-inline-start: 3px solid #1a7f37; }
+.ocs-note--warn { border-inline-start: 3px solid #bb6a00; background: #fcf6e6; }
+.ocs-note--info { border-inline-start: 3px solid var(--ocs-accent); }
+.ocs-note a { color: var(--ocs-accent); font-weight: 600; }

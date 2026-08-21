@@ -49,6 +49,32 @@ class PlacementsController {
 				),
 			)
 		);
+
+		register_rest_route(
+			$ns,
+			'/admin/placements/(?P<id>[a-z0-9_]+)/check',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'check' ),
+				'permission_callback' => array( Routes::class, 'can_manage' ),
+			)
+		);
+	}
+
+	/**
+	 * Go and look at the shop.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function check( $request ) {
+		$placement = Placement::get( (string) $request['id'] );
+
+		if ( ! $placement ) {
+			return new \WP_Error( 'ocs_no_placement', __( 'That gallery no longer exists.', 'oc-story' ), array( 'status' => 404 ) );
+		}
+
+		return rest_ensure_response( \OCS\Display\SpotCheck::run( $placement ) );
 	}
 
 	/**

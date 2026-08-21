@@ -746,8 +746,28 @@ async function finish( live ) {
 	setState( { busy: true } );
 
 	try {
+		// Publishing the gallery publishes its videos. Anything else is the
+		// trap this plugin already fell into once: a gallery placed perfectly,
+		// pointing at videos that are still drafts, showing nothing at all —
+		// and no screen anywhere saying why.
+		if ( live ) {
+			await Promise.all(
+				draft.stories.ids.map( ( id ) =>
+					api( '/admin/stories/' + id, {
+						method: 'POST',
+						body: JSON.stringify( { status: 'publish' } ),
+					} ).catch( () => null )
+				)
+			);
+		}
+
 		const others = state.galleries.filter( ( g ) => g.id !== draft.id );
 		const saved = await persist( others.concat( [ draft ] ) );
+
+		// The endpoint mints an id for a new gallery, so the one to go and
+		// look for is whichever came back that the others did not have.
+		const known = others.map( ( g ) => g.id );
+		const mine = saved.find( ( g ) => ! known.includes( g.id ) ) || saved.find( ( g ) => g.id === draft.id );
 
 		setState( {
 			galleries: saved,
@@ -757,11 +777,58 @@ async function finish( live ) {
 			busy: false,
 			note: {
 				kind: live ? 'ok' : 'info',
-				text: live ? t.published : t.draftSaved,
+				text: live ? t.publishing : t.draftSaved,
+			},
+		} );
+
+		if ( live && mine ) {
+			verify( mine );
+		}
+	} catch ( error ) {
+		setState( { busy: false, note: { kind: 'error', text: error.message } } );
+	}
+}
+
+/**
+ * Go and look at the shop, then say what is actually there.
+ *
+ * Publishing makes a person feel finished, and they go straight to the shop
+ * to admire it. If the spot they picked does not exist in their theme, the
+ * kindest moment to say so is now — not when they are staring at a page
+ * wondering what they did wrong.
+ *
+ * @param {Object} gallery The saved gallery.
+ */
+async function verify( gallery ) {
+	try {
+		const outcome = await api( '/admin/placements/' + gallery.id + '/check', { method: 'POST' } );
+
+		if ( 'skipped' === outcome.status ) {
+			return;
+		}
+
+		const kind = { found: 'ok', missing: 'warn', unknown: 'info' }[ outcome.status ] || 'info';
+		const text = {
+			found: t.checkFound,
+			missing: t.checkMissing,
+			unknown: t.checkUnknown,
+		}[ outcome.status ];
+
+		setState( {
+			note: {
+				kind,
+				text: outcome.reason ? text + ' ' + outcome.reason : text,
+				// A fresh query string on the link, so what opens is the page
+				// as it is now rather than a copy a cache made a minute ago.
+				link: outcome.url ? outcome.url + ( outcome.url.includes( '?' ) ? '&' : '?' ) + 'ocs=' + Date.now() : '',
+				linkText: t.viewOnShop,
 			},
 		} );
 	} catch ( error ) {
-		setState( { busy: false, note: { kind: 'error', text: error.message } } );
+		// A gallery that saved is published whether or not we could look at
+		// it. Failing to check is not failing to publish, and must not read
+		// like it.
+		setState( { note: { kind: 'info', text: t.published } } );
 	}
 }
 
@@ -827,7 +894,12 @@ function noteBar() {
 		return null;
 	}
 
-	return el( 'div', { class: 'ocs-note ocs-note--' + state.note.kind, text: state.note.text } );
+	return el( 'div', { class: 'ocs-note ocs-note--' + state.note.kind }, [
+		el( 'span', { text: state.note.text } ),
+		state.note.link
+			? el( 'a', { href: state.note.link, target: '_blank', rel: 'noopener', text: state.note.linkText } )
+			: null,
+	] );
 }
 
 function render() {
