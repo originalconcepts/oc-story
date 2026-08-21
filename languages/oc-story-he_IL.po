@@ -1442,3 +1442,11 @@ msgstr "הקודם"
 #: includes
 msgid "That page answered %d."
 msgstr "העמוד הזה החזיר %d."
+
+#: includes
+msgid "Anywhere it should not appear?"
+msgstr "איפה שהיא לא צריכה להופיע?"
+
+#: includes
+msgid "And any page you name here — start typing its title."
+msgstr "וכל עמוד שתציין כאן — התחל להקליד את שמו."

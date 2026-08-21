@@ -253,6 +253,10 @@ check( 'a placement that never heard of it is kept off too', false === \OCS\Mode
 check( 'the setting survives a save', true === \OCS\Model\Placement::sanitize( array( 'id' => 'pl_x' ) )['where']['no_cart'] );
 check( 'and so does turning it off', false === \OCS\Model\Placement::sanitize( array( 'id' => 'pl_x', 'where' => array( 'no_cart' => false ) ) )['where']['no_cart'] );
 
+$minus = array( 'scope' => 'site', 'ids' => array(), 'exclude' => array( 91 ), 'no_cart' => true );
+check( 'a page left out stays left out', false === \OCS\Model\Placement::matches( $minus, array( 'post_id' => 91 ) ) );
+check( 'and its neighbours do not', true === \OCS\Model\Placement::matches( $minus, array( 'post_id' => 92 ) ) );
+
 echo "\nPlacement sanitising\n";
 $p = \OCS\Model\Placement::sanitize( array(
 	'id'      => 'PL_ABC!!',

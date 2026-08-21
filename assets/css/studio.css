@@ -587,55 +587,9 @@
 .ocs-tiles--big .ocs-tile__art { width: 100%; height: auto; display: block; }
 .ocs-tile__note { font-size: 11px; color: #787c82; line-height: 1.35; }
 
-/* A drawing of the page, with the gallery where it would go. Every position
-   tile is this same drawing with one child moved — which is the honest way to
-   show a difference that IS only a position. */
-/* The drawing is a diagram, not a layout: it is capped at the size it was
-   drawn for and everything inside it is a share of that box, so it stays a
-   true miniature whatever the tile does. Fixed pixels inside a box whose
-   height comes from an aspect ratio is what pushed the longest branches past
-   the bottom edge. */
-.ocs-pv {
-	display: flex; flex-direction: column; gap: 4px;
-	position: relative; width: min(148px, 100%); margin-inline: auto; aspect-ratio: 4 / 3;
-	padding: 6px; border: 1px solid #dcdcde; border-radius: 5px;
-	background: #fff; overflow: hidden;
-}
-/* The box is a fixed shape and the contents vary by branch, so the parts that
-   are only scenery give way and the parts that carry the meaning do not. Left
-   rigid, the longest branches ran past the bottom edge and were clipped —
-   which reads exactly like a drawing too big for its frame. */
-.ocs-pv > * { flex: 0 1 auto; min-height: 0; }
-.ocs-pv__header { height: 9px; border-radius: 2px; background: #3c434a; flex: 0 0 auto; }
-.ocs-pv__gal { flex: 0 0 auto; }
-.ocs-pv__line { height: 4px; border-radius: 2px; background: #dcdcde; }
-.ocs-pv__hero { height: 26px; border-radius: 3px; background: #eef0f1; }
-.ocs-pv__cols { display: flex; gap: 5px; }
-.ocs-pv__media { width: 38%; aspect-ratio: 1; border-radius: 3px; background: #eef0f1; }
-.ocs-pv__side { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.ocs-pv__side > * { flex: 0 1 auto; min-height: 0; }
-.ocs-pv__side .ocs-pv__gal { flex: 0 0 auto; }
-.ocs-pv__cta { height: 8px; width: 70%; border-radius: 4px; background: #3c434a; flex: 0 0 auto; }
-.ocs-pv__grid { display: flex; flex-wrap: wrap; gap: 4px; }
-.ocs-pv__cell { width: calc(33.333% - 3px); height: 16px; border-radius: 3px; background: #eef0f1; }
-
-.ocs-pv__gal { display: flex; gap: 4px; align-items: center; }
-.ocs-pv__gal--story .ocs-pv__piece {
-	width: 12px; height: 12px; border-radius: 50%;
-	background: #fff; border: 2px solid var(--ocs-accent);
-}
-.ocs-pv__gal--cards .ocs-pv__piece { width: 16px; height: 22px; border-radius: 3px; background: var(--ocs-accent); }
-.ocs-pv__gal--floating {
-	position: absolute; bottom: 7px;
-	width: auto; padding: 0;
-}
-.ocs-pv__gal--floating .ocs-pv__piece { width: 20px; height: 28px; border-radius: 4px; background: var(--ocs-accent); }
-.ocs-pv__gal--start { inset-inline-start: 7px; }
-.ocs-pv__gal--end { inset-inline-end: 7px; }
-
-/* Placing it yourself has no position to draw, so it is drawn as what it is:
-   an outline you put where you like. */
-.ocs-tile[aria-pressed] .ocs-pv__gal:empty { display: none; }
+/* The drawing is an SVG with a viewBox, so it is the tile's width and
+   whatever height that implies — it cannot overflow, at any size, ever. */
+.ocs-pv { display: block; width: 100%; height: auto; }
 
 .ocs-choices { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 14px; }
 .ocs-choice {
@@ -707,9 +661,6 @@
 
 .ocs-field__label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 13px; }
 .ocs-field__note { display: block; font-size: 12px; color: #787c82; margin-top: 5px; line-height: 1.4; }
-/* Chosen by hand: the gallery is drawn floating in dashes, because where it
-   ends up is the one thing this picture cannot honestly say. */
-.ocs-pv__gal--loose { padding: 4px; border: 1px dashed var(--ocs-accent); border-radius: 4px; }
 
 .ocs-note { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
 .ocs-note--ok { border-inline-start: 3px solid #1a7f37; }
@@ -723,8 +674,6 @@
 .ocs-btn--danger { color: #b32d2e; border-color: #e5c1c1; }
 .ocs-btn--danger:hover { background: #fcf0f1; }
 .ocs-table__acts { display: flex; gap: 6px; justify-content: flex-end; }
-.ocs-pv__gal--wall { display: flex; flex-wrap: wrap; gap: 3px; }
-.ocs-pv__gal--wall .ocs-pv__piece { width: calc(33.333% - 2px); height: 20px; border-radius: 3px; background: var(--ocs-accent); }
 
 /* On or off, in one tap. The switch is the action; the word beside it is the
    state, so the control never has to be read as its own label. */

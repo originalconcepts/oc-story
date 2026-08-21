@@ -62,11 +62,14 @@ async function api( path, init = {} ) {
 /**
  * A drawing of the page with the gallery in the spot being offered.
  *
- * This is the part that has to be honest. A picture that says "it will look
- * like this" is a promise, and a promise is worse than a dropdown when the
- * theme turns out not to have the spot. The drawing shows the arrangement;
- * the check after publishing confirms the spot exists. Neither is enough on
- * its own.
+ * Drawn as one SVG with a viewBox rather than as boxes in CSS. Three times
+ * now a drawing built from fixed pixels inside a box whose height follows its
+ * width has run past its own frame — squeezed by a flex row, shrunk by a
+ * narrow column, scaled by somebody's browser zoom. A viewBox cannot do that:
+ * whatever width the tile ends up, the whole picture is inside it, to scale.
+ *
+ * The canvas is 148 by 111 with a 7 unit margin, which is where the earlier
+ * drawing landed after it was tuned by eye.
  *
  * @param {string} type     Gallery type.
  * @param {string} target   Which pages.
@@ -74,94 +77,212 @@ async function api( path, init = {} ) {
  * @return {Element} The drawing.
  */
 function art( type, target, position ) {
-	const page = el( 'span', { class: 'ocs-pv' } );
-	const line = ( w ) => el( 'span', { class: 'ocs-pv__line', style: 'width:' + w + '%' } );
+	const NS = 'http://www.w3.org/2000/svg';
+	const W = 148;
+	const H = 111;
+	const PAD = 7;
+	const INNER = W - PAD * 2;
+	const GAP = 4;
 
-	// The gallery itself, drawn as what it is.
-	const gallery = el( 'span', {
-		class: 'ocs-pv__gal ocs-pv__gal--' + type + ( 'custom' === position ? ' ocs-pv__gal--loose' : '' ),
+	const svg = document.createElementNS( NS, 'svg' );
+	svg.setAttribute( 'viewBox', '0 0 ' + W + ' ' + H );
+	svg.setAttribute( 'class', 'ocs-pv' );
+	svg.setAttribute( 'aria-hidden', 'true' );
+
+	// A page reads from the same side its language does, so the whole drawing
+	// is mirrored in an RTL shop rather than each piece being placed twice.
+	const rtl = 'rtl' === ( document.dir || document.documentElement.dir );
+	const stageG = document.createElementNS( NS, 'g' );
+
+	if ( rtl ) {
+		stageG.setAttribute( 'transform', 'translate(' + W + ',0) scale(-1,1)' );
+	}
+
+	const rect = ( x, y, w, h, r, fill, extra ) => {
+		const node = document.createElementNS( NS, 'rect' );
+
+		node.setAttribute( 'x', x );
+		node.setAttribute( 'y', y );
+		node.setAttribute( 'width', Math.max( 0, w ) );
+		node.setAttribute( 'height', Math.max( 0, h ) );
+		node.setAttribute( 'rx', r );
+		node.setAttribute( 'fill', fill );
+
+		for ( const [ key, value ] of Object.entries( extra || {} ) ) {
+			node.setAttribute( key, value );
+		}
+
+		return node;
+	};
+
+	const INK = '#3c434a';
+	const GREY = '#dcdcde';
+	const FAINT = '#eef0f1';
+	const ACCENT = 'var(--ocs-accent, #2271b1)';
+
+	svg.append( rect( 0.5, 0.5, W - 1, H - 1, 5, '#fff', { stroke: GREY, 'stroke-width': 1 } ) );
+	svg.append( stageG );
+
+	// --- the gallery itself, drawn as what it is ------------------------
+	const galleryHeight = 'story' === type ? 12 : 22;
+
+	/**
+	 * Draw the gallery at a given left edge and top.
+	 *
+	 * @param {number} x     Left edge.
+	 * @param {number} y     Top edge.
+	 * @param {number} width Space it may use.
+	 * @return {Element} A group.
+	 */
+	const gallery = ( x, y, width ) => {
+		const group = document.createElementNS( NS, 'g' );
+
+		if ( 'story' === type ) {
+			for ( let i = 0; i < 4; i++ ) {
+				const dot = document.createElementNS( NS, 'circle' );
+
+				dot.setAttribute( 'cx', x + 6 + i * 15 );
+				dot.setAttribute( 'cy', y + 6 );
+				dot.setAttribute( 'r', 5 );
+				dot.setAttribute( 'fill', '#fff' );
+				dot.setAttribute( 'stroke', ACCENT );
+				dot.setAttribute( 'stroke-width', 2 );
+
+				group.append( dot );
+			}
+		} else if ( 'wall' === type ) {
+			for ( let i = 0; i < 6; i++ ) {
+				group.append( rect( x + ( i % 3 ) * 17, y + Math.floor( i / 3 ) * 12, 15, 10, 2, ACCENT ) );
+			}
+		} else {
+			for ( let i = 0; i < 3; i++ ) {
+				group.append( rect( x + i * 20, y, 16, 22, 3, ACCENT ) );
+			}
+		}
+
+		if ( 'custom' === position ) {
+			// Placed by hand: the one thing this picture honestly cannot say
+			// is where it ends up, so it is drawn loose.
+			group.append(
+				rect( x - 3, y - 3, width + 6, galleryHeight + 6, 3, 'none', {
+					stroke: ACCENT,
+					'stroke-width': 1,
+					'stroke-dasharray': '3 2',
+				} )
+			);
+		}
+
+		return group;
+	};
+
+	// --- a stack of blocks, top to bottom -------------------------------
+	const stack = ( x, top, width, blocks ) => {
+		let y = top;
+
+		blocks.filter( Boolean ).forEach( ( block ) => {
+			stageG.append( block.draw( x, y, width ) );
+			y += block.h + GAP;
+		} );
+
+		return y;
+	};
+
+	const line = ( pct ) => ( {
+		h: 4,
+		draw: ( x, y, width ) => rect( x, y, width * pct, 4, 2, GREY ),
 	} );
-	const pieces = 'story' === type ? 4 : 3;
 
-	for ( let i = 0; i < pieces; i++ ) {
-		gallery.append( el( 'span', { class: 'ocs-pv__piece' } ) );
-	}
+	const band = ( h, fill ) => ( {
+		h,
+		draw: ( x, y, width ) => rect( x, y, width, h, 3, fill ),
+	} );
+
+	const spot = ( where ) =>
+		position === where
+			? { h: galleryHeight, draw: ( x, y, width ) => gallery( x, y, width ) }
+			: null;
+
+	stageG.append( rect( PAD, PAD, INNER, 9, 2, INK ) );
+
+	const top = PAD + 9 + GAP;
 
 	if ( 'floating' === type ) {
-		gallery.classList.add( 'ocs-pv__gal--' + ( 'side_start' === position ? 'start' : 'end' ) );
-		gallery.replaceChildren( el( 'span', { class: 'ocs-pv__piece' } ) );
+		stack( PAD, top, INNER, [ line( 1 ), line( 0.75 ), line( 0.85 ), line( 0.5 ) ] );
+
+		const corner = 'side_start' === position ? PAD : W - PAD - 20;
+
+		stageG.append( rect( corner, H - PAD - 28, 20, 28, 4, ACCENT ) );
+
+		return svg;
 	}
-
-	page.append( el( 'span', { class: 'ocs-pv__header' } ) );
-
-	// A floating video has no place in the flow of the document — it sits on
-	// top of whatever is there. So the page is drawn plain and the gallery is
-	// pinned to its corner.
-	if ( 'floating' === type ) {
-		page.append( line( 90 ), line( 70 ), line( 80 ), line( 45 ), gallery );
-
-		return page;
-	}
-
-	const at = ( where ) => ( position === where ? gallery : null );
-
-	// Node.append() turns a null into the string "null" — a spot that is not
-	// this spot has to be dropped, not passed.
-	const stack = ( ...parts ) => page.append( ...parts.filter( Boolean ) );
 
 	if ( 'product' === target ) {
-		const media = el( 'span', { class: 'ocs-pv__media' } );
-		const side = el( 'span', { class: 'ocs-pv__side' }, [
-			line( 80 ),
-			line( 40 ),
-			at( 'before_cart' ),
-			el( 'span', { class: 'ocs-pv__cta' } ),
-			at( 'after_cart' ),
-		].filter( Boolean ) );
+		const media = 51;
+		const sideX = PAD + media + 5;
+		const sideW = INNER - media - 5;
 
-		stack(
-			el( 'span', { class: 'ocs-pv__cols' }, [ media, side ] ),
-			at( 'after_summary' ),
-			line( 90 ),
-			line( 60 ),
-			at( 'end_of_content' ),
-			at( 'custom' )
-		);
+		stageG.append( rect( PAD, top, media, media, 3, FAINT ) );
 
-		return page;
+		stack( sideX, top, sideW, [
+			line( 0.9 ),
+			line( 0.5 ),
+			spot( 'before_cart' ),
+			{ h: 8, draw: ( x, y, width ) => rect( x, y, width * 0.7, 8, 4, INK ) },
+			spot( 'after_cart' ),
+		] );
+
+		stack( PAD, top + media + GAP, INNER, [
+			spot( 'after_summary' ),
+			line( 0.95 ),
+			line( 0.65 ),
+			spot( 'end_of_content' ),
+			spot( 'custom' ),
+		] );
+
+		return svg;
 	}
 
 	if ( 'category' === target ) {
-		const grid = el( 'span', { class: 'ocs-pv__grid' } );
+		const grid = {
+			h: 36,
+			draw: ( x, y, width ) => {
+				const group = document.createElementNS( NS, 'g' );
+				const cell = ( width - 8 ) / 3;
 
-		for ( let i = 0; i < 6; i++ ) {
-			grid.append( el( 'span', { class: 'ocs-pv__cell' } ) );
-		}
+				for ( let i = 0; i < 6; i++ ) {
+					group.append(
+						rect( x + ( i % 3 ) * ( cell + 4 ), y + Math.floor( i / 3 ) * 20, cell, 16, 3, FAINT )
+					);
+				}
 
-		stack(
-			line( 50 ),
-			line( 85 ),
-			at( 'above_products' ),
+				return group;
+			},
+		};
+
+		stack( PAD, top, INNER, [
+			line( 0.5 ),
+			line( 0.9 ),
+			spot( 'above_products' ),
 			grid,
-			at( 'below_products' ),
-			at( 'custom' )
-		);
+			spot( 'below_products' ),
+			spot( 'custom' ),
+		] );
 
-		return page;
+		return svg;
 	}
 
-	// Home, a single page, the whole shop: one column of content.
-	stack(
-		at( 'above_content' ),
-		el( 'span', { class: 'ocs-pv__hero' } ),
-		line( 90 ),
-		line( 70 ),
-		line( 80 ),
-		at( 'end_of_content' ),
-		at( 'custom' )
-	);
+	// The home page, one page, the whole shop: a single column.
+	stack( PAD, top, INNER, [
+		spot( 'above_content' ),
+		band( 26, FAINT ),
+		line( 0.95 ),
+		line( 0.7 ),
+		line( 0.85 ),
+		spot( 'end_of_content' ),
+		spot( 'custom' ),
+	] );
 
-	return page;
+	return svg;
 }
 
 /**
@@ -170,20 +291,7 @@ function art( type, target, position ) {
  * @return {Element} The drawing.
  */
 function wallArt() {
-	const page = el( 'span', { class: 'ocs-pv' } );
-	const grid = el( 'span', { class: 'ocs-pv__gal ocs-pv__gal--wall' } );
-
-	for ( let i = 0; i < 6; i++ ) {
-		grid.append( el( 'span', { class: 'ocs-pv__piece' } ) );
-	}
-
-	page.append(
-		el( 'span', { class: 'ocs-pv__header' } ),
-		el( 'span', { class: 'ocs-pv__line', style: 'width:60%' } ),
-		grid
-	);
-
-	return page;
+	return art( 'wall', 'home', 'end_of_content' );
 }
 
 /* ---------------------------------------------------------------- state */
@@ -244,6 +352,7 @@ function reopen( saved ) {
 	return {
 		...saved,
 		existing: true,
+		productMode: ( saved.where && saved.where.ids && saved.where.ids.length ) ? 'chosen' : 'auto',
 		type: type ? type.id : 'cards',
 		where: {
 			ids: ( saved.where && saved.where.ids ) || [],
@@ -263,6 +372,7 @@ function blank() {
 		type: '',
 		target: '',
 		position: '',
+		productMode: 'auto',
 		where: { ids: [], exclude: [], no_cart: true },
 		stories: { mode: 'selected', ids: [], collection: '' },
 		chosen: [],
@@ -374,8 +484,16 @@ function answered( n ) {
 	}
 
 	if ( 2 === n ) {
-		return !! draft.target && !! draft.position
-			&& ( ! [ 'page', 'category' ].includes( draft.target ) || draft.where.ids.length > 0 );
+		if ( ! draft.target || ! draft.position ) {
+			return false;
+		}
+
+		// Naming pages, categories or specific products means naming at least
+		// one, or the gallery matches nothing and renders nowhere.
+		const needs = [ 'page', 'category' ].includes( draft.target )
+			|| ( 'product' === draft.target && 'chosen' === draft.productMode );
+
+		return ! needs || draft.where.ids.length > 0;
 	}
 
 	return draft.stories.ids.length > 0;
@@ -548,7 +666,8 @@ function stepWhere() {
 				draft.target = id;
 				draft.position = '';
 				draft.where.ids = [];
-				setState( { results: [], pickingProducts: false } );
+				draft.productMode = 'auto';
+				setState( { results: [] } );
 			}
 		),
 	];
@@ -594,10 +713,12 @@ function stepWhere() {
 		parts.push( whichThings( 'page' ) );
 	}
 
-	// Cart, checkout and thank-you. Only worth asking about when the gallery
-	// is aimed somewhere that would otherwise include them.
+	// Cart, checkout and thank-you, plus anywhere else this shop would rather
+	// not have it. Only worth asking about when the gallery is aimed
+	// somewhere broad enough to have somewhere to leave out.
 	if ( 'site' === draft.target || 'custom' === draft.target ) {
 		parts.push(
+			el( 'h2', { class: 'ocs-wz__q', text: t.exceptOn } ),
 			el( 'label', { class: 'ocs-choice ocs-choice--flat' }, [
 				el( 'input', {
 					type: 'checkbox',
@@ -610,7 +731,9 @@ function stepWhere() {
 					el( 'b', { text: t.skipCheckout } ),
 					el( 'span', { class: 'ocs-field__note', text: t.skipCheckoutNote } ),
 				] ),
-			] )
+			] ),
+			el( 'p', { class: 'ocs-field__note', text: t.exceptPages } ),
+			picker( 'page', 'exclude' )
 		);
 	}
 
@@ -674,41 +797,46 @@ function whichThings( kind ) {
 	const parts = [ el( 'h2', { class: 'ocs-wz__q', text: label } ) ];
 
 	if ( 'product' === kind ) {
-		const auto = ! draft.where.ids.length;
+		// The choice is remembered rather than worked out from whether any
+		// products have been named yet. Inferring it made "I want to choose,
+		// but have not chosen one yet" indistinguishable from "automatic", so
+		// the radio sprang back the moment the screen redrew.
+		const mode = draft.productMode || ( draft.where.ids.length ? 'chosen' : 'auto' );
+
+		const option = ( id, title, note ) => {
+			const input = el( 'input', {
+				type: 'radio',
+				name: 'ocs-which',
+				checked: mode === id,
+			} );
+
+			input.addEventListener( 'change', () => {
+				draft.productMode = id;
+
+				if ( 'auto' === id ) {
+					draft.where.ids = [];
+				}
+
+				setState( { results: [] } );
+			} );
+
+			return el( 'label', { class: 'ocs-choice' }, [
+				input,
+				el( 'span', {}, [
+					el( 'b', { text: title } ),
+					el( 'span', { class: 'ocs-field__note', text: note } ),
+				] ),
+			] );
+		};
 
 		parts.push(
 			el( 'div', { class: 'ocs-choices' }, [
-				el( 'label', { class: 'ocs-choice' }, [
-					el( 'input', {
-						type: 'radio',
-						name: 'ocs-which',
-						checked: auto,
-						onChange: () => {
-							draft.where.ids = [];
-							setState( { results: [], pickingProducts: false } );
-						},
-					} ),
-					el( 'span', {}, [
-						el( 'b', { text: t.automatic } ),
-						el( 'span', { class: 'ocs-field__note', text: t.automaticNote } ),
-					] ),
-				] ),
-				el( 'label', { class: 'ocs-choice' }, [
-					el( 'input', {
-						type: 'radio',
-						name: 'ocs-which',
-						checked: ! auto,
-						onChange: () => setState( { pickingProducts: true } ),
-					} ),
-					el( 'span', {}, [
-						el( 'b', { text: t.namedProducts } ),
-						el( 'span', { class: 'ocs-field__note', text: t.namedProductsNote } ),
-					] ),
-				] ),
+				option( 'auto', t.automatic, t.automaticNote ),
+				option( 'chosen', t.namedProducts, t.namedProductsNote ),
 			] )
 		);
 
-		if ( auto && ! state.pickingProducts ) {
+		if ( 'auto' === mode ) {
 			return el( 'div', {}, parts );
 		}
 	}
@@ -737,8 +865,9 @@ function lookupType( kind ) {
  * @param {string} kind What to look for.
  * @return {Element} The picker.
  */
-function picker( kind ) {
+function picker( kind, field ) {
 	const draft = state.draft;
+	const list = field || 'ids';
 	const results = el( 'div', { class: 'ocs-results' } );
 
 	// The list is repainted on its own, never through setState: a full render
@@ -751,8 +880,8 @@ function picker( kind ) {
 					class: 'ocs-result',
 					type: 'button',
 					onClick: () => {
-						if ( ! draft.where.ids.includes( item.id ) ) {
-							draft.where.ids.push( item.id );
+						if ( ! draft.where[ list ].includes( item.id ) ) {
+							draft.where[ list ].push( item.id );
 						}
 						setState( { results: [] } );
 					},
@@ -767,7 +896,7 @@ function picker( kind ) {
 	const chips = el(
 		'div',
 		{ class: 'ocs-chips' },
-		draft.where.ids.map( ( id ) => {
+		draft.where[ list ].map( ( id ) => {
 			const known = ( state.names || {} )[ kind + ':' + id ];
 
 			return el( 'span', { class: 'ocs-chip' }, [
@@ -778,7 +907,7 @@ function picker( kind ) {
 					'aria-label': t.remove,
 					text: '×',
 					onClick: () => {
-						draft.where.ids = draft.where.ids.filter( ( x ) => x !== id );
+						draft.where[ list ] = draft.where[ list ].filter( ( x ) => x !== id );
 						setState( {} );
 					},
 				} ),
@@ -1087,7 +1216,7 @@ async function finish( live ) {
 	// one, and automatic is a rule rather than a list: each product page shows
 	// the videos that tag it. Storing a fixed list there would put the same
 	// videos on every product, which is the opposite of what the screen said.
-	draft.stories.mode = ( 'product' === draft.target && ! draft.where.ids.length ) ? 'tagged' : 'selected';
+	draft.stories.mode = ( 'product' === draft.target && 'chosen' !== draft.productMode ) ? 'tagged' : 'selected';
 
 	setState( { busy: true } );
 
