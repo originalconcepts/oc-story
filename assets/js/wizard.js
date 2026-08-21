@@ -321,6 +321,45 @@ async function persist( galleries ) {
 /* ---------------------------------------------------------------- steps */
 
 /**
+ * The small mark that says what kind of gallery a row is.
+ *
+ * It sits beside the word rather than replacing it. The mark is what makes a
+ * list of ten scannable; the word is what makes the mark legible the first
+ * time. This plugin already learned that lesson the expensive way — a new
+ * icon shipped on its own and the first person to press it asked what it had
+ * done.
+ *
+ * @param {string} type Gallery type.
+ * @return {Element} The mark.
+ */
+function kindMark( type ) {
+	const mark = el( 'span', { class: 'ocs-kind ocs-kind--' + type, 'aria-hidden': 'true' } );
+
+	if ( 'story' === type ) {
+		for ( let i = 0; i < 4; i++ ) {
+			mark.append( el( 'span', { class: 'ocs-kind__dot' } ) );
+		}
+
+		return mark;
+	}
+
+	if ( 'floating' === type ) {
+		// A page with something pinned in its corner: the corner is the whole
+		// idea, so the frame around it has to be there or the mark is just a
+		// small card.
+		mark.append( el( 'span', { class: 'ocs-kind__corner' } ) );
+
+		return mark;
+	}
+
+	for ( let i = 0; i < 3; i++ ) {
+		mark.append( el( 'span', { class: 'ocs-kind__bar' } ) );
+	}
+
+	return mark;
+}
+
+/**
  * Whether a step has been answered.
  *
  * @param {number} n Step number.
@@ -1056,7 +1095,12 @@ function listView() {
 					onClick: () => setState( { view: 'wizard', draft: reopen( g ), step: 1, note: null } ),
 				} ),
 			] ),
-			el( 'td', { text: type ? type.label : g.surface } ),
+			el( 'td', {}, [
+				el( 'span', { class: 'ocs-kindcell' }, [
+					kindMark( type ? type.id : 'cards' ),
+					el( 'span', { text: type ? type.label : g.surface } ),
+				] ),
+			] ),
 			el( 'td', { text: target ? target.label : '' } ),
 			el( 'td', { text: String( count ) } ),
 			el( 'td', {}, [ toggle( g ) ] ),

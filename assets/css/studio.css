@@ -738,3 +738,20 @@
 @media (prefers-reduced-motion: reduce) {
 	.ocs-switch__track, .ocs-switch__track::after { transition: none; }
 }
+
+/* What kind of gallery a row is, at a glance. The mark scans; the word
+   beside it teaches the mark. */
+.ocs-kindcell { display: inline-flex; align-items: center; gap: 9px; }
+/* One width for all three marks, so the words after them line up and the
+   column can be read down rather than across. */
+.ocs-kind { display: inline-flex; align-items: center; justify-content: flex-start; gap: 3px; flex: 0 0 auto; width: 46px; }
+.ocs-kind__dot { width: 9px; height: 9px; border-radius: 50%; background: #fff; border: 1.5px solid var(--ocs-accent); }
+.ocs-kind__bar { width: 8px; height: 13px; border-radius: 2px; background: var(--ocs-accent); }
+.ocs-kind--floating {
+	position: relative; width: 26px; height: 17px; margin-inline-end: 20px;
+	border: 1.5px solid #c3c4c7; border-radius: 3px; background: #fff;
+}
+.ocs-kind__corner {
+	position: absolute; bottom: 2px; inset-inline-end: 2px;
+	width: 7px; height: 9px; border-radius: 2px; background: var(--ocs-accent);
+}
