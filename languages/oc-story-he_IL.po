@@ -1022,3 +1022,267 @@ msgstr "בנייד תמיד מחליקים; זו התצוגה במחשב."
 #: includes
 msgid "Behind the video"
 msgstr "מאחורי הווידאו"
+
+#: includes
+msgid "← All galleries"
+msgstr "← כל הגלריות"
+
+#: includes
+msgid "A gallery is a set of videos and the place they appear. Making one takes three answers."
+msgstr "גלריה היא אוסף סרטונים והמקום שבו הם מופיעים. יצירה שלה היא שלוש תשובות."
+
+#: includes
+msgid "What it is"
+msgstr "מה זה"
+
+#: includes
+msgid "Where it goes"
+msgstr "איפה זה"
+
+#: includes
+msgid "The videos"
+msgstr "הסרטונים"
+
+#: includes
+msgid "Gallery name"
+msgstr "שם הגלריה"
+
+#: includes
+msgid "For you, in this screen. Shoppers never see it."
+msgstr "לשימוש פנימי במסך הזה. הלקוחות לא רואים את זה."
+
+#: includes
+msgid "What kind of gallery is this?"
+msgstr "איזה סוג גלריה זו?"
+
+#: includes
+msgid "Which pages should it appear on?"
+msgstr "באילו עמודים היא תופיע?"
+
+#: includes
+msgid "Where on the page?"
+msgstr "איפה בעמוד?"
+
+#: includes
+msgid "Depends on your theme"
+msgstr "תלוי בתבנית שלך"
+
+#: includes
+msgid "On which products?"
+msgstr "באילו מוצרים?"
+
+#: includes
+msgid "Automatically"
+msgstr "אוטומטית"
+
+#: includes
+msgid "It appears only on the product pages its videos tag, and each product page shows only the videos that tag it."
+msgstr "תופיע רק בעמודי המוצרים שהסרטונים שלה מתייגים, ובכל מוצר יוצגו רק הסרטונים שמתייגים אותו."
+
+#: includes
+msgid "On products I choose"
+msgstr "במוצרים שאבחר"
+
+#: includes
+msgid "The same videos on every product you name."
+msgstr "אותם סרטונים בכל מוצר שתבחר."
+
+#: includes
+msgid "In which categories?"
+msgstr "באילו קטגוריות?"
+
+#: includes
+msgid "On which page?"
+msgstr "באיזה עמוד?"
+
+#: includes
+msgid "Start typing a name…"
+msgstr "התחילו להקליד שם…"
+
+#: includes
+msgid "Placing it yourself"
+msgstr "הטמעה ידנית"
+
+#: includes
+msgid "Paste this anywhere a shortcode works — a page, a text widget, a builder block."
+msgstr "הדביקו את זה בכל מקום שתומך בשורטקוד — עמוד, וידג׳ט טקסט, בלוק בבילדר."
+
+#: includes
+msgid "Elementor and the block editor also have an OC Story block, if you would rather drag it into place."
+msgstr "יש גם בלוק OC Story לאלמנטור ולעורך הבלוקים, אם נוח יותר לגרור אותו למקום."
+
+#: includes
+msgid "available once saved"
+msgstr "יתקבל אחרי השמירה"
+
+#: includes
+msgid "The stories in this gallery"
+msgstr "הסטוריז בגלריה"
+
+#: includes
+msgid "The videos in this gallery"
+msgstr "הסרטונים בגלריה"
+
+#: includes
+msgid "Add a story"
+msgstr "הוסף סטורי"
+
+#: includes
+msgid "Add a video"
+msgstr "הוסף סרטון"
+
+#: includes
+msgid "A floating gallery shows one video in the corner. Tapping it opens the rest."
+msgstr "גלריה צפה מציגה סרטון אחד בפינה. לחיצה עליו פותחת את השאר."
+
+#: includes
+msgid "Untitled"
+msgstr "ללא שם"
+
+#: includes
+msgid "Save and publish"
+msgstr "שמור ופרסם"
+
+#: includes
+msgid "Save as a draft"
+msgstr "שמור כטיוטה"
+
+#: includes
+msgid "Published. It is on the shop now."
+msgstr "פורסם. הגלריה באתר."
+
+#: includes
+msgid "Published. Checking the shop…"
+msgstr "פורסם. בודק באתר…"
+
+#: includes
+msgid "Published, and it is showing where you put it."
+msgstr "פורסם, והגלריה מוצגת במקום שבחרת."
+
+#: includes
+msgid "Published, but it did not appear where you put it."
+msgstr "פורסם, אבל היא לא הופיעה במקום שבחרת."
+
+#: includes
+msgid "Published. The shop could not be reached to confirm where it landed."
+msgstr "פורסם. לא הצלחנו להגיע לאתר כדי לוודא איפה זה נחת."
+
+#: includes
+msgid "See it on the shop"
+msgstr "ראה באתר"
+
+#: includes
+msgid "Saved as a draft — nobody sees it yet."
+msgstr "נשמר כטיוטה — אף אחד לא רואה את זה עדיין."
+
+#: includes
+msgid "Kind"
+msgstr "סוג"
+
+#: includes
+msgid "Status"
+msgstr "סטטוס"
+
+#: includes
+msgid "Round covers in a row. Tapping one opens it full-screen."
+msgstr "עיגולים בשורה. לחיצה על אחד פותחת אותו במסך מלא."
+
+#: includes
+msgid "Slider / wall"
+msgstr "סליידר / קיר"
+
+#: includes
+msgid "Video cards that play themselves, in a row or a grid."
+msgstr "כרטיסי וידאו שמתנגנים לבד, בשורה או ברשת."
+
+#: includes
+msgid "Floating video"
+msgstr "וידאו צף"
+
+#: includes
+msgid "A small video in the corner of the page, opened on tap."
+msgstr "סרטון קטן בפינת העמוד, נפתח בלחיצה."
+
+#: includes
+msgid "The home page"
+msgstr "עמוד הבית"
+
+#: includes
+msgid "Category pages"
+msgstr "עמודי קטגוריה"
+
+#: includes
+msgid "A specific page"
+msgstr "עמוד מסוים"
+
+#: includes
+msgid "Every page of the shop"
+msgstr "כל עמודי החנות"
+
+#: includes
+msgid "Wherever I place it myself"
+msgstr "איפה שאבחר בעצמי"
+
+#: includes
+msgid "At the bottom of the page content"
+msgstr "בתחתית תוכן העמוד"
+
+#: includes
+msgid "Above the add-to-cart button"
+msgstr "מעל כפתור ההוספה לסל"
+
+#: includes
+msgid "Below the add-to-cart button"
+msgstr "מתחת לכפתור ההוספה לסל"
+
+#: includes
+msgid "Below the gallery and the description"
+msgstr "מתחת לגלריה ולתיאור"
+
+#: includes
+msgid "Above the product list"
+msgstr "מעל רשימת המוצרים"
+
+#: includes
+msgid "Below the product list"
+msgstr "מתחת לרשימת המוצרים"
+
+#: includes
+msgid "Corner, at the start of the line"
+msgstr "בפינה, בצד ההתחלה"
+
+#: includes
+msgid "Corner, at the end of the line"
+msgstr "בפינה, בצד הסיום"
+
+#: includes
+msgid "Somewhere I choose myself"
+msgstr "איפה שאבחר בעצמי"
+
+#: includes
+msgid "Hide this video"
+msgstr "הסתר את הסרטון"
+
+#: includes
+msgid "A draft is not on the shop yet, so there is nothing to look for."
+msgstr "טיוטה עדיין לא באתר, אז אין מה לחפש."
+
+#: includes
+msgid "You are placing this one yourself, so there is no spot to check."
+msgstr "את זו אתה מציב בעצמך, אז אין מיקום לבדוק."
+
+#: includes
+msgid "No page of that kind exists yet to look at."
+msgstr "עדיין אין עמוד מהסוג הזה להסתכל עליו."
+
+#: includes
+msgid "Your theme does not have that spot — it builds this page its own way. Choose another spot, or place the gallery yourself with the shortcode."
+msgstr "התבנית שלך לא מכילה את המיקום הזה — היא בונה את העמוד בדרך משלה. בחר מיקום אחר, או הצב את הגלריה בעצמך עם השורטקוד."
+
+#: includes
+msgid "The gallery did not appear there. Check that it has at least one published video."
+msgstr "הגלריה לא הופיעה שם. ודא שיש בה לפחות סרטון אחד מפורסם."
+
+#: includes
+msgid "That gallery no longer exists."
+msgstr "הגלריה הזו כבר לא קיימת."

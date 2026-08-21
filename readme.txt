@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.6.1
+Stable tag: 0.7.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,27 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.7.0 =
+* One screen instead of two. The studio and the widgets screen are now a
+  single list of galleries, and making one is three questions: what kind it
+  is, which pages it goes on and where, and the videos in it. Nobody has to
+  know that a gallery and its placement were ever separate things.
+* Every choice is a picture of the page with the gallery in the spot being
+  offered, rather than a list of hook names.
+* After publishing, the shop checks its own work: it looks at a real page of
+  the right kind and says whether the gallery is actually there. Half the
+  spots on a product or category page only exist while the theme still uses
+  WooCommerce's own templates, and those are marked before you choose them.
+* Publishing a gallery publishes its videos.
+* A new kind of gallery: a floating video in the corner of the page. It waits
+  for the page to finish loading, pauses when it is off screen or the tab is
+  hidden, can be dismissed, and then stays dismissed for a week. On a phone it
+  sits above where a sticky add-to-cart bar lives.
+* Galleries can be sent to every page of the shop, the home page, product
+  pages, category pages, one specific page, or nowhere automatic at all —
+  with a shortcode for placing them by hand.
+* Widgets made before this release keep working exactly as they were.
 
 = 0.6.1 =
 * Tapping the video to move through a gallery no longer sparks. The spark is
