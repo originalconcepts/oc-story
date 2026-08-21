@@ -9,7 +9,6 @@ namespace OCS\Rest;
 
 use OCS\Core\Settings;
 use OCS\Media\ChunkedUpload;
-use OCS\Media\Poster;
 use OCS\Media\Probe;
 
 defined( 'ABSPATH' ) || exit;
@@ -201,34 +200,18 @@ class UploadController {
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	public function complete( $request ) {
-		$result = ChunkedUpload::complete(
+		$result = ChunkedUpload::finish(
 			(string) $request['session'],
 			array(
 				'w'        => (int) $request['w'],
 				'h'        => (int) $request['h'],
 				'duration' => (float) $request['duration'],
+				'poster'   => (string) $request['poster'],
 			)
 		);
 
 		if ( is_wp_error( $result ) ) {
 			return $result;
-		}
-
-		$result['poster']     = 0;
-		$result['poster_url'] = '';
-
-		$poster = Poster::decode_data_url( (string) $request['poster'] );
-
-		if ( $poster ) {
-			$video_id  = 'local' === $result['source'] ? (int) $result['ref'] : 0;
-			$poster_id = Poster::store( $poster['bytes'], $poster['mime'], $video_id );
-
-			if ( ! is_wp_error( $poster_id ) ) {
-				$result['poster']     = (int) $poster_id;
-				$result['poster_url'] = (string) wp_get_attachment_url( $poster_id );
-			} else {
-				$result['poster_error'] = $poster_id->get_error_message();
-			}
 		}
 
 		return rest_ensure_response( $result );

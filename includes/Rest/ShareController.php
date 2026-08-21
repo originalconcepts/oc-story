@@ -293,7 +293,15 @@ class ShareController {
 		}
 
 		return rest_ensure_response(
-			ChunkedUpload::complete( (string) $request['session'], (array) $request['meta'] )
+			ChunkedUpload::finish(
+				(string) $request['session'],
+				array(
+					'w'        => (int) $request['w'],
+					'h'        => (int) $request['h'],
+					'duration' => (float) $request['duration'],
+					'poster'   => (string) $request['poster'],
+				)
+			)
 		);
 	}
 

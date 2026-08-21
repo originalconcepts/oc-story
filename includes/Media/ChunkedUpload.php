@@ -259,6 +259,57 @@ class ChunkedUpload {
 	 * @param string $session Session id.
 	 * @return bool|\WP_Error
 	 */
+	/**
+	 * Finish a session and store the poster that came with it.
+	 *
+	 * Both doors — the admin's and a share link's — end here. They used not
+	 * to: the share door called `complete()` and read the dimensions out of a
+	 * field the uploader has never sent, so every video that came in through a
+	 * phone arrived with no poster and no size. On the shop that is an empty
+	 * circle, which looks exactly like a video that never arrived at all.
+	 *
+	 * A failed poster does not fail the upload. The video is already in the
+	 * library by then, and a missing poster is fixable from the admin in a
+	 * moment; losing the file is not.
+	 *
+	 * @param string $session  Session id.
+	 * @param array  $incoming { w, h, duration, poster }.
+	 * @return array|\WP_Error
+	 */
+	public static function finish( $session, array $incoming ) {
+		$result = self::complete(
+			$session,
+			array(
+				'w'        => isset( $incoming['w'] ) ? (int) $incoming['w'] : 0,
+				'h'        => isset( $incoming['h'] ) ? (int) $incoming['h'] : 0,
+				'duration' => isset( $incoming['duration'] ) ? (float) $incoming['duration'] : 0,
+			)
+		);
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		$result['poster']     = 0;
+		$result['poster_url'] = '';
+
+		$poster = Poster::decode_data_url( isset( $incoming['poster'] ) ? (string) $incoming['poster'] : '' );
+
+		if ( $poster ) {
+			$video_id  = 'local' === $result['source'] ? (int) $result['ref'] : 0;
+			$poster_id = Poster::store( $poster['bytes'], $poster['mime'], $video_id );
+
+			if ( ! is_wp_error( $poster_id ) ) {
+				$result['poster']     = (int) $poster_id;
+				$result['poster_url'] = (string) wp_get_attachment_url( $poster_id );
+			} else {
+				$result['poster_error'] = $poster_id->get_error_message();
+			}
+		}
+
+		return $result;
+	}
+
 	public static function abort( $session ) {
 		$row = self::session( $session );
 		if ( is_wp_error( $row ) ) {

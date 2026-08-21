@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.9.2
+Stable tag: 0.9.3
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,14 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.9.3 =
+* A video uploaded through a phone link arrived with no cover image and no
+  size, so the shop drew an empty circle — which looks exactly like a video
+  that never arrived. Both ways of uploading now finish through the same
+  code.
+* A phone that cannot compress video in the browser still sends a cover image
+  and the video's size.
 
 = 0.9.2 =
 * After adding a video from your phone there is a button that opens the page

@@ -307,6 +307,70 @@ async function canvasToDataUrl( canvas, type, quality ) {
 }
 
 /**
+ * What a video is, without decoding a frame of it in anger.
+ *
+ * A `<video>` element can tell us the size and the length of anything the
+ * device can play, and can hand back one frame as a poster — no WebCodecs
+ * needed. That matters because a phone without WebCodecs was uploading with
+ * no poster and no dimensions at all: the shop then drew an empty circle,
+ * which is indistinguishable from the video never having arrived.
+ *
+ * @param {File|Blob} file    Source file.
+ * @param {string}    type    Poster mime.
+ * @param {number}    quality Poster quality.
+ * @return {Promise<Object>} { poster, width, height, duration }
+ */
+export function probe( file, type = DEFAULTS.posterType, quality = DEFAULTS.posterQuality ) {
+	return new Promise( ( resolve ) => {
+		const url = URL.createObjectURL( file );
+		const video = document.createElement( 'video' );
+		const empty = { poster: '', width: 0, height: 0, duration: 0 };
+
+		const done = ( result ) => {
+			URL.revokeObjectURL( url );
+			video.removeAttribute( 'src' );
+			resolve( result );
+		};
+
+		const timer = setTimeout( () => done( empty ), 8000 );
+
+		video.muted = true;
+		video.playsInline = true;
+		video.preload = 'auto';
+
+		video.addEventListener( 'loadeddata', () => {
+			video.currentTime = Math.min( 0.1, video.duration || 0.1 );
+		} );
+
+		video.addEventListener( 'seeked', async () => {
+			clearTimeout( timer );
+
+			const facts = {
+				poster: '',
+				width: video.videoWidth || 0,
+				height: video.videoHeight || 0,
+				duration: isFinite( video.duration ) ? video.duration : 0,
+			};
+
+			try {
+				const { canvas, ctx } = makeCanvas( facts.width, facts.height );
+				ctx.drawImage( video, 0, 0 );
+				facts.poster = await canvasToDataUrl( canvas, type, quality );
+			} catch ( e ) {}
+
+			done( facts );
+		} );
+
+		video.addEventListener( 'error', () => {
+			clearTimeout( timer );
+			done( empty );
+		} );
+
+		video.src = url;
+	} );
+}
+
+/**
  * Re-encode a video file for the storefront.
  *
  * @param {File|Blob} file       Source file.

@@ -299,7 +299,18 @@ async function ingest( file ) {
 		if ( file.size > cfg.limits.maxBytes ) {
 			throw new Error( t.tooLarge );
 		}
-		setState( { note: { kind: 'info', text: t.noEncoder } } );
+
+		setState( { note: { kind: 'info', text: t.noEncoder }, busy: t.compressing } );
+
+		// No encoder does not mean no poster. A video uploaded without one
+		// shows as an empty circle on the shop, which looks exactly like a
+		// video that never arrived.
+		const facts = await encoder.probe( file );
+
+		poster = facts.poster;
+		width = facts.width;
+		height = facts.height;
+		duration = facts.duration;
 	}
 
 	setState( { busy: t.uploading } );

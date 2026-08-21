@@ -184,11 +184,6 @@ function pickFile() {
  * @param {File} file The chosen video.
  */
 async function take( file ) {
-	if ( state.limits && file.size > state.limits.max_bytes * 6 ) {
-		setState( { message: t.tooBig } );
-		return;
-	}
-
 	try {
 		const [ encoder, uploader ] = await Promise.all( [
 			sibling( 'encoder.js' ),
@@ -201,7 +196,15 @@ async function take( file ) {
 		let height = 0;
 		let seconds = 0;
 
-		if ( state.limits.encode.enabled && encoder.isSupported() ) {
+		const canEncode = state.limits.encode.enabled && encoder.isSupported();
+
+		// Whatever is not being re-encoded has to fit as it is.
+		if ( ! canEncode && file.size > state.limits.max_bytes ) {
+			setState( { message: t.tooBig } );
+			return;
+		}
+
+		if ( canEncode ) {
 			setState( { busy: t.shrinking, progress: 0, message: '' } );
 
 			const made = await encoder.encode(
@@ -220,6 +223,19 @@ async function take( file ) {
 			width = made.width;
 			height = made.height;
 			seconds = made.duration;
+		} else {
+			// A phone that cannot re-encode can still tell us what the video
+			// is and hand back one frame of it. Without this the shop drew an
+			// empty circle, which looks exactly like nothing having arrived —
+			// and is why George could not find a video that was there.
+			setState( { busy: t.shrinking, progress: 0.1, message: '' } );
+
+			const facts = await encoder.probe( file );
+
+			poster = facts.poster;
+			width = facts.width;
+			height = facts.height;
+			seconds = facts.duration;
 		}
 
 		if ( seconds && state.limits.max_seconds && seconds > state.limits.max_seconds + 1 ) {
