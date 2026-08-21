@@ -50,37 +50,55 @@ class Studio {
 
 		wp_register_script( self::HANDLE, OCS_URL . 'assets/js/studio.js', array(), OCS_VERSION, true );
 
-		wp_localize_script(
-			self::HANDLE,
-			'ocsStudio',
-			array(
-				'api'      => array(
-					'root'  => esc_url_raw( rest_url( 'oc-story/v1' ) ),
-					'nonce' => wp_create_nonce( 'wp_rest' ),
-				),
-				'encode'   => array(
-					'enabled' => Settings::is( 'encode_enabled' ),
-					'maxSide' => (int) Settings::get( 'max_long_side', 1280 ),
-					'bitrate' => (int) Settings::get( 'target_bitrate', 1500000 ),
-					'fps'     => (int) Settings::get( 'target_fps', 30 ),
-				),
-				'limits'   => array(
-					'maxSeconds' => (int) Settings::get( 'max_slide_seconds', 60 ),
-					'maxBytes'   => max( 1, (int) Settings::get( 'max_upload_mb', 200 ) ) * MB_IN_BYTES,
-					'hasFfmpeg'  => Probe::has_ffmpeg(),
-				),
-				'labels'   => array(
-					'untitled' => __( 'Untitled gallery', 'oc-story' ),
-				),
-				'i18n'     => $this->strings(),
-			)
-		);
+		wp_localize_script( self::HANDLE, 'ocsStudio', $this->config() );
 
 		wp_enqueue_script( self::HANDLE );
 
 		// The studio is an ES module: it imports the encoder, and the encoder
 		// imports the MP4 code. WordPress has no first-class way to say so.
 		add_filter( 'script_loader_tag', array( $this, 'as_module' ), 10, 3 );
+	}
+
+	/**
+	 * Hang the editor's configuration off somebody else's script.
+	 *
+	 * The wizard reaches the editor through a dynamic import, which has no
+	 * tag for WordPress to attach anything to — so its settings ride on the
+	 * wizard's tag and are waiting by the time the import resolves.
+	 *
+	 * @param string $handle Script to attach to.
+	 */
+	public function print_config( $handle ) {
+		wp_localize_script( $handle, 'ocsStudio', $this->config() );
+	}
+
+	/**
+	 * Everything the editor needs to know about this shop.
+	 *
+	 * @return array
+	 */
+	public function config() {
+		return array(
+			'api'    => array(
+				'root'  => esc_url_raw( rest_url( 'oc-story/v1' ) ),
+				'nonce' => wp_create_nonce( 'wp_rest' ),
+			),
+			'encode' => array(
+				'enabled' => Settings::is( 'encode_enabled' ),
+				'maxSide' => (int) Settings::get( 'max_long_side', 1280 ),
+				'bitrate' => (int) Settings::get( 'target_bitrate', 1500000 ),
+				'fps'     => (int) Settings::get( 'target_fps', 30 ),
+			),
+			'limits' => array(
+				'maxSeconds' => (int) Settings::get( 'max_slide_seconds', 60 ),
+				'maxBytes'   => max( 1, (int) Settings::get( 'max_upload_mb', 200 ) ) * MB_IN_BYTES,
+				'hasFfmpeg'  => Probe::has_ffmpeg(),
+			),
+			'labels' => array(
+				'untitled' => __( 'Untitled gallery', 'oc-story' ),
+			),
+			'i18n'   => $this->strings(),
+		);
 	}
 
 	/**

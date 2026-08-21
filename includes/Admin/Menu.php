@@ -28,41 +28,50 @@ class Menu {
 	 * Register the menu and its pages.
 	 */
 	public function register() {
-		$studio = new Studio();
+		// One screen where there were two. A gallery used to be made in the
+		// studio and shown by a widget, and the link between them was the
+		// hardest idea in the plugin — hard enough that its own author built
+		// it twice and saw nothing appear. Now there is a list of galleries
+		// and a way to make one.
+		$galleries = new WizardPage();
 
 		$hook = add_menu_page(
 			__( 'OC Story', 'oc-story' ),
 			__( 'OC Story', 'oc-story' ),
 			'manage_woocommerce',
 			self::SLUG,
-			array( $studio, 'render' ),
+			array( $galleries, 'render' ),
 			'dashicons-format-video',
 			56
 		);
 
 		add_submenu_page(
 			self::SLUG,
-			__( 'Studio', 'oc-story' ),
-			__( 'Studio', 'oc-story' ),
+			__( 'Galleries', 'oc-story' ),
+			__( 'Galleries', 'oc-story' ),
 			'manage_woocommerce',
 			self::SLUG,
-			array( $studio, 'render' )
+			array( $galleries, 'render' )
 		);
 
+		if ( $hook ) {
+			add_action( 'load-' . $hook, array( $galleries, 'on_load' ) );
+		}
+
+		// The old widgets screen, reachable by its address and absent from the
+		// menu. It is the only place the per-device sizes can still be edited
+		// until the gallery gets its own settings drawer; it goes the moment
+		// that lands. A shop owner will never find it, which is the point.
 		$placements = new PlacementsPage();
 
 		$placements_hook = add_submenu_page(
-			self::SLUG,
+			'',
 			__( 'Widgets', 'oc-story' ),
 			__( 'Widgets', 'oc-story' ),
 			'manage_woocommerce',
 			PlacementsPage::SLUG,
 			array( $placements, 'render' )
 		);
-
-		if ( $hook ) {
-			add_action( 'load-' . $hook, array( $studio, 'on_load' ) );
-		}
 
 		if ( $placements_hook ) {
 			add_action( 'load-' . $placements_hook, array( $placements, 'on_load' ) );

@@ -537,3 +537,139 @@
 .ocs-mini--cell { width: 24px; height: 18px; border-radius: 3px; }
 .ocs-mini--page { position: absolute; inset: 0; border: 2px solid #cdd3d9; border-radius: 4px; background: transparent; }
 .ocs-mini--low { width: 14px; height: 22px; margin-top: 14px; }
+
+/* ------------------------------------------------------- the wizard */
+
+.ocs-steps { display: flex; gap: 6px; list-style: none; margin: 0 0 22px; padding: 0; flex-wrap: wrap; }
+.ocs-steps__item {
+	display: flex; align-items: center; gap: 8px;
+	padding: 8px 14px; border-radius: 999px;
+	background: #f0f0f1; color: #646970; font-size: 13px;
+}
+.ocs-steps__item[aria-current] { background: var(--ocs-accent); color: #fff; font-weight: 600; }
+.ocs-steps__item[data-done] { background: #e6f2e6; color: #1a4c1a; }
+.ocs-steps__n {
+	width: 20px; height: 20px; border-radius: 50%;
+	display: grid; place-items: center;
+	background: rgba(0, 0, 0, .12); font-size: 11px; font-weight: 700;
+}
+.ocs-steps__item[aria-current] .ocs-steps__n { background: rgba(255, 255, 255, .25); }
+
+.ocs-wz__q { font-size: 15px; margin: 26px 0 10px; }
+.ocs-wz__body { padding-bottom: 90px; }
+.ocs-wz__foot {
+	position: sticky; bottom: 0; z-index: 5;
+	display: flex; align-items: center; gap: 10px;
+	margin-top: 20px; padding: 14px 0;
+	background: #f0f0f1; border-top: 1px solid #dcdcde;
+}
+.ocs-wz__spacer { flex: 1; }
+.ocs-btn--link { background: none; border: 0; color: var(--ocs-accent); cursor: pointer; padding: 0; }
+
+/* The base tiles are a grid of small squares; these are page drawings and
+   want a fixed width, so this row is a flex wrap instead. */
+.ocs-tiles--big { display: flex; flex-wrap: wrap; gap: 14px; }
+.ocs-tiles--big .ocs-tile { width: 168px; align-items: stretch; text-align: center; }
+.ocs-tiles--big .ocs-tile__art { width: 100%; height: auto; display: block; }
+.ocs-tile__note { font-size: 11px; color: #787c82; line-height: 1.35; }
+
+/* A drawing of the page, with the gallery where it would go. Every position
+   tile is this same drawing with one child moved — which is the honest way to
+   show a difference that IS only a position. */
+.ocs-pv {
+	display: flex; flex-direction: column; gap: 4px;
+	position: relative; width: 100%; aspect-ratio: 4 / 3;
+	padding: 6px; border: 1px solid #dcdcde; border-radius: 5px;
+	background: #fff; overflow: hidden;
+}
+.ocs-pv__header { height: 9px; border-radius: 2px; background: #3c434a; flex: 0 0 auto; }
+.ocs-pv__line { height: 4px; border-radius: 2px; background: #dcdcde; flex: 0 0 auto; }
+.ocs-pv__hero { height: 26px; border-radius: 3px; background: #eef0f1; flex: 0 0 auto; }
+.ocs-pv__cols { display: flex; gap: 5px; flex: 0 0 auto; }
+.ocs-pv__media { width: 38%; aspect-ratio: 1; border-radius: 3px; background: #eef0f1; }
+.ocs-pv__side { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.ocs-pv__cta { height: 8px; width: 70%; border-radius: 4px; background: #3c434a; }
+.ocs-pv__grid { display: flex; flex-wrap: wrap; gap: 4px; flex: 0 0 auto; }
+.ocs-pv__cell { width: calc(33.333% - 3px); height: 16px; border-radius: 3px; background: #eef0f1; }
+
+.ocs-pv__gal { display: flex; gap: 4px; flex: 0 0 auto; }
+.ocs-pv__gal--story .ocs-pv__piece {
+	width: 12px; height: 12px; border-radius: 50%;
+	background: #fff; border: 2px solid var(--ocs-accent);
+}
+.ocs-pv__gal--cards .ocs-pv__piece { width: 16px; height: 22px; border-radius: 3px; background: var(--ocs-accent); }
+.ocs-pv__gal--floating {
+	position: absolute; bottom: 7px;
+	width: auto; padding: 0;
+}
+.ocs-pv__gal--floating .ocs-pv__piece { width: 20px; height: 28px; border-radius: 4px; background: var(--ocs-accent); }
+.ocs-pv__gal--start { inset-inline-start: 7px; }
+.ocs-pv__gal--end { inset-inline-end: 7px; }
+
+/* Placing it yourself has no position to draw, so it is drawn as what it is:
+   an outline you put where you like. */
+.ocs-tile[aria-pressed] .ocs-pv__gal:empty { display: none; }
+
+.ocs-choices { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 14px; }
+.ocs-choice {
+	display: flex; gap: 10px; align-items: flex-start;
+	padding: 12px 14px; border: 1px solid #dcdcde; border-radius: 6px; background: #fff; cursor: pointer;
+}
+.ocs-choice:has(input:checked) { border-color: var(--ocs-accent); background: #f0f6fc; }
+.ocs-choice span { display: block; }
+.ocs-choice .ocs-field__note { margin-top: 3px; }
+
+.ocs-picker { max-width: 520px; }
+.ocs-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.ocs-chip {
+	display: inline-flex; align-items: center; gap: 6px;
+	padding: 4px 6px 4px 10px; border-radius: 999px;
+	background: #f0f6fc; border: 1px solid #c5d9ed; font-size: 12px;
+}
+.ocs-chip__x { border: 0; background: none; cursor: pointer; font-size: 15px; line-height: 1; color: #646970; padding: 0 2px; }
+.ocs-results { display: flex; flex-direction: column; margin-top: 6px; max-height: 240px; overflow: auto; }
+.ocs-result {
+	display: flex; align-items: center; gap: 8px; text-align: start;
+	padding: 7px 9px; border: 0; border-bottom: 1px solid #f0f0f1; background: #fff; cursor: pointer;
+}
+.ocs-result:hover { background: #f6f7f7; }
+.ocs-result img { width: 28px; height: 28px; object-fit: cover; border-radius: 3px; }
+
+.ocs-callout { margin: 14px 0; padding: 14px 16px; border-radius: 6px; background: #f6f7f7; border: 1px solid #dcdcde; max-width: 620px; }
+.ocs-callout h3 { margin: 0 0 6px; font-size: 13px; }
+.ocs-callout p { margin: 0 0 8px; font-size: 13px; color: #50575e; }
+.ocs-code { display: block; padding: 9px 11px; border-radius: 4px; background: #1d2327; color: #f0f0f1; font-size: 12px; direction: ltr; text-align: left; }
+
+.ocs-pieces { display: flex; flex-wrap: wrap; gap: 14px; }
+.ocs-piece { position: relative; width: 118px; display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.ocs-piece__open { border: 0; padding: 0; background: none; cursor: pointer; width: 100%; }
+.ocs-piece__open img, .ocs-piece__blank { display: block; width: 100%; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 8px; background: #eef0f1; }
+.ocs-piece[data-type="story"] .ocs-piece__open img,
+.ocs-piece[data-type="story"] .ocs-piece__blank { aspect-ratio: 1; border-radius: 50%; }
+.ocs-piece__name { font-size: 12px; text-align: center; line-height: 1.3; }
+.ocs-piece__x {
+	position: absolute; top: -6px; inset-inline-end: -6px;
+	width: 22px; height: 22px; border-radius: 50%;
+	border: 1px solid #dcdcde; background: #fff; cursor: pointer; line-height: 1; font-size: 14px;
+}
+.ocs-piece--add {
+	border: 2px dashed #c3c4c7; border-radius: 8px; background: none; cursor: pointer;
+	justify-content: center; aspect-ratio: 9 / 16; gap: 4px;
+}
+.ocs-piece--add:hover { border-color: var(--ocs-accent); }
+.ocs-piece__plus { font-size: 26px; color: #787c82; line-height: 1; }
+
+.ocs-pill--on { background: #e6f2e6; color: #1a4c1a; }
+.ocs-pill--off { background: #f0f0f1; color: #646970; }
+.ocs-linkish { border: 0; background: none; padding: 0; color: var(--ocs-accent); cursor: pointer; font-weight: 600; }
+
+@media (max-width: 782px) {
+	.ocs-tiles--big .ocs-tile { width: calc(50% - 7px); }
+	.ocs-steps__item { padding: 6px 10px; font-size: 12px; }
+}
+
+.ocs-field__label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 13px; }
+.ocs-field__note { display: block; font-size: 12px; color: #787c82; margin-top: 5px; line-height: 1.4; }
+/* Chosen by hand: the gallery is drawn floating in dashes, because where it
+   ends up is the one thing this picture cannot honestly say. */
+.ocs-pv__gal--loose { padding: 4px; border: 1px dashed var(--ocs-accent); border-radius: 4px; }

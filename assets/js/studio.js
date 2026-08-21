@@ -112,7 +112,42 @@ const state = {
 	dirty: false,
 };
 
-const root = document.getElementById( 'ocs-studio' );
+// The studio is two things now: its own screen, and the third step of the
+// wizard. Both mount the same app into a node they own — the only difference
+// is that the wizard hands it a way back and takes what was made.
+let root = null;
+let shell = {};
+
+/**
+ * Put the studio into a node.
+ *
+ * @param {Element} node    Where to render.
+ * @param {Object}  options { story, single, onDone } — the wizard's hooks.
+ */
+export function mount( node, options = {} ) {
+	root = node;
+	shell = options;
+
+	state.editing = null;
+	state.note = null;
+
+	render();
+
+	load().then( () => {
+		if ( options.story ) {
+			const found = state.stories.find( ( item ) => item.id === options.story );
+
+			if ( found ) {
+				setState( { editing: found, slide: 0, dirty: false } );
+				return;
+			}
+		}
+
+		if ( 'story' in options ) {
+			newStory();
+		}
+	} );
+}
 
 function setState( patch ) {
 	Object.assign( state, patch );
@@ -727,8 +762,17 @@ function editorView() {
 			el( 'button', {
 				class: 'ocs-btn ocs-btn--ghost',
 				type: 'button',
-				text: '← ' + t.studio,
-				onClick: () => setState( { editing: null, note: null, results: [] } ),
+				// Inside the wizard the way out is back to the gallery being
+				// built, not to a list of every video in the shop.
+				text: '← ' + ( shell.onDone ? ( t.backToGallery || t.studio ) : t.studio ),
+				onClick: () => {
+					if ( shell.onDone ) {
+						done();
+						return;
+					}
+
+					setState( { editing: null, note: null, results: [] } );
+				},
 			} ),
 		] ),
 		noteBar(),
@@ -849,8 +893,27 @@ function editorView() {
 }
 
 function render() {
+	if ( ! root ) {
+		return;
+	}
+
 	root.replaceChildren( state.editing ? editorView() : listView() );
 	root.removeAttribute( 'data-loading' );
+}
+
+/**
+ * Leave the studio, handing back whatever was being edited.
+ *
+ * Only the wizard has somewhere to go; on its own screen this is not drawn.
+ */
+function done() {
+	const made = state.editing;
+
+	state.editing = null;
+
+	if ( 'function' === typeof shell.onDone ) {
+		shell.onDone( made );
+	}
 }
 
 /* ------------------------------------------------------------------- boot */
@@ -864,5 +927,8 @@ window.addEventListener( 'beforeunload', ( e ) => {
 	}
 } );
 
-render();
-load();
+const own = document.getElementById( 'ocs-studio' );
+
+if ( own ) {
+	mount( own );
+}
