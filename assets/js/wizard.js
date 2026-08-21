@@ -320,22 +320,77 @@ async function persist( galleries ) {
 
 /* ---------------------------------------------------------------- steps */
 
+/**
+ * Whether a step has been answered.
+ *
+ * @param {number} n Step number.
+ * @return {boolean} True when that step is complete.
+ */
+function answered( n ) {
+	const draft = state.draft;
+
+	if ( 1 === n ) {
+		return draft.label.trim().length > 0 && !! draft.type;
+	}
+
+	if ( 2 === n ) {
+		return !! draft.target && !! draft.position
+			&& ( ! [ 'page', 'category' ].includes( draft.target ) || draft.where.ids.length > 0 );
+	}
+
+	return draft.stories.ids.length > 0;
+}
+
+/**
+ * The three steps, and a way back to any of them.
+ *
+ * Walking a wizard is right the first time and wrong every time after: coming
+ * back to change where a finished gallery appears should not mean stepping
+ * through what it is and what is in it. Any step whose predecessors are all
+ * answered can be reached, which for a gallery that already exists is all of
+ * them.
+ *
+ * @return {Element} The stepper.
+ */
 function stepper() {
 	const steps = [ t.step1, t.step2, t.step3 ];
 
 	return el(
 		'ol',
 		{ class: 'ocs-steps' },
-		steps.map( ( label, i ) =>
-			el( 'li', {
-				class: 'ocs-steps__item',
-				'aria-current': state.step === i + 1 ? 'step' : false,
-				'data-done': state.step > i + 1 ? '' : false,
-			}, [
-				el( 'span', { class: 'ocs-steps__n', text: String( i + 1 ) } ),
-				el( 'span', { text: label } ),
-			] )
-		)
+		steps.map( ( label, i ) => {
+			const n = i + 1;
+			let open = true;
+
+			for ( let before = 1; before < n; before++ ) {
+				if ( ! answered( before ) ) {
+					open = false;
+				}
+			}
+
+			const chip = el( 'li', { class: 'ocs-steps__item' }, [
+				el( 'button', {
+					class: 'ocs-steps__go',
+					type: 'button',
+					disabled: ! open || n === state.step,
+					'aria-current': state.step === n ? 'step' : false,
+					onClick: () => setState( { step: n, results: [] } ),
+				}, [
+					el( 'span', { class: 'ocs-steps__n', text: String( n ) } ),
+					el( 'span', { text: label } ),
+				] ),
+			] );
+
+			if ( state.step === n ) {
+				chip.setAttribute( 'aria-current', 'step' );
+			}
+
+			if ( state.step > n ) {
+				chip.setAttribute( 'data-done', '' );
+			}
+
+			return chip;
+		} )
 	);
 }
 
@@ -795,15 +850,24 @@ let paintNext = () => {};
 
 function wizard() {
 	const draft = state.draft;
+	const chips = stepper();
 
-	const ready = {
-		1: () => draft.label.trim().length > 0 && draft.type,
-		// A category gallery with no categories named matches no page at all,
-		// and a specific-page gallery with no page is the same. Both used to
-		// be publishable, and both rendered nowhere.
-		2: () => draft.target && draft.position
-			&& ( ! [ 'page', 'category' ].includes( draft.target ) || draft.where.ids.length ),
-		3: () => draft.stories.ids.length > 0,
+	// Typing the name never re-renders — the field would be replaced under
+	// the cursor — so both the chips and the Next button are re-checked in
+	// place instead.
+	const paintChips = () => {
+		Array.prototype.forEach.call( chips.querySelectorAll( '.ocs-steps__go' ), ( go, i ) => {
+			const n = i + 1;
+			let open = true;
+
+			for ( let before = 1; before < n; before++ ) {
+				if ( ! answered( before ) ) {
+					open = false;
+				}
+			}
+
+			go.disabled = ! open || n === state.step;
+		} );
 	};
 
 	const next = el( 'button', {
@@ -813,11 +877,11 @@ function wizard() {
 		onClick: () => ( state.step < 3 ? setState( { step: state.step + 1 } ) : finish( true ) ),
 	} );
 
-	// Re-checked without a render, so typing a name lights the button up
-	// without the field losing focus.
 	paintNext = () => {
-		next.disabled = ! ready[ state.step ]();
+		next.disabled = ! answered( state.step );
+		paintChips();
 	};
+
 	paintNext();
 
 	const body = { 1: stepType, 2: stepWhere, 3: stepContent }[ state.step ]();
@@ -832,7 +896,7 @@ function wizard() {
 			} ),
 			el( 'h1', { text: draft.label.trim() || t.newGallery } ),
 		] ),
-		stepper(),
+		chips,
 		// Anything that goes wrong while saving has to be said here, in the
 		// wizard, rather than only on the list nobody is looking at yet.
 		noteBar(),
@@ -995,12 +1059,7 @@ function listView() {
 			el( 'td', { text: type ? type.label : g.surface } ),
 			el( 'td', { text: target ? target.label : '' } ),
 			el( 'td', { text: String( count ) } ),
-			el( 'td', {}, [
-				el( 'span', {
-					class: 'ocs-pill ocs-pill--' + ( g.enabled ? 'on' : 'off' ),
-					text: g.enabled ? t.live : t.draft,
-				} ),
-			] ),
+			el( 'td', {}, [ toggle( g ) ] ),
 			el( 'td', { class: 'ocs-table__acts' }, [
 				// Duplicating is how a gallery changes its kind. Changing it in
 				// place would leave a story's five slides inside a surface that
@@ -1061,6 +1120,89 @@ function listView() {
 				el( 'p', { text: t.emptyHint } ),
 			] ),
 	] );
+}
+
+/**
+ * On or off, from the list, in one tap.
+ *
+ * The house rule is that a control must not be its own label — a button that
+ * reads "Live" and turns the thing off when pressed cannot be read until it
+ * is too late. A switch is the exception, and only because it is two things:
+ * the switch is the action and the word beside it is the state, so what it
+ * says and what it does are never the same object.
+ *
+ * @param {Object} gallery The gallery.
+ * @return {Element} The control.
+ */
+function toggle( gallery ) {
+	const box = el( 'input', {
+		type: 'checkbox',
+		class: 'ocs-switch__box',
+		checked: !! gallery.enabled,
+		disabled: !! state.busy,
+		'aria-label': gallery.label || t.untitled,
+	} );
+
+	box.addEventListener( 'change', () => flip( gallery, box.checked ) );
+
+	return el( 'label', { class: 'ocs-switch' }, [
+		box,
+		el( 'span', { class: 'ocs-switch__track', 'aria-hidden': 'true' } ),
+		el( 'span', {
+			class: 'ocs-switch__word',
+			text: gallery.enabled ? t.live : t.draft,
+		} ),
+	] );
+}
+
+/**
+ * Turn a gallery on or off where it sits.
+ *
+ * Switching one on is publishing it, and publishing a gallery publishes its
+ * videos — otherwise a gallery of drafts goes live and shows nothing, which
+ * is the trap the wizard already closes on the other route in.
+ *
+ * @param {Object}  gallery The gallery.
+ * @param {boolean} live    Where the switch was moved to.
+ */
+async function flip( gallery, live ) {
+	setState( { busy: true, note: null } );
+
+	try {
+		if ( live ) {
+			await Promise.all(
+				( videosIn( gallery ) || [] ).map( ( id ) =>
+					api( '/admin/stories/' + id, {
+						method: 'POST',
+						body: JSON.stringify( { status: 'publish' } ),
+					} ).catch( () => null )
+				)
+			);
+		}
+
+		const saved = await persist(
+			state.galleries.map( ( g ) => ( g.id === gallery.id ? { ...g, enabled: live } : g ) )
+		);
+
+		setState( {
+			galleries: saved,
+			busy: false,
+			note: { kind: live ? 'ok' : 'info', text: live ? t.turnedOn : t.turnedOff },
+		} );
+
+		if ( live ) {
+			const mine = saved.find( ( g ) => g.id === gallery.id );
+
+			if ( mine ) {
+				verify( mine );
+			}
+		}
+	} catch ( error ) {
+		// The switch moved the moment it was tapped, so a failure has to move
+		// it back — a control showing a state the shop does not have is worse
+		// than one that refuses.
+		setState( { busy: false, note: { kind: 'error', text: error.message } } );
+	}
 }
 
 /**

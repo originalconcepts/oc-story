@@ -233,6 +233,8 @@ class WizardPage {
 			'status'           => __( 'Status', 'oc-story' ),
 			'live'             => __( 'Live', 'oc-story' ),
 			'duplicate'        => __( 'Duplicate', 'oc-story' ),
+			'turnedOn'         => __( 'Switched on. Checking the shop…', 'oc-story' ),
+			'turnedOff'        => __( 'Switched off. Nobody sees it now.', 'oc-story' ),
 			'copySuffix'       => __( ' (copy)', 'oc-story' ),
 			/* translators: %s: gallery name. */
 			'removeSure'       => __( 'Remove the gallery “%s”? Its videos are kept.', 'oc-story' ),

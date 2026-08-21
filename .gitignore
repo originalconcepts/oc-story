@@ -20,3 +20,6 @@ Thumbs.db
 .preview.html
 .preview-wrapped.html
 .float-harness.html
+.wp-common.css
+.wp-forms.css
+.admin-harness.html

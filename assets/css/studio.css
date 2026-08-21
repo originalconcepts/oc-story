@@ -541,19 +541,28 @@
 /* ------------------------------------------------------- the wizard */
 
 .ocs-steps { display: flex; gap: 6px; list-style: none; margin: 0 0 22px; padding: 0; flex-wrap: wrap; }
-.ocs-steps__item {
+.ocs-steps__item { display: flex; border-radius: 999px; }
+.ocs-steps__go {
 	display: flex; align-items: center; gap: 8px;
-	padding: 8px 14px; border-radius: 999px;
-	background: #f0f0f1; color: #646970; font-size: 13px;
+	padding: 8px 14px; border: 0; border-radius: 999px;
+	background: #f0f0f1; color: #646970; font: inherit; font-size: 13px;
+	cursor: pointer; transition: background .12s ease;
 }
-.ocs-steps__item[aria-current] { background: var(--ocs-accent); color: #fff; font-weight: 600; }
-.ocs-steps__item[data-done] { background: #e6f2e6; color: #1a4c1a; }
+.ocs-steps__go:hover:not([disabled]) { background: #e2e4e7; }
+.ocs-steps__go[disabled] { cursor: default; }
+.ocs-steps__item[aria-current] .ocs-steps__go { background: var(--ocs-accent); color: #fff; font-weight: 600; }
+.ocs-steps__item[data-done] .ocs-steps__go { background: #e6f2e6; color: #1a4c1a; }
+/* A step you have not earned yet is dimmed rather than hidden, so the shape
+   of what is left to answer stays visible. */
+.ocs-steps__go[disabled]:not([aria-current]) { opacity: .55; }
+.ocs-steps__item[data-done] .ocs-steps__go[disabled] { opacity: 1; }
 .ocs-steps__n {
 	width: 20px; height: 20px; border-radius: 50%;
 	display: grid; place-items: center;
 	background: rgba(0, 0, 0, .12); font-size: 11px; font-weight: 700;
 }
 .ocs-steps__item[aria-current] .ocs-steps__n { background: rgba(255, 255, 255, .25); }
+.ocs-steps__go:focus-visible { outline: 2px solid var(--ocs-accent); outline-offset: 2px; }
 
 .ocs-wz__q { font-size: 15px; margin: 26px 0 10px; }
 .ocs-wz__body { padding-bottom: 90px; }
@@ -582,17 +591,25 @@
 	padding: 6px; border: 1px solid #dcdcde; border-radius: 5px;
 	background: #fff; overflow: hidden;
 }
+/* The box is a fixed shape and the contents vary by branch, so the parts that
+   are only scenery give way and the parts that carry the meaning do not. Left
+   rigid, the longest branches ran past the bottom edge and were clipped —
+   which reads exactly like a drawing too big for its frame. */
+.ocs-pv > * { flex: 0 1 auto; min-height: 0; }
 .ocs-pv__header { height: 9px; border-radius: 2px; background: #3c434a; flex: 0 0 auto; }
-.ocs-pv__line { height: 4px; border-radius: 2px; background: #dcdcde; flex: 0 0 auto; }
-.ocs-pv__hero { height: 26px; border-radius: 3px; background: #eef0f1; flex: 0 0 auto; }
-.ocs-pv__cols { display: flex; gap: 5px; flex: 0 0 auto; }
+.ocs-pv__gal { flex: 0 0 auto; }
+.ocs-pv__line { height: 4px; border-radius: 2px; background: #dcdcde; }
+.ocs-pv__hero { height: 26px; border-radius: 3px; background: #eef0f1; }
+.ocs-pv__cols { display: flex; gap: 5px; }
 .ocs-pv__media { width: 38%; aspect-ratio: 1; border-radius: 3px; background: #eef0f1; }
-.ocs-pv__side { flex: 1; display: flex; flex-direction: column; gap: 4px; }
-.ocs-pv__cta { height: 8px; width: 70%; border-radius: 4px; background: #3c434a; }
-.ocs-pv__grid { display: flex; flex-wrap: wrap; gap: 4px; flex: 0 0 auto; }
+.ocs-pv__side { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ocs-pv__side > * { flex: 0 1 auto; min-height: 0; }
+.ocs-pv__side .ocs-pv__gal { flex: 0 0 auto; }
+.ocs-pv__cta { height: 8px; width: 70%; border-radius: 4px; background: #3c434a; flex: 0 0 auto; }
+.ocs-pv__grid { display: flex; flex-wrap: wrap; gap: 4px; }
 .ocs-pv__cell { width: calc(33.333% - 3px); height: 16px; border-radius: 3px; background: #eef0f1; }
 
-.ocs-pv__gal { display: flex; gap: 4px; flex: 0 0 auto; }
+.ocs-pv__gal { display: flex; gap: 4px; }
 .ocs-pv__gal--story .ocs-pv__piece {
 	width: 12px; height: 12px; border-radius: 50%;
 	background: #fff; border: 2px solid var(--ocs-accent);
@@ -694,3 +711,30 @@
 .ocs-table__acts { display: flex; gap: 6px; justify-content: flex-end; }
 .ocs-pv__gal--wall { display: flex; flex-wrap: wrap; gap: 3px; }
 .ocs-pv__gal--wall .ocs-pv__piece { width: calc(33.333% - 2px); height: 20px; border-radius: 3px; background: var(--ocs-accent); }
+
+/* On or off, in one tap. The switch is the action; the word beside it is the
+   state, so the control never has to be read as its own label. */
+.ocs-switch { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; user-select: none; }
+.ocs-switch__box { position: absolute; opacity: 0; width: 0; height: 0; }
+.ocs-switch__track {
+	position: relative; flex: 0 0 auto; width: 38px; height: 22px; border-radius: 999px;
+	background: #c3c4c7; transition: background .15s ease;
+}
+.ocs-switch__track::after {
+	content: ''; position: absolute; top: 3px; inset-inline-start: 3px;
+	width: 16px; height: 16px; border-radius: 50%; background: #fff;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+	transition: transform .15s ease;
+}
+.ocs-switch__box:checked + .ocs-switch__track { background: #1a7f37; }
+/* Physical, not logical: the knob slides toward the track's own end, and in
+   an RTL admin that end is the left one. */
+.ocs-switch__box:checked + .ocs-switch__track::after { transform: translateX(16px); }
+[dir="rtl"] .ocs-switch__box:checked + .ocs-switch__track::after { transform: translateX(-16px); }
+.ocs-switch__box:focus-visible + .ocs-switch__track { outline: 2px solid var(--ocs-accent); outline-offset: 2px; }
+.ocs-switch__box:disabled + .ocs-switch__track { opacity: .5; cursor: default; }
+.ocs-switch__word { font-size: 12px; color: var(--ocs-muted); min-width: 42px; }
+.ocs-switch__box:checked ~ .ocs-switch__word { color: #1a7f37; font-weight: 600; }
+@media (prefers-reduced-motion: reduce) {
+	.ocs-switch__track, .ocs-switch__track::after { transition: none; }
+}
