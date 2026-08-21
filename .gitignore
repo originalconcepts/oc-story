@@ -17,3 +17,5 @@ Thumbs.db
 # Local env / secrets
 .env
 *.local
+.preview.html
+.preview-wrapped.html

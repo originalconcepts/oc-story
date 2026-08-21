@@ -643,7 +643,10 @@
 .ocs-pieces { display: flex; flex-wrap: wrap; gap: 14px; }
 .ocs-piece { position: relative; width: 118px; display: flex; flex-direction: column; gap: 6px; align-items: center; }
 .ocs-piece__open { border: 0; padding: 0; background: none; cursor: pointer; width: 100%; }
-.ocs-piece__open img, .ocs-piece__blank { display: block; width: 100%; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 8px; background: #eef0f1; }
+.ocs-piece__open img, .ocs-piece__blank { display: block; width: 100%; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 8px; background: #e4e7ea; }
+/* A video with no cover yet has to look like one — a pale square on a pale
+   admin background looks like nothing at all. */
+.ocs-piece__blank { border: 1px solid #c9ced3; }
 .ocs-piece[data-type="story"] .ocs-piece__open img,
 .ocs-piece[data-type="story"] .ocs-piece__blank { aspect-ratio: 1; border-radius: 50%; }
 .ocs-piece__name { font-size: 12px; text-align: center; line-height: 1.3; }
@@ -656,6 +659,9 @@
 	border: 2px dashed #c3c4c7; border-radius: 8px; background: none; cursor: pointer;
 	justify-content: center; aspect-ratio: 9 / 16; gap: 4px;
 }
+/* In a story gallery the pieces are circles, so the way to add one is a
+   circle too — the row should read as what it will become. */
+.ocs-pieces[data-type="story"] .ocs-piece--add { aspect-ratio: 1; border-radius: 50%; }
 .ocs-piece--add:hover { border-color: var(--ocs-accent); }
 .ocs-piece__plus { font-size: 26px; color: #787c82; line-height: 1; }
 

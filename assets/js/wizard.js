@@ -640,7 +640,7 @@ function stepContent() {
 	return el( 'div', { class: 'ocs-wz__body' }, [
 		el( 'h2', { class: 'ocs-wz__q', text: 'story' === draft.type ? t.theStories : t.theVideos } ),
 		el( 'p', { class: 'ocs-field__note', text: single ? t.floatingNote : '' } ),
-		el( 'div', { class: 'ocs-pieces' }, cards ),
+		el( 'div', { class: 'ocs-pieces', 'data-type': draft.type }, cards ),
 	] );
 }
 
@@ -705,6 +705,9 @@ function wizard() {
 			el( 'h1', { text: draft.label.trim() || t.newGallery } ),
 		] ),
 		stepper(),
+		// Anything that goes wrong while saving has to be said here, in the
+		// wizard, rather than only on the list nobody is looking at yet.
+		noteBar(),
 		body,
 		el( 'div', { class: 'ocs-wz__foot' }, [
 			state.step > 1
