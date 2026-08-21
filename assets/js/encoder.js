@@ -14,7 +14,10 @@
  * Studio only. Nothing here ever loads on a storefront.
  */
 
-import { demux, mux } from './mp4.js';
+// Loaded at whatever version this file was asked for. A bare relative import
+// drops the query string, and plugin assets are served with a very long
+// cache — so a stale mp4.js would outlive several releases.
+const container = import( new URL( 'mp4.js' + new URL( import.meta.url ).search, import.meta.url ).href );
 
 const DEFAULTS = {
 	// A cap on the longest edge, whichever way the clip is oriented.
@@ -318,7 +321,7 @@ export async function encode( file, options = {}, onProgress = () => {} ) {
 
 	const settings = { ...DEFAULTS, ...options };
 	const buffer = await file.arrayBuffer();
-	const source = demux( buffer );
+	const source = ( await container ).demux( buffer );
 
 	if ( copyDecision( source.video, file.size, settings ) ) {
 		return copyThrough( file, source, settings, onProgress );
@@ -525,7 +528,7 @@ export async function encode( file, options = {}, onProgress = () => {} ) {
 		}
 	}
 
-	const blob = mux( {
+	const blob = ( await container ).mux( {
 		video: {
 			width: size.width,
 			height: size.height,
@@ -592,7 +595,7 @@ async function copyThrough( file, source, settings, onProgress ) {
 	const poster = await posterFromFile( file, settings.posterType, settings.posterQuality );
 	onProgress( 0.6 );
 
-	const blob = mux( {
+	const blob = ( await container ).mux( {
 		video: {
 			width: source.video.width,
 			height: source.video.height,

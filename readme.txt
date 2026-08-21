@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.9.0
+Stable tag: 0.9.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,12 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.9.1 =
+* Uploading through a phone link failed with "cookie check failed". A phone
+  that had ever used the studio was holding a years-old copy of one internal
+  file, because a relative import does not carry the version the rest of the
+  plugin does. Every module now loads its neighbours at its own version.
 
 = 0.9.0 =
 * Upload from your phone without signing in. Every gallery can make a link you

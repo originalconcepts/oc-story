@@ -10,12 +10,29 @@
  * alternative is a hundred-megabyte upload over a phone's data connection.
  */
 
-import { encode, isSupported } from './encoder.js';
-import { upload } from './uploader.js';
-
 const cfg = window.ocsShare || {};
 const t = cfg.i18n || {};
 const KEY = 'ocs_share_device';
+
+/**
+ * Load a sibling module at the version this one was asked for.
+ *
+ * `import './uploader.js'` drops the query string this file was fetched with,
+ * so the browser asks for an address with no version on it — and this host,
+ * like most, serves plugin assets with a ten-year cache. A phone that had
+ * ever loaded the old uploader kept it for ever, and the old one sent an
+ * admin nonce it did not have, which the shop answered with "cookie check
+ * failed". That is this rule again, through a door I had not thought of:
+ * every asset the storefront fetches carries a version.
+ *
+ * @param {string} name File name beside this one.
+ * @return {Promise<Object>} The module.
+ */
+function sibling( name ) {
+	const here = new URL( import.meta.url );
+
+	return import( new URL( name + here.search, here ).href );
+}
 
 /* ------------------------------------------------------------------ tiny */
 
@@ -169,16 +186,21 @@ async function take( file ) {
 	}
 
 	try {
+		const [ encoder, uploader ] = await Promise.all( [
+			sibling( 'encoder.js' ),
+			sibling( 'uploader.js' ),
+		] );
+
 		let blob = file;
 		let poster = '';
 		let width = 0;
 		let height = 0;
 		let seconds = 0;
 
-		if ( state.limits.encode.enabled && isSupported() ) {
+		if ( state.limits.encode.enabled && encoder.isSupported() ) {
 			setState( { busy: t.shrinking, progress: 0, message: '' } );
 
-			const made = await encode(
+			const made = await encoder.encode(
 				file,
 				{
 					maxSide: state.limits.encode.max_side,
@@ -203,7 +225,7 @@ async function take( file ) {
 
 		setState( { busy: t.sending } );
 
-		const sent = await upload( blob, {
+		const sent = await uploader.upload( blob, {
 			api: {
 				root: cfg.api,
 				base: '/share/upload',

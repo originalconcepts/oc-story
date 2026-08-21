@@ -11,8 +11,22 @@
  * caption and the products are asked for afterwards, over the footage.
  */
 
-import { encode, isSupported } from './encoder.js';
-import { upload } from './uploader.js';
+
+/**
+ * Load a sibling module at the version this file was asked for.
+ *
+ * A relative import drops the query string, so `./uploader.js` is an address
+ * with no version on it — and plugin assets are served with a very long
+ * cache. A phone that loaded one of these once would keep it for years.
+ *
+ * @param {string} name File name beside this one.
+ * @return {Promise<Object>} The module.
+ */
+function sibling( name ) {
+	const here = new URL( import.meta.url );
+
+	return import( new URL( name + here.search, here ).href );
+}
 
 const cfg = window.ocsStudio || {};
 const t = cfg.i18n || {};
@@ -214,6 +228,11 @@ async function shrinkImage( file ) {
 }
 
 async function ingest( file ) {
+	const [ encoder, uploader ] = await Promise.all( [
+		sibling( 'encoder.js' ),
+		sibling( 'uploader.js' ),
+	] );
+
 	let payload = file;
 	let poster = '';
 	let width = 0;
@@ -228,7 +247,7 @@ async function ingest( file ) {
 
 		setState( { busy: t.uploading } );
 
-		const uploaded = await upload( image.blob, {
+		const uploaded = await uploader.upload( image.blob, {
 			api: cfg.api,
 			filename: file.name.replace( /\.[^.]+$/, '' ) + '.jpg',
 			poster: image.poster,
@@ -256,10 +275,10 @@ async function ingest( file ) {
 		};
 	}
 
-	if ( cfg.encode.enabled && isSupported() ) {
+	if ( cfg.encode.enabled && encoder.isSupported() ) {
 		setState( { busy: t.compressing, progress: 0, note: null } );
 
-		const result = await encode(
+		const result = await encoder.encode(
 			file,
 			{
 				maxSide: cfg.encode.maxSide,
@@ -285,7 +304,7 @@ async function ingest( file ) {
 
 	setState( { busy: t.uploading } );
 
-	const uploaded = await upload( payload, {
+	const uploaded = await uploader.upload( payload, {
 		api: cfg.api,
 		filename: file.name.replace( /\.[^.]+$/, '' ) + '.mp4',
 		poster,

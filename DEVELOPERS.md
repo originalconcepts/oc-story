@@ -273,6 +273,16 @@ late.
 **The events endpoint answers 204 to everything.** An error body invites
 retries and tells a prober what the filter rejected.
 
+**A relative import drops the version.** Every storefront asset carries a
+version — that rule has been here since a stale `player.js` cost a whole
+evening — and `import './uploader.js'` walks straight around it: the query
+string is not inherited, so the browser asks for an unversioned address that
+this host serves with a ten-year cache. A phone that ever loaded the old
+uploader kept it for years, and the old one sent an admin nonce it did not
+have, which the shop answered with "cookie check failed" on a page that has
+nothing to do with the admin. Siblings are loaded with
+`import( new URL( name + new URL( import.meta.url ).search, import.meta.url ) )`.
+
 **Two lists of the same thing will disagree.** `Placement::SURFACES` and
 `SurfaceManager::all()` are both "the surfaces that exist", and a surface in
 one but not the other is rewritten to circles on save with no error anywhere.
