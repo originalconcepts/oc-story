@@ -206,7 +206,7 @@ class WizardPage {
 			'embedTitle'       => __( 'Placing it yourself', 'oc-story' ),
 			'embedHow'         => __( 'Paste this anywhere a shortcode works — a page, a text widget, a builder block.', 'oc-story' ),
 			'embedBuilder'     => __( 'Elementor and the block editor also have an OC Story block, if you would rather drag it into place.', 'oc-story' ),
-			'afterSaving'      => __( 'available once saved', 'oc-story' ),
+			'afterSaving'      => __( 'The shortcode appears here once the gallery is saved.', 'oc-story' ),
 
 			'theStories'       => __( 'The stories in this gallery', 'oc-story' ),
 			'theVideos'        => __( 'The videos in this gallery', 'oc-story' ),

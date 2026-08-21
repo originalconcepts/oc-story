@@ -211,6 +211,12 @@ $auto_mode = $w( array( 'surface' => 'circles', 'target' => 'product', 'position
 check( 'an automatic gallery keeps the tagged rule', 'tagged' === $auto_mode['stories']['mode'] );
 check( 'and still remembers which videos are its own', array( 7, 8 ) === $auto_mode['stories']['ids'] );
 
+// The three places a gallery can be placed by hand all read the same field
+// off the same object, and all three used to show a draft.
+$draft_pl = $w( array( 'surface' => 'circles', 'target' => 'custom', 'position' => 'custom', 'enabled' => false ) );
+check( 'a hand-placed gallery can be a draft', false === $draft_pl['enabled'] );
+check( 'and a hand-placed gallery hooks nothing', 'manual' === $draft_pl['hook'] );
+
 echo "\nPlacement sanitising\n";
 $p = \OCS\Model\Placement::sanitize( array(
 	'id'      => 'PL_ABC!!',

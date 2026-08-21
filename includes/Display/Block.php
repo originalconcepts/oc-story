@@ -84,6 +84,12 @@ class Block {
 
 		$placement = ! empty( $attributes['placement'] ) ? Placement::get( $attributes['placement'] ) : null;
 
+		// Same rule as the shortcode: a draft stays a draft wherever it is
+		// dropped, or the screen that saved it told a lie.
+		if ( $placement && empty( $placement['enabled'] ) ) {
+			return '';
+		}
+
 		if ( ! $placement ) {
 			$placement            = Placement::defaults();
 			$placement['id']      = 'block';

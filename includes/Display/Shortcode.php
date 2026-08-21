@@ -49,6 +49,13 @@ class Shortcode {
 
 		$placement = '' !== $atts['placement'] ? Placement::get( $atts['placement'] ) : null;
 
+		// A draft is a draft wherever it is placed. Without this, a gallery
+		// saved as a draft and pasted into a page went live anyway — and the
+		// screen that made it said nobody could see it yet.
+		if ( $placement && empty( $placement['enabled'] ) ) {
+			return '';
+		}
+
 		if ( ! $placement ) {
 			$placement            = Placement::defaults();
 			$placement['id']      = 'shortcode';
@@ -80,6 +87,10 @@ class Shortcode {
 
 		$placement = Placement::sanitize( $placement );
 
+		// A corner video belongs to the viewport rather than to the document,
+		// so placing one by hand is placing it nowhere in particular. It is
+		// still rendered — the CSS pins it to the corner either way — but the
+		// surface is asked for by name rather than inherited from a default.
 		// A shortcode can appear on a page the injector already skipped, so the
 		// assets have to be asked for rather than assumed.
 		add_filter( 'ocs_force_assets', '__return_true' );

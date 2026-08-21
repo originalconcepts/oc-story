@@ -61,7 +61,27 @@ class ElementorWidget extends \Elementor\Widget_Base {
 	protected function register_controls() {
 		$this->start_controls_section(
 			'content',
-			array( 'label' => __( 'Story circles', 'oc-story' ) )
+			array( 'label' => __( 'OC Story', 'oc-story' ) )
+		);
+
+		// Pick a gallery that already exists, which is what the wizard tells
+		// people this widget is for. Everything below it is the older way of
+		// describing a bar by hand, kept for anyone already using it.
+		$choices = array( '' => __( '— Build one here —', 'oc-story' ) );
+
+		foreach ( Placement::all() as $saved ) {
+			$choices[ $saved['id'] ] = $saved['label'] ? $saved['label'] : $saved['id'];
+		}
+
+		$this->add_control(
+			'placement',
+			array(
+				'label'       => __( 'Gallery', 'oc-story' ),
+				'type'        => \Elementor\Controls_Manager::SELECT,
+				'options'     => $choices,
+				'default'     => '',
+				'description' => __( 'A gallery made in OC Story → Galleries.', 'oc-story' ),
+			)
 		);
 
 		$this->add_control(
@@ -102,11 +122,22 @@ class ElementorWidget extends \Elementor\Widget_Base {
 	protected function render() {
 		$settings = $this->get_settings_for_display();
 
-		$placement            = Placement::defaults();
-		$placement['id']      = 'elementor-' . $this->get_id();
-		$placement['surface'] = 'circles';
-		$placement['hook']    = 'manual';
+		$chosen = ! empty( $settings['placement'] ) ? Placement::get( (string) $settings['placement'] ) : null;
 
+		// A draft is a draft wherever it is dropped.
+		if ( $chosen && empty( $chosen['enabled'] ) ) {
+			return;
+		}
+
+		if ( $chosen ) {
+			$placement = $chosen;
+		} else {
+			$placement            = Placement::defaults();
+			$placement['id']      = 'elementor-' . $this->get_id();
+			$placement['surface'] = 'circles';
+		}
+
+		$placement['hook']           = 'manual';
 		$placement['where']['scope'] = 'site';
 
 		if ( ! empty( $settings['ids'] ) ) {

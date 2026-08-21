@@ -504,12 +504,17 @@ function stepWhere() {
  * @return {Element} The note.
  */
 function embedNote() {
-	const code = '[oc_story id="' + ( state.draft.id || t.afterSaving ) + '"]';
+	// The attribute is `placement`. It was written as `id`, which the
+	// shortcode does not know — so pasting it rendered the default bar
+	// instead of this gallery, and looked like it had worked.
+	const code = state.draft.id ? '[oc_story placement="' + state.draft.id + '"]' : '';
 
 	return el( 'div', { class: 'ocs-callout' }, [
 		el( 'h3', { text: t.embedTitle } ),
 		el( 'p', { text: t.embedHow } ),
-		el( 'code', { class: 'ocs-code', text: code } ),
+		code
+			? el( 'code', { class: 'ocs-code', text: code } )
+			: el( 'p', { class: 'ocs-field__note', text: t.afterSaving } ),
 		el( 'p', { class: 'ocs-field__note', text: t.embedBuilder } ),
 	] );
 }
@@ -866,13 +871,19 @@ async function finish( live ) {
 			);
 		}
 
-		const others = state.galleries.filter( ( g ) => g.id !== draft.id );
-		const saved = await persist( others.concat( [ draft ] ) );
+		// Saved in place. Appending would move a gallery to the bottom of the
+		// list every time it was edited, which reads as if something else
+		// happened to it.
+		const known = state.galleries.some( ( g ) => g.id && g.id === draft.id );
+		const others = known
+			? state.galleries.map( ( g ) => ( g.id === draft.id ? draft : g ) )
+			: state.galleries.concat( [ draft ] );
+		const before = state.galleries.map( ( g ) => g.id );
+		const saved = await persist( others );
 
 		// The endpoint mints an id for a new gallery, so the one to go and
-		// look for is whichever came back that the others did not have.
-		const known = others.map( ( g ) => g.id );
-		const mine = saved.find( ( g ) => ! known.includes( g.id ) ) || saved.find( ( g ) => g.id === draft.id );
+		// look for is whichever came back that was not there before.
+		const mine = saved.find( ( g ) => ! before.includes( g.id ) ) || saved.find( ( g ) => g.id === draft.id );
 
 		setState( {
 			galleries: saved,
@@ -909,6 +920,10 @@ async function verify( gallery ) {
 		const outcome = await api( '/admin/placements/' + gallery.id + '/check', { method: 'POST' } );
 
 		if ( 'skipped' === outcome.status ) {
+			// Nothing to look for — a gallery placed by hand. Say plainly that
+			// it is published rather than leaving "checking the shop…" on
+			// screen forever.
+			setState( { note: { kind: 'ok', text: t.published } } );
 			return;
 		}
 

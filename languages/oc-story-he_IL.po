@@ -1286,3 +1286,47 @@ msgstr "הגלריה לא הופיעה שם. ודא שיש בה לפחות סר�
 #: includes
 msgid "That gallery no longer exists."
 msgstr "הגלריה הזו כבר לא קיימת."
+
+#: includes
+msgid "Duplicate"
+msgstr "שכפל"
+
+#: includes
+msgid " (copy)"
+msgstr " (עותק)"
+
+#: includes
+msgid "Remove the gallery “%s”? Its videos are kept."
+msgstr "להסיר את הגלריה ״%s״? הסרטונים נשמרים."
+
+#: includes
+msgid "Gallery removed. Its videos are still in your library."
+msgstr "הגלריה הוסרה. הסרטונים עדיין בספרייה שלך."
+
+#: includes
+msgid "The kind of gallery is set when it is made. To change it, duplicate this one and choose again."
+msgstr "סוג הגלריה נקבע ביצירה. כדי לשנות אותו, שכפל את הגלריה ובחר מחדש."
+
+#: includes
+msgid "A row or a wall?"
+msgstr "שורה או קיר?"
+
+#: includes
+msgid "A row that scrolls"
+msgstr "שורה שנגללת"
+
+#: includes
+msgid "A wall that wraps"
+msgstr "קיר שנשבר לשורות"
+
+#: includes
+msgid "The shortcode appears here once the gallery is saved."
+msgstr "השורטקוד יופיע כאן אחרי שמירת הגלריה."
+
+#: includes
+msgid "— Build one here —"
+msgstr "— בנה אחת כאן —"
+
+#: includes
+msgid "A gallery made in OC Story → Galleries."
+msgstr "גלריה שנוצרה ב־OC Story ← גלריות."
