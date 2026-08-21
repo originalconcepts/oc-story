@@ -24,6 +24,7 @@ const BUDGET = [
 	{ file: 'assets/css/surface-slider.css', raw: 2560, why: 'slider, inlined' },
 	{ file: 'assets/css/surface-product.css', raw: 1024, why: 'product block, inlined' },
 	{ file: 'assets/css/surface-grid.css', raw: 1024, why: 'video wall, inlined' },
+	{ file: 'assets/css/surface-floating.css', raw: 2048, why: 'corner video, inlined' },
 
 	// The only script the storefront loads before an interaction.
 	{ file: 'assets/js/bar.js', gzip: 4096, why: 'initial script' },
@@ -36,6 +37,11 @@ const BUDGET = [
 	// deliberately when the geometry fallback landed — a conditionally loaded
 	// chunk on a minority of pages is the right place to spend 200 bytes.
 	{ file: 'assets/js/preview.js', gzip: 2560, why: 'card previews' },
+
+	// Only on a page carrying a corner video. It buys the whole of that
+	// surface's manners: the week-long dismissal, the wait until the page has
+	// loaded, and pausing when nobody is looking.
+	{ file: 'assets/js/float.js', gzip: 2048, why: 'corner video behaviour' },
 
 	// Imported on the first tap, never before.
 	{ file: 'assets/js/player.js', gzip: 16384, why: 'player chunk' },
@@ -50,6 +56,7 @@ const WORST_CASE = { files: [
 	'assets/css/surface-slider.css',
 	'assets/css/surface-product.css',
 	'assets/css/surface-grid.css',
+	'assets/css/surface-floating.css',
 ], raw: 7168, why: 'every surface at once (a page with a shortcode)' };
 
 let failed = 0;

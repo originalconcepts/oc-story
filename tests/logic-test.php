@@ -51,6 +51,7 @@ require OCS_PATH . 'includes/Surfaces/AbstractSurface.php';
 require OCS_PATH . 'includes/Surfaces/Circles.php';
 require OCS_PATH . 'includes/Surfaces/Slider.php';
 require OCS_PATH . 'includes/Surfaces/Grid.php';
+require OCS_PATH . 'includes/Surfaces/Floating.php';
 require OCS_PATH . 'includes/Surfaces/ProductBlock.php';
 require OCS_PATH . 'includes/Surfaces/SurfaceManager.php';
 require OCS_PATH . 'includes/Model/Stats.php';
@@ -191,6 +192,13 @@ check( 'the product branch offers four spots', 4 === count( \OCS\Model\Positions
 check( 'every branch ends in the shortcode', isset( \OCS\Model\Positions::offered( 'cards', 'category' )['custom'] ) );
 check( 'the summary hooks are flagged as theme-dependent', \OCS\Model\Positions::needs_theme_support( 'before_cart' ) );
 check( 'the auto ladder is not', ! \OCS\Model\Positions::needs_theme_support( 'above_content' ) );
+
+$corner = $w( array( 'surface' => 'floating', 'target' => 'product', 'position' => 'side_end' ) );
+check( 'a floating video is its own type', 'floating' === \OCS\Model\Positions::type_of( 'floating' ) );
+check( 'and prints itself late rather than into the document', 'ocs_floating' === $corner['hook'] );
+check( 'a corner offers only two sides', 2 === count( \OCS\Model\Positions::offered( 'floating', 'home' ) ) );
+check( 'a corner clears a phone cart bar by default', 86 === $corner['mobile']['offset'] );
+check( 'and sits close to the edge on a desktop', 24 === $corner['desktop']['offset'] );
 
 echo "\nPlacement sanitising\n";
 $p = \OCS\Model\Placement::sanitize( array(

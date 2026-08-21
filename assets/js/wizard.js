@@ -596,6 +596,9 @@ function stepContent() {
 		.map( ( id ) => state.stories.find( ( s ) => s.id === id ) )
 		.filter( Boolean );
 
+	// A floating gallery is one clip in a corner, so its step three holds one
+	// item. A story gallery holds several stories; a slider holds several
+	// videos, one to a card.
 	const single = 'floating' === draft.type;
 	const addLabel = 'story' === draft.type ? t.addStory : t.addVideo;
 

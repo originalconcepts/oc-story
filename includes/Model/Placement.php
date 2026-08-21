@@ -82,6 +82,7 @@ class Placement {
 				'labels' => Settings::is( 'desktop_labels' ),
 				'align'  => 'start',
 				'max'    => (int) Settings::get( 'desktop_max', 12 ),
+				'offset' => 24,
 			),
 			'mobile'   => array(
 				'show'   => true,
@@ -89,6 +90,7 @@ class Placement {
 				'labels' => Settings::is( 'mobile_labels' ),
 				'align'  => 'start',
 				'max'    => (int) Settings::get( 'mobile_max', 20 ),
+				'offset' => 86,
 			),
 		);
 	}
@@ -366,6 +368,10 @@ class Placement {
 			'labels' => self::flag( isset( $raw['labels'] ) ? $raw['labels'] : $defaults['labels'] ),
 			'align'  => $align,
 			'max'    => isset( $raw['max'] ) ? max( 1, min( 50, (int) $raw['max'] ) ) : $defaults['max'],
+			// How far a floating video sits from the bottom. It means nothing
+			// to the other surfaces, and it means everything on a phone, where
+			// a sticky add-to-cart bar occupies exactly that corner.
+			'offset' => isset( $raw['offset'] ) ? max( 0, min( 400, (int) $raw['offset'] ) ) : $defaults['offset'],
 		);
 	}
 

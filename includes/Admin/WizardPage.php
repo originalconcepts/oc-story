@@ -110,14 +110,6 @@ class WizardPage {
 		$out = array();
 
 		foreach ( Positions::types() as $id => $spec ) {
-			// The floating video is not built yet. It is in the catalogue
-			// because the catalogue is the specification, and it appears in
-			// the picker the day the surface renders — not before, because a
-			// tile that leads nowhere is worse than one that is missing.
-			if ( 'floating' === $id ) {
-				continue;
-			}
-
 			$out[] = array(
 				'id'       => $id,
 				'label'    => $spec['label'],
@@ -220,7 +212,7 @@ class WizardPage {
 			'theVideos'        => __( 'The videos in this gallery', 'oc-story' ),
 			'addStory'         => __( 'Add a story', 'oc-story' ),
 			'addVideo'         => __( 'Add a video', 'oc-story' ),
-			'floatingNote'     => __( 'A floating gallery shows one video.', 'oc-story' ),
+			'floatingNote'     => __( 'A floating gallery shows one video in the corner. Tapping it opens the rest.', 'oc-story' ),
 			'untitled'         => __( 'Untitled', 'oc-story' ),
 
 			'back'             => __( 'Back', 'oc-story' ),

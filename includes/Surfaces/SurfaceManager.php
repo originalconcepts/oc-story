@@ -34,10 +34,11 @@ class SurfaceManager {
 	public static function all() {
 		if ( null === self::$surfaces ) {
 			$surfaces = array(
-				'circles' => new Circles(),
-				'slider'  => new Slider(),
-				'grid'    => new Grid(),
-				'product' => new ProductBlock(),
+				'circles'  => new Circles(),
+				'slider'   => new Slider(),
+				'grid'     => new Grid(),
+				'product'  => new ProductBlock(),
+				'floating' => new Floating(),
 			);
 			$surfaces = apply_filters( 'ocs_surfaces', $surfaces );
 

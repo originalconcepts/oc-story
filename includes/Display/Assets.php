@@ -86,6 +86,12 @@ class Assets {
 			wp_enqueue_script( 'ocs-preview', OCS_URL . 'assets/js/preview.js', array(), OCS_VERSION, true );
 		}
 
+		// The corner video's own behaviour: whether to show at all, and when
+		// to start playing. Loaded only where one is on the page.
+		if ( in_array( 'floating', Injector::surfaces(), true ) ) {
+			wp_enqueue_script( 'ocs-float', OCS_URL . 'assets/js/float.js', array(), OCS_VERSION, true );
+		}
+
 		// The player chunk is imported by URL, so the path has to survive a
 		// child theme, a CDN rewrite and a plugins directory that is not where
 		// anyone expects it to be.

@@ -669,14 +669,23 @@ function slideStrip() {
 		onClick: () => setState( { slide: index, results: [] } ),
 	} ) );
 
-	slides.push( el( 'button', {
-		class: 'ocs-slide ocs-slide--add',
-		type: 'button',
-		text: '+',
-		title: t.addSlide,
-		disabled: !! state.busy,
-		onClick: addSlide,
-	} ) );
+	// A slider or a wall shows one video per card, so its editor has nothing
+	// to add a second slide to. A story is a sequence and keeps the plus.
+	if ( ! shell.single ) {
+		slides.push( el( 'button', {
+			class: 'ocs-slide ocs-slide--add',
+			type: 'button',
+			text: '+',
+			title: t.addSlide,
+			disabled: !! state.busy,
+			onClick: addSlide,
+		} ) );
+	}
+
+	// One slide and no way to add another is not a strip, it is a row of one.
+	if ( shell.single && slides.length < 2 ) {
+		return null;
+	}
 
 	return el( 'div', { class: 'ocs-strip' }, slides );
 }
@@ -835,10 +844,16 @@ function editorView() {
 							? el( 'p', { class: 'ocs-stage__hint', text: t.pinHint } )
 							: null,
 					] ),
-					el( 'div', { class: 'ocs-field', style: 'margin-block-start:12px' }, [
-						el( 'label', { text: t.slides } ),
-						slideStrip(),
-					] ),
+					( () => {
+						const strip = slideStrip();
+
+						return strip
+							? el( 'div', { class: 'ocs-field', style: 'margin-block-start:12px' }, [
+								el( 'label', { text: t.slides } ),
+								strip,
+							] )
+							: null;
+					} )(),
 				] ),
 				el( 'div', {}, [
 					el( 'div', { class: 'ocs-field' }, [
