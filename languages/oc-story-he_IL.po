@@ -1406,3 +1406,31 @@ msgstr "מה כתוב עליו. גם עיגול פלוס אומר את זה לק
 #: includes
 msgid "Its colour. Empty means near-black."
 msgstr "הצבע שלו. ריק = כמעט שחור."
+
+#: includes
+msgid "How long it stays up"
+msgstr "כמה זמן הוא באוויר"
+
+#: includes
+msgid "Until I take it down"
+msgstr "עד שאוריד אותו"
+
+#: includes
+msgid "24 hours"
+msgstr "24 שעות"
+
+#: includes
+msgid "Comes down %s. Nothing is deleted — it becomes a draft you can put back up."
+msgstr "יורד ב־%s. שום דבר לא נמחק — הוא הופך לטיוטה שאפשר להעלות שוב."
+
+#: includes
+msgid "Its day is over. Publishing it again gives it another 24 hours."
+msgstr "היממה שלו נגמרה. פרסום מחדש נותן לו עוד 24 שעות."
+
+#: includes
+msgid "Not on the cart, checkout or thank-you page"
+msgstr "לא בעמוד הסל, הקופה או התודה"
+
+#: includes
+msgid "A shopper on those pages is paying. Anything that pulls them away costs the sale."
+msgstr "לקוח בעמודים האלה משלם. כל דבר שמסיט אותו עולה במכירה."

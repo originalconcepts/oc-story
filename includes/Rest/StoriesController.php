@@ -224,7 +224,7 @@ class StoriesController {
 	public function update( $request ) {
 		$args = array();
 
-		foreach ( array( 'title', 'status', 'slides', 'poster', 'collection' ) as $key ) {
+		foreach ( array( 'title', 'status', 'slides', 'poster', 'collection', 'life' ) as $key ) {
 			if ( null !== $request[ $key ] ) {
 				$args[ $key ] = $request[ $key ];
 			}

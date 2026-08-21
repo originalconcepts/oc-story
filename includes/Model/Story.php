@@ -31,6 +31,19 @@ class Story {
 	const META_LABEL  = '_ocs_label';
 
 	/**
+	 * How long a video stays up once published, in seconds. 0 is forever.
+	 *
+	 * The plugin was built on the promise that a story does not expire — a
+	 * timer that deletes a shop's best-converting content on a schedule is a
+	 * bad idea and still is. This is a different thing: a choice the shop
+	 * makes per video, and what it does at the end is take the video off the
+	 * air, never delete it. It goes back to being a draft and can be put up
+	 * again with one press.
+	 */
+	const META_LIFE    = '_ocs_life';
+	const META_EXPIRES = '_ocs_expires';
+
+	/**
 	 * Register the post type. Called on `init`.
 	 */
 	public static function register() {
@@ -381,6 +394,11 @@ class Story {
 			self::set_collection( $id, (string) $args['collection'] );
 		}
 
+		if ( array_key_exists( 'life', $args ) ) {
+			update_post_meta( $id, self::META_LIFE, self::clean_life( $args['life'] ) );
+			self::stamp_expiry( $id, (string) self::clean_status( isset( $args['status'] ) ? $args['status'] : 'draft' ) );
+		}
+
 		return (int) $id;
 	}
 
@@ -422,6 +440,22 @@ class Story {
 
 		if ( array_key_exists( 'collection', $args ) ) {
 			self::set_collection( $story_id, (string) $args['collection'] );
+		}
+
+		if ( array_key_exists( 'life', $args ) ) {
+			update_post_meta( $story_id, self::META_LIFE, self::clean_life( $args['life'] ) );
+		}
+
+		// Publishing starts the clock, and re-publishing starts it again —
+		// which is what "put it back up" has to mean for a video that has
+		// already come down once. Changing the lifetime of something already
+		// up starts it too, or the choice would do nothing until the next
+		// time somebody happened to save.
+		if ( array_key_exists( 'status', $args ) || array_key_exists( 'life', $args ) ) {
+			self::stamp_expiry(
+				$story_id,
+				isset( $post['post_status'] ) ? (string) $post['post_status'] : (string) get_post_status( $story_id )
+			);
 		}
 
 		if ( array_key_exists( 'poster', $args ) ) {
@@ -560,6 +594,8 @@ class Story {
 			'title'      => $post->post_title,
 			'collection' => self::collection( $post->ID ),
 			'status'     => $post->post_status,
+			'life'       => (int) get_post_meta( $post->ID, self::META_LIFE, true ),
+			'expires'    => (int) get_post_meta( $post->ID, self::META_EXPIRES, true ),
 			'menu_order' => (int) $post->menu_order,
 			'poster'     => (int) $thumbnail,
 			'poster_url' => $circle_id ? (string) wp_get_attachment_url( $circle_id ) : '',
@@ -644,6 +680,87 @@ class Story {
 		}
 
 		return $out;
+	}
+
+	/**
+	 * Only the two lifetimes there are.
+	 *
+	 * @param mixed $raw Raw value.
+	 * @return int Seconds, or 0 for forever.
+	 */
+	public static function clean_life( $raw ) {
+		return DAY_IN_SECONDS === (int) $raw ? DAY_IN_SECONDS : 0;
+	}
+
+	/**
+	 * Write when this video comes down, or that it never does.
+	 *
+	 * @param int    $story_id Story ID.
+	 * @param string $status   The status it was just given.
+	 */
+	public static function stamp_expiry( $story_id, $status ) {
+		$life = (int) get_post_meta( (int) $story_id, self::META_LIFE, true );
+
+		if ( 'publish' === $status && $life > 0 ) {
+			update_post_meta( (int) $story_id, self::META_EXPIRES, time() + $life );
+			return;
+		}
+
+		update_post_meta( (int) $story_id, self::META_EXPIRES, 0 );
+	}
+
+	/**
+	 * Take down everything whose time is up.
+	 *
+	 * Nothing is deleted. The video becomes a draft again, keeps its slides,
+	 * its products and its lifetime, and one press puts it back up for
+	 * another day.
+	 *
+	 * @return int How many came down.
+	 */
+	public static function expire_due() {
+		$due = get_posts(
+			array(
+				'post_type'      => self::POST_TYPE,
+				'post_status'    => 'publish',
+				'posts_per_page' => 50,
+				'fields'         => 'ids',
+				'no_found_rows'  => true,
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+				'meta_query'     => array(
+					array(
+						'key'     => self::META_EXPIRES,
+						'value'   => time(),
+						'compare' => '<=',
+						'type'    => 'NUMERIC',
+					),
+					array(
+						'key'     => self::META_EXPIRES,
+						'value'   => 0,
+						'compare' => '>',
+						'type'    => 'NUMERIC',
+					),
+				),
+			)
+		);
+
+		foreach ( $due as $story_id ) {
+			wp_update_post(
+				array(
+					'ID'          => (int) $story_id,
+					'post_status' => 'draft',
+				)
+			);
+
+			update_post_meta( (int) $story_id, self::META_EXPIRES, 0 );
+		}
+
+		if ( $due ) {
+			self::bump_version();
+			\OCS\Core\CacheFlush::pages();
+		}
+
+		return count( $due );
 	}
 
 	/**
@@ -823,6 +940,30 @@ class Story {
 				),
 			);
 		}
+
+		// A video whose time is up is not shown, whatever the database says
+		// about its status. The hourly job below is what actually flips it to
+		// a draft, and this is what makes a shop with cron turned off — which
+		// is many of them — still honour the choice to the minute.
+		$query['meta_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+			'relation' => 'OR',
+			array(
+				'key'     => self::META_EXPIRES,
+				'compare' => 'NOT EXISTS',
+			),
+			array(
+				'key'     => self::META_EXPIRES,
+				'value'   => 0,
+				'compare' => '=',
+				'type'    => 'NUMERIC',
+			),
+			array(
+				'key'     => self::META_EXPIRES,
+				'value'   => time(),
+				'compare' => '>',
+				'type'    => 'NUMERIC',
+			),
+		);
 
 		$query = apply_filters( 'ocs_story_query_args', $query, $args );
 

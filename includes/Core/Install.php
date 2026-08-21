@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
 class Install {
 
 	const DB_VERSION_OPTION = 'ocs_db_version';
-	const DB_VERSION        = 4;
+	const DB_VERSION        = 5;
 
 	/**
 	 * Every table we own, without the prefix. Used by create and by uninstall.
@@ -56,6 +56,12 @@ class Install {
 			wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'ocs_daily_maintenance' );
 		}
 
+		// A video set to come down after a day should come down within the
+		// hour, not on tomorrow's sweep.
+		if ( ! wp_next_scheduled( 'ocs_hourly_maintenance' ) ) {
+			wp_schedule_event( time() + MINUTE_IN_SECONDS * 5, 'hourly', 'ocs_hourly_maintenance' );
+		}
+
 		update_option( self::DB_VERSION_OPTION, self::DB_VERSION );
 		set_transient( 'ocs_show_welcome', 1, DAY_IN_SECONDS * 30 );
 	}
@@ -65,6 +71,12 @@ class Install {
 	 */
 	public static function deactivate() {
 		flush_rewrite_rules();
+
+		$hourly = wp_next_scheduled( 'ocs_hourly_maintenance' );
+
+		if ( $hourly ) {
+			wp_unschedule_event( $hourly, 'ocs_hourly_maintenance' );
+		}
 
 		$timestamp = wp_next_scheduled( 'ocs_daily_maintenance' );
 		if ( $timestamp ) {
@@ -94,6 +106,14 @@ class Install {
 			$placements = get_option( \OCS\Model\Placement::OPTION, array() );
 			delete_option( \OCS\Model\Placement::OPTION );
 			add_option( \OCS\Model\Placement::OPTION, $placements, '', true );
+		}
+
+		// v5: videos can be set to come down after a day, which needs an
+		// hourly job. Activation schedules it; a shop that installed before
+		// this existed has never been activated since, so it is scheduled
+		// here as well.
+		if ( $stored < 5 && ! wp_next_scheduled( 'ocs_hourly_maintenance' ) ) {
+			wp_schedule_event( time() + MINUTE_IN_SECONDS * 5, 'hourly', 'ocs_hourly_maintenance' );
 		}
 
 		update_option( self::DB_VERSION_OPTION, self::DB_VERSION );

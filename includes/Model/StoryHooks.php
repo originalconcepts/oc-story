@@ -31,6 +31,7 @@ class StoryHooks {
 		add_action( 'before_delete_post', array( $this, 'on_delete' ), 10, 2 );
 
 		add_action( 'ocs_daily_maintenance', array( $this, 'sweep_uploads' ) );
+		add_action( 'ocs_hourly_maintenance', array( \OCS\Model\Story::class, 'expire_due' ) );
 
 		// Rendered bars carry product names and prices, cached against the
 		// story version. A price change on a tagged product must expire them,

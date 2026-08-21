@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.7.2
+Stable tag: 0.8.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,15 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.8.0 =
+* A video can be set to stay up for 24 hours instead of until you take it
+  down. When its day is over it becomes a draft — nothing is deleted, and
+  publishing it again gives it another 24 hours.
+* A gallery aimed at every page of the shop now stays off the cart, the
+  checkout and the thank-you page. It is a checkbox, on by default, because a
+  shopper on those pages is paying and anything that pulls them away costs the
+  sale.
 
 = 0.7.2 =
 * Pressing a product card or its Buy button inside an open video did nothing.

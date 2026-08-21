@@ -145,6 +145,12 @@ class Studio {
 			'unpublish'      => __( 'Move to draft', 'oc-story' ),
 			'published'      => __( 'Live', 'oc-story' ),
 			'draft'          => __( 'Draft', 'oc-story' ),
+			'life'           => __( 'How long it stays up', 'oc-story' ),
+			'lifeForever'    => __( 'Until I take it down', 'oc-story' ),
+			'lifeDay'        => __( '24 hours', 'oc-story' ),
+			/* translators: %s: date and time. */
+			'lifeUntil'      => __( 'Comes down %s. Nothing is deleted — it becomes a draft you can put back up.', 'oc-story' ),
+			'lifeDown'       => __( 'Its day is over. Publishing it again gives it another 24 hours.', 'oc-story' ),
 			'save'           => __( 'Save', 'oc-story' ),
 			'saveAndBack'    => __( 'Save and go back', 'oc-story' ),
 			'backToGallery'  => __( 'Back to the gallery', 'oc-story' ),

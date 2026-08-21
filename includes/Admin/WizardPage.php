@@ -238,6 +238,8 @@ class WizardPage {
 			'noProducts'       => __( 'No products tagged', 'oc-story' ),
 			'editVideo'        => __( 'Edit this video', 'oc-story' ),
 			'cancel'           => __( 'Cancel', 'oc-story' ),
+			'skipCheckout'     => __( 'Not on the cart, checkout or thank-you page', 'oc-story' ),
+			'skipCheckoutNote' => __( 'A shopper on those pages is paying. Anything that pulls them away costs the sale.', 'oc-story' ),
 			'draftSaved'       => __( 'Saved as a draft — nobody sees it yet.', 'oc-story' ),
 
 			'type'             => __( 'Kind', 'oc-story' ),

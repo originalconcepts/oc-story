@@ -406,6 +406,7 @@ async function save() {
 				title: story.title,
 				status: story.status,
 				collection: story.collection || '',
+				life: story.life || 0,
 				slides: story.slides.map( trim ),
 			} ),
 		} );
@@ -888,6 +889,34 @@ function editorView() {
 								state.dirty = true;
 							},
 						} ),
+					] ),
+					// How long it stays up. Forever unless somebody says
+					// otherwise, and what "otherwise" does is take it off the
+					// air — the video, its slides and its tagged products all
+					// stay exactly where they are.
+					el( 'div', { class: 'ocs-field' }, [
+						el( 'label', { for: 'ocs-life', text: t.life } ),
+						el( 'select', {
+							id: 'ocs-life',
+							class: 'ocs-input',
+							onChange: ( e ) => {
+								story.life = parseInt( e.target.value, 10 ) || 0;
+								state.dirty = true;
+								setState( {} );
+							},
+						}, [
+							el( 'option', { value: '0', text: t.lifeForever, selected: ! story.life } ),
+							el( 'option', { value: '86400', text: t.lifeDay, selected: 86400 === story.life } ),
+						] ),
+						story.expires
+							? el( 'span', {
+								class: 'ocs-field__note',
+								text: t.lifeUntil.replace( '%s', new Date( story.expires * 1000 ).toLocaleString() ),
+							} )
+							: null,
+						! story.expires && story.life && 'publish' !== story.status
+							? el( 'span', { class: 'ocs-field__note', text: t.lifeDown } )
+							: null,
 					] ),
 					el( 'div', { class: 'ocs-field' }, [
 						el( 'label', { for: 'ocs-collection', text: t.collection } ),

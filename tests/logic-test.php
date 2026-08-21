@@ -231,6 +231,28 @@ $draft_pl = $w( array( 'surface' => 'circles', 'target' => 'custom', 'position' 
 check( 'a hand-placed gallery can be a draft', false === $draft_pl['enabled'] );
 check( 'and a hand-placed gallery hooks nothing', 'manual' === $draft_pl['hook'] );
 
+echo "\nHow long a video stays up\n";
+check( 'forever is the default reading', 0 === \OCS\Model\Story::clean_life( '' ) );
+check( 'a day is a day', 86400 === \OCS\Model\Story::clean_life( 86400 ) );
+check( 'anything else is forever', 0 === \OCS\Model\Story::clean_life( 3600 ) );
+check( 'and so is nonsense', 0 === \OCS\Model\Story::clean_life( 'soon' ) );
+
+echo "\nCart, checkout and thank you\n";
+$anywhere = array( 'scope' => 'site', 'ids' => array(), 'exclude' => array(), 'no_cart' => true );
+check( 'a site-wide gallery stays off the checkout', false === \OCS\Model\Placement::matches( $anywhere, array( 'is_checkout' => true ) ) );
+check( 'and is on every other page', true === \OCS\Model\Placement::matches( $anywhere, array() ) );
+
+$allowed = array( 'scope' => 'site', 'ids' => array(), 'exclude' => array(), 'no_cart' => false );
+check( 'a shop that wants it there may have it', true === \OCS\Model\Placement::matches( $allowed, array( 'is_checkout' => true ) ) );
+
+// Every placement made before this setting existed has no opinion about it,
+// and the answer almost every shop would give is "keep it off".
+$old = array( 'scope' => 'site', 'ids' => array(), 'exclude' => array() );
+check( 'a placement that never heard of it is kept off too', false === \OCS\Model\Placement::matches( $old, array( 'is_checkout' => true ) ) );
+
+check( 'the setting survives a save', true === \OCS\Model\Placement::sanitize( array( 'id' => 'pl_x' ) )['where']['no_cart'] );
+check( 'and so does turning it off', false === \OCS\Model\Placement::sanitize( array( 'id' => 'pl_x', 'where' => array( 'no_cart' => false ) ) )['where']['no_cart'] );
+
 echo "\nPlacement sanitising\n";
 $p = \OCS\Model\Placement::sanitize( array(
 	'id'      => 'PL_ABC!!',

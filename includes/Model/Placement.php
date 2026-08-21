@@ -69,9 +69,12 @@ class Placement {
 			'target'   => 'home',
 			'position' => 'above_content',
 			'where'    => array(
-				'scope'   => 'home',
-				'ids'     => array(),
-				'exclude' => array(),
+				'scope'    => 'home',
+				'ids'      => array(),
+				'exclude'  => array(),
+				// Cart, checkout and thank-you. On by default because a
+				// gallery there costs money rather than making it.
+				'no_cart'  => true,
 			),
 			'hook'     => 'auto',
 			'priority' => 15,
@@ -280,6 +283,7 @@ class Placement {
 				'scope'   => $scope,
 				'ids'     => $ids,
 				'exclude' => self::ids( isset( $raw['where']['exclude'] ) ? $raw['where']['exclude'] : array() ),
+				'no_cart' => self::flag( isset( $raw['where']['no_cart'] ) ? $raw['where']['no_cart'] : true ),
 			),
 			'hook'     => $hook,
 			'priority' => $priority,
@@ -505,13 +509,25 @@ class Placement {
 			$context,
 			array(
 				'is_front'   => false,
-				'is_shop'    => false,
-				'is_product' => false,
-				'post_id'    => 0,
-				'product_id' => 0,
-				'term_ids'   => array(),
+				'is_shop'     => false,
+				'is_product'  => false,
+				'is_checkout' => false,
+				'post_id'     => 0,
+				'product_id'  => 0,
+				'term_ids'    => array(),
 			)
 		);
+
+		// Checked before anything else, and for every scope: a gallery aimed
+		// at "every page" means every page a shopper browses, not the three
+		// where they are paying. A placement that has never heard of this
+		// setting is treated as having it on, because that is the answer
+		// almost every shop would give.
+		$keep_off_checkout = ! isset( $where['no_cart'] ) || ! empty( $where['no_cart'] );
+
+		if ( ! empty( $context['is_checkout'] ) && $keep_off_checkout ) {
+			return false;
+		}
 
 		$scope   = isset( $where['scope'] ) ? $where['scope'] : 'site';
 		$ids     = isset( $where['ids'] ) ? (array) $where['ids'] : array();

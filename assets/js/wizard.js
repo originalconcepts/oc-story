@@ -248,6 +248,7 @@ function reopen( saved ) {
 		where: {
 			ids: ( saved.where && saved.where.ids ) || [],
 			exclude: ( saved.where && saved.where.exclude ) || [],
+			no_cart: ! saved.where || false !== saved.where.no_cart,
 		},
 		stories: { mode, ids, collection: ( saved.stories && saved.stories.collection ) || '' },
 	};
@@ -262,7 +263,7 @@ function blank() {
 		type: '',
 		target: '',
 		position: '',
-		where: { ids: [], exclude: [] },
+		where: { ids: [], exclude: [], no_cart: true },
 		stories: { mode: 'selected', ids: [], collection: '' },
 		chosen: [],
 	};
@@ -591,6 +592,26 @@ function stepWhere() {
 
 	if ( 'page' === draft.target ) {
 		parts.push( whichThings( 'page' ) );
+	}
+
+	// Cart, checkout and thank-you. Only worth asking about when the gallery
+	// is aimed somewhere that would otherwise include them.
+	if ( 'site' === draft.target || 'custom' === draft.target ) {
+		parts.push(
+			el( 'label', { class: 'ocs-choice ocs-choice--flat' }, [
+				el( 'input', {
+					type: 'checkbox',
+					checked: false !== draft.where.no_cart,
+					onChange: ( e ) => {
+						draft.where.no_cart = e.target.checked;
+					},
+				} ),
+				el( 'span', {}, [
+					el( 'b', { text: t.skipCheckout } ),
+					el( 'span', { class: 'ocs-field__note', text: t.skipCheckoutNote } ),
+				] ),
+			] )
+		);
 	}
 
 	// A slider and a wall are the same gallery seen two ways, so this is a

@@ -3,7 +3,7 @@
  * Plugin Name:       OC Story
  * Plugin URI:        https://originalconcepts.co.il/oc-story
  * Description:       Shoppable video and stories for WooCommerce. Instagram-style circles, sliders and product-page video, with tagged products, revenue attribution and a mobile studio.
- * Version:           0.7.2
+ * Version:           0.8.0
  * Requires at least: 6.2
  * Requires PHP:      7.4
  * Author:            Original Concepts
@@ -19,7 +19,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'OCS_VERSION', '0.7.2' );
+define( 'OCS_VERSION', '0.8.0' );
 define( 'OCS_FILE', __FILE__ );
 define( 'OCS_PATH', plugin_dir_path( __FILE__ ) );
 define( 'OCS_URL', plugin_dir_url( __FILE__ ) );

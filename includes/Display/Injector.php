@@ -380,13 +380,21 @@ class Injector {
 			$terms = array( (int) get_queried_object_id() );
 		}
 
+		// The three pages where a video is not a good idea. On a checkout page
+		// every pixel that distracts is money, and a shopper who has already
+		// paid is being shown something to buy instead of a thank you.
+		$checkout = ( function_exists( 'is_cart' ) && is_cart() )
+			|| ( function_exists( 'is_checkout' ) && is_checkout() )
+			|| ( function_exists( 'is_order_received_page' ) && is_order_received_page() );
+
 		return array(
-			'is_front'   => is_front_page(),
-			'is_shop'    => function_exists( 'is_shop' ) && is_shop(),
-			'is_product' => (bool) $product_id,
-			'post_id'    => is_singular() ? (int) get_queried_object_id() : 0,
-			'product_id' => $product_id,
-			'term_ids'   => is_wp_error( $terms ) ? array() : array_map( 'intval', (array) $terms ),
+			'is_front'    => is_front_page(),
+			'is_shop'     => function_exists( 'is_shop' ) && is_shop(),
+			'is_product'  => (bool) $product_id,
+			'is_checkout' => $checkout,
+			'post_id'     => is_singular() ? (int) get_queried_object_id() : 0,
+			'product_id'  => $product_id,
+			'term_ids'    => is_wp_error( $terms ) ? array() : array_map( 'intval', (array) $terms ),
 		);
 	}
 

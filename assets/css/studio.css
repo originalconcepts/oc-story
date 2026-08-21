@@ -807,3 +807,4 @@
 .ocs-done__what { margin: 0; color: var(--ocs-muted); }
 .ocs-done__acts { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 8px; }
 .ocs-done__acts .ocs-btn { text-decoration: none; }
+.ocs-choice--flat { margin-top: 8px; }
