@@ -2,7 +2,10 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    # Every branch, not only main. A feature branch big enough to need one is
+    # exactly where the tests are worth having, and this repository's only PHP
+    # runtime is this workflow.
+    branches: [ '**' ]
   pull_request:
 
 jobs:
