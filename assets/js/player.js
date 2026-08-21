@@ -1185,6 +1185,11 @@ function bindGestures() {
 	let y0 = 0;
 	let held = null;
 	let moved = false;
+	// Whether this gesture is ours to interpret at all. Without it, a tap on
+	// a product card ran the release handler with coordinates left over from
+	// some earlier gesture, and a stale distance reads as a swipe — which is
+	// why tapping a product, Buy, or a reaction closed the player instead.
+	let armed = false;
 
 	ui.stage.addEventListener( 'pointerdown', ( e ) => {
 		// The strip, the sheet, the pins and the top controls are for touching:
@@ -1192,12 +1197,14 @@ function bindGestures() {
 		if ( e.target.closest( '.ocsp__products, .ocsp__sheet, .ocsp__top, .ocsp__unmute, .ocsp__pin, .ocsp__reactions' ) ) {
 			held = null;
 			moved = false;
+			armed = false;
 			return;
 		}
 
 		x0 = e.clientX;
 		y0 = e.clientY;
 		moved = false;
+		armed = true;
 
 		// Press and hold pauses, the way every story player does. 220ms is long
 		// enough that an ordinary tap never triggers it.
@@ -1208,6 +1215,10 @@ function bindGestures() {
 	}, { passive: true } );
 
 	ui.stage.addEventListener( 'pointermove', ( e ) => {
+		if ( ! armed ) {
+			return;
+		}
+
 		if ( Math.abs( e.clientX - x0 ) > 10 || Math.abs( e.clientY - y0 ) > 10 ) {
 			moved = true;
 		}
@@ -1215,9 +1226,17 @@ function bindGestures() {
 
 	ui.stage.addEventListener( 'pointerup', ( e ) => {
 		const wasHeld = 'active' === held;
+		const mine = armed;
 
 		clearTimeout( held );
 		held = null;
+		armed = false;
+
+		if ( ! mine ) {
+			// It began on something meant to be touched. That control has its
+			// own handler and this one has nothing to say about it.
+			return;
+		}
 
 		if ( wasHeld ) {
 			// Releasing a long press resumes — it does not also turn the page,
@@ -1227,13 +1246,13 @@ function bindGestures() {
 			return;
 		}
 
-		// A tap used to be able to spark: two in quick succession, anywhere.
-		// It sparked on single taps instead — the zones sit inside the stage,
-		// so one tap ran both handlers and the second read the first's
-		// timestamp as a double tap. It also made stepping through a gallery
-		// spark constantly, which is worse than not having the gesture: a
-		// reaction that fires by accident means nothing. The spark is the
-		// spark button now, and only that.
+		// A tap is not a swipe. Only a pointer that actually travelled gets
+		// measured; a stationary release belongs to whatever was tapped, and
+		// to the zones' own click handlers.
+		if ( ! moved ) {
+			return;
+		}
+
 		const dx = e.clientX - x0;
 		const dy = e.clientY - y0;
 
