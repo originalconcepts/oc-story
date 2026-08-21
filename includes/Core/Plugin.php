@@ -84,6 +84,7 @@ final class Plugin {
 			'shortcode'   => \OCS\Display\Shortcode::class,
 			'block'       => \OCS\Display\Block::class,
 			'elementor'   => \OCS\Display\Elementor::class,
+			'upload_page' => \OCS\Display\UploadPage::class,
 
 			// REST (milestones 2-7).
 			'rest'        => \OCS\Rest\Routes::class,

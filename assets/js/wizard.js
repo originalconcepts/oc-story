@@ -305,6 +305,8 @@ const state = {
 	busy: false,
 	note: null,
 	results: [],
+	links: {},
+	sharing: null,
 };
 
 const root = document.getElementById( 'ocs-wizard' );
@@ -390,6 +392,7 @@ async function load() {
 
 		setState( {
 			galleries: placements.placements || [],
+			links: placements.links || {},
 			stories: stories || [],
 		} );
 	} catch ( error ) {
@@ -1415,6 +1418,12 @@ function listView() {
 			el( 'td', { text: String( count ) } ),
 			el( 'td', {}, [ toggle( g ) ] ),
 			el( 'td', { class: 'ocs-table__acts' }, [
+				el( 'button', {
+					class: 'ocs-btn ocs-btn--small',
+					type: 'button',
+					text: state.links[ g.id ] ? t.linkOpen : t.linkMake,
+					onClick: () => setState( { sharing: g.id, note: null } ),
+				} ),
 				// Duplicating is how a gallery changes its kind. Changing it in
 				// place would leave a story's five slides inside a surface that
 				// shows one video a card, so the copy asks the question again
@@ -1584,6 +1593,153 @@ async function removeGallery( gallery ) {
 	}
 }
 
+/**
+ * The upload link for one gallery.
+ *
+ * The address is shown once, when it is made. After that only what is true
+ * about it: whether a phone has claimed it, when it was last used, when it
+ * dies. The link itself is not kept anywhere it could be read again — which
+ * is the point of it being hashed — so there is nothing here to reveal.
+ *
+ * @return {Element} The panel.
+ */
+function shareBox() {
+	const id = state.sharing;
+	const gallery = state.galleries.find( ( g ) => g.id === id ) || {};
+	const link = state.links[ id ];
+	const made = state.madeLink && state.madeLink.id === id ? state.madeLink : null;
+
+	const close = () => setState( { sharing: null, madeLink: null } );
+
+	const when = ( stamp ) => ( stamp ? new Date( stamp * 1000 ).toLocaleDateString() : '—' );
+
+	const body = [];
+
+	if ( made ) {
+		const field = el( 'input', {
+			class: 'ocs-input ocs-code-input',
+			type: 'text',
+			readonly: true,
+			value: made.url,
+			onFocus: ( e ) => e.target.select(),
+		} );
+
+		body.push(
+			el( 'p', { class: 'ocs-field__note', text: t.linkOnce } ),
+			field,
+			el( 'div', { class: 'ocs-share__acts' }, [
+				el( 'button', {
+					class: 'ocs-btn ocs-btn--primary',
+					type: 'button',
+					text: t.linkCopy,
+					onClick: () => {
+						field.select();
+
+						if ( navigator.clipboard ) {
+							navigator.clipboard.writeText( made.url ).catch( () => {} );
+						}
+
+						setState( { note: { kind: 'ok', text: t.linkCopied } } );
+					},
+				} ),
+				navigator.share
+					? el( 'button', {
+						class: 'ocs-btn',
+						type: 'button',
+						text: t.linkSend,
+						onClick: () => navigator.share( { url: made.url, title: gallery.label || '' } ).catch( () => {} ),
+					} )
+					: null,
+			] ),
+			el( 'p', { class: 'ocs-field__note', text: t.linkClaimWindow } )
+		);
+	} else if ( link ) {
+		body.push(
+			el( 'dl', { class: 'ocs-facts' }, [
+				el( 'dt', { text: t.linkState } ),
+				el( 'dd', { text: link.claimed ? t.linkClaimed : ( link.claimable ? t.linkWaiting : t.linkStale ) } ),
+				el( 'dt', { text: t.linkLastUsed } ),
+				el( 'dd', { text: when( link.lastUsed ) } ),
+				el( 'dt', { text: t.linkDies } ),
+				el( 'dd', { text: when( link.expires ) } ),
+				el( 'dt', { text: t.linkAdded } ),
+				el( 'dd', { text: String( link.uses ) } ),
+			] ),
+			el( 'p', { class: 'ocs-field__note', text: t.linkGone } )
+		);
+	} else {
+		body.push( el( 'p', { class: 'ocs-field__note', text: t.linkWhat } ) );
+	}
+
+	// Making one always replaces whatever was there, which is also how a lost
+	// phone is dealt with: make another and the old one stops working.
+	const spans = el( 'select', { class: 'ocs-input', id: 'ocs-link-days' } );
+
+	( cfg.days || [ 14, 30, 90 ] ).forEach( ( days ) => {
+		spans.append( el( 'option', { value: String( days ), text: t.linkDays.replace( '%d', String( days ) ), selected: 30 === days } ) );
+	} );
+
+	const hold = el( 'input', { type: 'checkbox' } );
+
+	return el( 'div', { class: 'ocs-share', role: 'dialog', 'aria-modal': 'true' }, [
+		el( 'div', { class: 'ocs-share__sheet' }, [
+			el( 'div', { class: 'ocs-share__head' }, [
+				el( 'h2', { text: t.linkTitle } ),
+				el( 'button', { class: 'ocs-btn ocs-btn--small', type: 'button', text: t.close, onClick: close } ),
+			] ),
+			el( 'p', { class: 'ocs-share__for', text: gallery.label || '' } ),
+			...body,
+			el( 'div', { class: 'ocs-field' }, [
+				el( 'label', { class: 'ocs-field__label', for: 'ocs-link-days', text: t.linkIdle } ),
+				spans,
+			] ),
+			el( 'label', { class: 'ocs-choice ocs-choice--flat' }, [
+				hold,
+				el( 'span', {}, [
+					el( 'b', { text: t.linkHold } ),
+					el( 'span', { class: 'ocs-field__note', text: t.linkHoldNote } ),
+				] ),
+			] ),
+			el( 'div', { class: 'ocs-share__acts' }, [
+				el( 'button', {
+					class: 'ocs-btn ocs-btn--primary',
+					type: 'button',
+					text: link ? t.linkRemake : t.linkMake,
+					onClick: async () => {
+						try {
+							const answer = await api( '/admin/placements/' + id + '/link', {
+								method: 'POST',
+								body: JSON.stringify( {
+									days: parseInt( spans.value, 10 ),
+									hold: hold.checked,
+								} ),
+							} );
+
+							state.links[ id ] = answer.link;
+							setState( { madeLink: { id, url: answer.url } } );
+						} catch ( error ) {
+							setState( { note: { kind: 'error', text: error.message } } );
+						}
+					},
+				} ),
+				link
+					? el( 'button', {
+						class: 'ocs-btn ocs-btn--danger',
+						type: 'button',
+						text: t.linkKill,
+						onClick: async () => {
+							await api( '/admin/placements/' + id + '/link', { method: 'DELETE' } ).catch( () => null );
+
+							delete state.links[ id ];
+							setState( { madeLink: null } );
+						},
+					} )
+					: null,
+			] ),
+		] ),
+	] );
+}
+
 function noteBar() {
 	if ( ! state.note ) {
 		return null;
@@ -1605,6 +1761,10 @@ function render() {
 	root.replaceChildren(
 		'wizard' === state.view ? wizard() : ( 'done' === state.view ? doneView() : listView() )
 	);
+
+	if ( state.sharing ) {
+		root.append( shareBox() );
+	}
 	root.removeAttribute( 'data-loading' );
 }
 

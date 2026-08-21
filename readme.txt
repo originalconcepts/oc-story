@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.8.0
+Stable tag: 0.9.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,17 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.9.0 =
+* Upload from your phone without signing in. Every gallery can make a link you
+  send to yourself; open it on your phone and you can add videos to that
+  gallery, tag the products in them, and — for a story gallery — add to a
+  story you already have or start a new one.
+* The link is safe to send yourself and useless to anyone else: it can only be
+  claimed within 30 minutes of being made, the first phone to open it is the
+  only one it ever works on, it stops working after a span you choose without
+  being used, and everything it can do is add. It cannot delete, edit another
+  gallery, or read a setting, an order or a customer.
 
 = 0.8.0 =
 * A video can be set to stay up for 24 hours instead of until you take it

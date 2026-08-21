@@ -39,6 +39,7 @@ class Routes {
 			\OCS\Rest\UploadController::class,
 			\OCS\Rest\EventsController::class,
 			\OCS\Rest\CartController::class,
+			\OCS\Rest\ShareController::class,
 		);
 
 		$controllers = apply_filters( 'ocs_rest_controllers', $controllers );

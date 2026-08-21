@@ -52,6 +52,23 @@ class PlacementsController {
 
 		register_rest_route(
 			$ns,
+			'/admin/placements/(?P<id>[a-z0-9_]+)/link',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'make_link' ),
+					'permission_callback' => array( Routes::class, 'can_manage' ),
+				),
+				array(
+					'methods'             => \WP_REST_Server::DELETABLE,
+					'callback'            => array( $this, 'kill_link' ),
+					'permission_callback' => array( Routes::class, 'can_manage' ),
+				),
+			)
+		);
+
+		register_rest_route(
+			$ns,
 			'/admin/placements/(?P<id>[a-z0-9_]+)/check',
 			array(
 				'methods'             => \WP_REST_Server::CREATABLE,
@@ -59,6 +76,43 @@ class PlacementsController {
 				'permission_callback' => array( Routes::class, 'can_manage' ),
 			)
 		);
+	}
+
+	/**
+	 * Make a link for this gallery, replacing any it had.
+	 *
+	 * The plaintext token comes back exactly once, in this response, and is
+	 * never stored anywhere it could be read again.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function make_link( $request ) {
+		$placement = Placement::get( (string) $request['id'] );
+
+		if ( ! $placement ) {
+			return new \WP_Error( 'ocs_no_placement', __( 'That gallery no longer exists.', 'oc-story' ), array( 'status' => 404 ) );
+		}
+
+		return rest_ensure_response(
+			\OCS\Model\ShareLink::create(
+				(string) $request['id'],
+				(int) $request['days'],
+				! empty( $request['hold'] )
+			)
+		);
+	}
+
+	/**
+	 * Kill a gallery's link.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return \WP_REST_Response
+	 */
+	public function kill_link( $request ) {
+		\OCS\Model\ShareLink::revoke( (string) $request['id'] );
+
+		return rest_ensure_response( array( 'ok' => true ) );
 	}
 
 	/**
@@ -92,8 +146,15 @@ class PlacementsController {
 			);
 		}
 
+		$links = array();
+
+		foreach ( \OCS\Model\ShareLink::all() as $placement_id => $link ) {
+			$links[ $placement_id ] = \OCS\Model\ShareLink::public_view( $placement_id, $link );
+		}
+
 		return rest_ensure_response(
 			array(
+				'links'       => $links,
 				'placements'  => array_values( Placement::all() ),
 				'surfaces'    => $surfaces,
 				'hooks'       => Placement::hooks(),

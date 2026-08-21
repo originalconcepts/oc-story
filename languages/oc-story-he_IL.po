@@ -1450,3 +1450,199 @@ msgstr "איפה שהיא לא צריכה להופיע?"
 #: includes
 msgid "And any page you name here — start typing its title."
 msgstr "וכל עמוד שתציין כאן — התחל להקליד את שמו."
+
+#: includes
+msgid "Upload from your phone"
+msgstr "העלאה מהנייד"
+
+#: includes
+msgid "Make a link"
+msgstr "צור קישור"
+
+#: includes
+msgid "Make a new link"
+msgstr "צור קישור חדש"
+
+#: includes
+msgid "Phone link"
+msgstr "קישור לנייד"
+
+#: includes
+msgid "A link you send to yourself. Open it on your phone and you can add videos to this gallery without signing in to the admin."
+msgstr "קישור שאתה שולח לעצמך. פותחים אותו בנייד ואפשר להוסיף סרטונים לגלריה הזו בלי להיכנס לניהול."
+
+#: includes
+msgid "Here it is. Send it to yourself now — it is shown this once and never again."
+msgstr "הנה הוא. שלח אותו לעצמך עכשיו — הוא מוצג פעם אחת בלבד ולא יוצג שוב."
+
+#: includes
+msgid "Copy"
+msgstr "העתק"
+
+#: includes
+msgid "Copied."
+msgstr "הועתק."
+
+#: includes
+msgid "Send"
+msgstr "שלח"
+
+#: includes
+msgid "Open it on your phone within 30 minutes. The first phone to open it is the only one it will ever work on."
+msgstr "פתח אותו בנייד תוך 30 דקות. הנייד הראשון שפותח אותו הוא היחיד שהקישור יעבוד בו אי פעם."
+
+#: includes
+msgid "This link"
+msgstr "הקישור הזה"
+
+#: includes
+msgid "In use on one phone"
+msgstr "בשימוש בנייד אחד"
+
+#: includes
+msgid "Waiting to be opened"
+msgstr "ממתין לפתיחה"
+
+#: includes
+msgid "Never opened — make a new one"
+msgstr "לא נפתח — צור חדש"
+
+#: includes
+msgid "Last used"
+msgstr "שימוש אחרון"
+
+#: includes
+msgid "Stops working"
+msgstr "מפסיק לעבוד"
+
+#: includes
+msgid "Videos added through it"
+msgstr "סרטונים שנוספו דרכו"
+
+#: includes
+msgid "The address itself is not kept — it is stored the way a password is. Make a new one if you have lost it; the old one dies the moment you do."
+msgstr "הכתובת עצמה לא נשמרת — היא מאוחסנת כמו סיסמה. צור חדש אם אבד לך; הישן מת באותו רגע."
+
+#: includes
+msgid "Stops working after this long unused"
+msgstr "מפסיק לעבוד אחרי כך וכך ללא שימוש"
+
+#: includes
+msgid "Uploads wait for me to approve them"
+msgstr "העלאות ממתינות לאישור שלי"
+
+#: includes
+msgid "Off for your own phone. Turn it on if you ever send this link to somebody else."
+msgstr "כבוי לנייד שלך. הדלק אם אי פעם תשלח את הקישור למישהו אחר."
+
+#: includes
+msgid "Stop this link"
+msgstr "בטל את הקישור"
+
+#: includes
+msgid "Add a video — %s"
+msgstr "הוספת סרטון — %s"
+
+#: includes
+msgid "Checking the link…"
+msgstr "בודק את הקישור…"
+
+#: includes
+msgid "Setting this phone up…"
+msgstr "מגדיר את הנייד הזה…"
+
+#: includes
+msgid "Choose a video"
+msgstr "בחר סרטון"
+
+#: includes
+msgid "Choose a different video"
+msgstr "בחר סרטון אחר"
+
+#: includes
+msgid "Making it smaller…"
+msgstr "דוחס אותו…"
+
+#: includes
+msgid "Sending…"
+msgstr "שולח…"
+
+#: includes
+msgid "A name for it"
+msgstr "שם לסרטון"
+
+#: includes
+msgid "For you, in the admin. Shoppers do not see it."
+msgstr "לשימוש פנימי בניהול. הלקוחות לא רואים את זה."
+
+#: includes
+msgid "Which products are in it?"
+msgstr "אילו מוצרים מופיעים בו?"
+
+#: includes
+msgid "Start typing a product name…"
+msgstr "התחל להקליד שם מוצר…"
+
+#: includes
+msgid "A new story"
+msgstr "סטורי חדש"
+
+#: includes
+msgid "Add it to…"
+msgstr "הוסף אל…"
+
+#: includes
+msgid "%d so far"
+msgstr "%d עד כה"
+
+#: includes
+msgid "Add to the gallery"
+msgstr "הוסף לגלריה"
+
+#: includes
+msgid "Added."
+msgstr "נוסף."
+
+#: includes
+msgid "It is on the shop now."
+msgstr "הוא באתר עכשיו."
+
+#: includes
+msgid "It is waiting for you in the admin."
+msgstr "הוא ממתין לך בניהול."
+
+#: includes
+msgid "Add another"
+msgstr "הוסף עוד אחד"
+
+#: includes
+msgid "That video is too large for this shop to accept."
+msgstr "הסרטון גדול מדי עבור החנות הזו."
+
+#: includes
+msgid "That video is longer than this shop allows."
+msgstr "הסרטון ארוך מהמותר בחנות הזו."
+
+#: includes
+msgid "That did not work. Try again."
+msgstr "זה לא עבד. נסה שוב."
+
+#: includes
+msgid "This link has expired. Make a new one from the galleries screen."
+msgstr "הקישור פג. צור חדש ממסך הגלריות."
+
+#: includes
+msgid "This link is already in use on another device. If that was not you, make a new one — this one stops working the moment you do."
+msgstr "הקישור כבר בשימוש במכשיר אחר. אם זה לא אתה, צור חדש — הישן מפסיק לעבוד באותו רגע."
+
+#: includes
+msgid "This link was not opened in time. Make a new one — it takes a moment."
+msgstr "הקישור לא נפתח בזמן. צור חדש — זה לוקח רגע."
+
+#: includes
+msgid "This link does not work any more."
+msgstr "הקישור הזה כבר לא עובד."
+
+#: includes
+msgid "That video did not arrive in one piece. Try again."
+msgstr "הסרטון לא הגיע שלם. נסה שוב."

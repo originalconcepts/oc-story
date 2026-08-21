@@ -43,6 +43,12 @@ const BUDGET = [
 	// loaded, and pausing when nobody is looking.
 	{ file: 'assets/js/float.js', gzip: 2048, why: 'corner video behaviour' },
 
+	// The upload screen a share link opens. Not part of the storefront at all
+	// — nobody shopping ever loads it — but it runs on a phone over mobile
+	// data, so it is budgeted like one that is.
+	{ file: 'assets/js/share.js', gzip: 5120, why: 'phone upload screen' },
+	{ file: 'assets/css/share.css', gzip: 2048, why: 'phone upload screen' },
+
 	// Imported on the first tap, never before.
 	{ file: 'assets/js/player.js', gzip: 16384, why: 'player chunk' },
 	{ file: 'assets/css/player.css', gzip: 5120, why: 'player stylesheet' },

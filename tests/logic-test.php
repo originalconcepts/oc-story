@@ -23,6 +23,9 @@ function do_action( $tag, ...$rest ) {}
 function add_filter() {}
 function add_action() {}
 function wp_json_encode( $v ) { return json_encode( $v ); }
+function wp_hash( $v ) { return hash( 'sha256', 'test-salt' . $v ); }
+function home_url( $path = '/' ) { return 'https://example.test' . $path; }
+function add_query_arg( $key, $value, $url ) { return $url . ( strpos( $url, '?' ) === false ? '?' : '&' ) . $key . '=' . $value; }
 function get_option( $k, $d = false ) { return $GLOBALS['ocs_options'][ $k ] ?? $d; }
 function add_option( $k, $v, $a = '', $b = '' ) { $GLOBALS['ocs_options'][ $k ] = $v; return true; }
 function update_option( $k, $v, $a = null ) { $GLOBALS['ocs_options'][ $k ] = $v; return true; }
@@ -42,6 +45,7 @@ require OCS_PATH . 'includes/Core/Settings.php';
 require OCS_PATH . 'includes/Core/Features.php';
 require OCS_PATH . 'includes/Model/Story.php';
 require OCS_PATH . 'includes/Model/Positions.php';
+require OCS_PATH . 'includes/Model/ShareLink.php';
 require OCS_PATH . 'includes/Model/Placement.php';
 require OCS_PATH . 'includes/Media/Probe.php';
 require OCS_PATH . 'includes/Media/ChunkedUpload.php';
@@ -230,6 +234,34 @@ check( 'and still remembers which videos are its own', array( 7, 8 ) === $auto_m
 $draft_pl = $w( array( 'surface' => 'circles', 'target' => 'custom', 'position' => 'custom', 'enabled' => false ) );
 check( 'a hand-placed gallery can be a draft', false === $draft_pl['enabled'] );
 check( 'and a hand-placed gallery hooks nothing', 'manual' === $draft_pl['hook'] );
+
+echo "\nShare links\n";
+check( 'the spans offered are the ones documented', array( 14, 30, 90 ) === \OCS\Model\ShareLink::SPANS );
+check( 'a link may be claimed for half an hour', 1800 === \OCS\Model\ShareLink::CLAIM_WINDOW );
+
+// The idle clock runs from the last use, or from creation for a link nobody
+// ever opened — otherwise one made and forgotten would live for ever.
+$fresh = array( 'created' => time() - 10, 'last_used' => 0, 'idle' => DAY_IN_SECONDS );
+check( 'a link made a moment ago is alive', false === \OCS\Model\ShareLink::is_dead( $fresh ) );
+
+$forgotten = array( 'created' => time() - ( DAY_IN_SECONDS * 2 ), 'last_used' => 0, 'idle' => DAY_IN_SECONDS );
+check( 'one made and never opened dies on its own', true === \OCS\Model\ShareLink::is_dead( $forgotten ) );
+
+$busy = array( 'created' => time() - ( DAY_IN_SECONDS * 90 ), 'last_used' => time() - 60, 'idle' => DAY_IN_SECONDS );
+check( 'and one used a minute ago is alive however old it is', false === \OCS\Model\ShareLink::is_dead( $busy ) );
+
+$idle = array( 'created' => time() - ( DAY_IN_SECONDS * 90 ), 'last_used' => time() - ( DAY_IN_SECONDS * 2 ), 'idle' => DAY_IN_SECONDS );
+check( 'while one left alone past its span is not', true === \OCS\Model\ShareLink::is_dead( $idle ) );
+
+// Nothing the admin screen is shown can be used to open the door.
+$view = \OCS\Model\ShareLink::public_view( 'pl_x', array(
+	'hash' => 'secret-hash', 'device' => 'secret-device', 'created' => 100,
+	'claim_until' => 200, 'last_used' => 0, 'idle' => DAY_IN_SECONDS, 'uses' => 3, 'hold' => false,
+) );
+check( 'what the admin sees carries no token', ! in_array( 'hash', array_keys( $view ), true ) );
+check( 'and no device secret', ! in_array( 'device', array_keys( $view ), true ) );
+check( 'it does say whether a phone has claimed it', true === $view['claimed'] );
+check( 'and how many videos came through it', 3 === $view['uses'] );
 
 echo "\nHow long a video stays up\n";
 check( 'forever is the default reading', 0 === \OCS\Model\Story::clean_life( '' ) );

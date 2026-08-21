@@ -762,3 +762,19 @@
 .ocs-done__acts { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 8px; }
 .ocs-done__acts .ocs-btn { text-decoration: none; }
 .ocs-choice--flat { margin-top: 8px; }
+
+/* Making a phone link. */
+.ocs-share { position: fixed; inset: 0; z-index: 100000; background: rgba(0, 0, 0, .45); display: grid; place-items: center; padding: 20px; }
+.ocs-share__sheet {
+	width: 460px; max-width: 100%; max-height: 90vh; overflow-y: auto;
+	background: var(--ocs-bg); border-radius: var(--ocs-radius); padding: 20px;
+	display: flex; flex-direction: column; gap: 14px;
+}
+.ocs-share__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ocs-share__head h2 { margin: 0; font-size: 16px; }
+.ocs-share__for { margin: 0; font-weight: 600; }
+.ocs-share__acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.ocs-code-input { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; direction: ltr; text-align: left; }
+.ocs-facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: 13px; }
+.ocs-facts dt { color: var(--ocs-muted); }
+.ocs-facts dd { margin: 0; font-weight: 600; }

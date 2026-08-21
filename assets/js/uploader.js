@@ -31,11 +31,19 @@ function wait( ms ) {
  * @return {Promise<Object>}
  */
 async function call( api, path, init = {} ) {
-	const response = await fetch( api.root.replace( /\/$/, '' ) + path, {
-		credentials: 'same-origin',
+	// The same uploader serves two doors. The admin one is opened with a
+	// nonce and a cookie; the share one with a token in the query and a
+	// device secret in a header, and never a cookie. `api` carries whichever
+	// of those this caller has, and nothing here needs to know which.
+	const url = api.root.replace( /\/$/, '' ) + ( api.base || '/admin/upload' ) + path
+		+ ( api.query ? ( path.includes( '?' ) ? '&' : '?' ) + api.query : '' );
+
+	const response = await fetch( url, {
+		credentials: api.nonce ? 'same-origin' : 'omit',
 		...init,
 		headers: {
-			'X-WP-Nonce': api.nonce,
+			...( api.nonce ? { 'X-WP-Nonce': api.nonce } : {} ),
+			...( api.headers || {} ),
 			...( init.headers || {} ),
 		},
 	} );
@@ -65,7 +73,7 @@ async function call( api, path, init = {} ) {
  * @return {Promise<Object>}
  */
 export function limits( api ) {
-	return call( api, '/admin/upload/limits' );
+	return call( api, '/limits' );
 }
 
 /**
@@ -87,7 +95,7 @@ async function sendChunk( api, session, index, slice ) {
 		try {
 			return await call(
 				api,
-				'/admin/upload/chunk?session=' + encodeURIComponent( session ) + '&index=' + index,
+				'/chunk?session=' + encodeURIComponent( session ) + '&index=' + index,
 				{
 					method: 'POST',
 					headers: { 'Content-Type': 'application/octet-stream' },
@@ -133,7 +141,7 @@ export async function upload( blob, options ) {
 		onProgress = () => {},
 	} = options;
 
-	const session = await call( api, '/admin/upload/init', {
+	const session = await call( api, '/init', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify( {
@@ -173,7 +181,7 @@ export async function upload( blob, options ) {
 		// Best effort: a failed session expires on its own within six hours, so
 		// a failed abort is not worth surfacing over the real error.
 		try {
-			await call( api, '/admin/upload/abort', {
+			await call( api, '/abort', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify( { session: session.session } ),
@@ -183,7 +191,7 @@ export async function upload( blob, options ) {
 		throw failure;
 	}
 
-	const result = await call( api, '/admin/upload/complete', {
+	const result = await call( api, '/complete', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify( {
