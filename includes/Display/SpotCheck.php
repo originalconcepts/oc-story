@@ -102,7 +102,7 @@ class SpotCheck {
 	 * @param array $placement Placement.
 	 * @return string URL, or '' when the shop has no such page.
 	 */
-	protected static function sample_url( array $placement ) {
+	public static function sample_url( array $placement ) {
 		$ids = isset( $placement['where']['ids'] ) ? (array) $placement['where']['ids'] : array();
 
 		switch ( $placement['target'] ) {
@@ -142,7 +142,7 @@ class SpotCheck {
 	 * @param array $placement Placement.
 	 * @return int Product ID, or 0.
 	 */
-	protected static function first_tagged( array $placement ) {
+	public static function first_tagged( array $placement ) {
 		global $wpdb;
 
 		$stories = isset( $placement['stories']['ids'] ) ? array_map( 'absint', (array) $placement['stories']['ids'] ) : array();

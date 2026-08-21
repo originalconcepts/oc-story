@@ -181,6 +181,11 @@ class ShareController {
 					'series'  => 'circles' === $placement['surface'],
 				),
 				'stories' => $stories,
+				// A gallery that follows its videos' product tags shows a
+				// video only where that video names a product. Tagging is not
+				// optional there, and the screen has to know before the person
+				// spends a minute filling in everything else.
+				'needsProducts' => 'tagged' === $placement['stories']['mode'],
 				'hold'    => ! empty( $found['link']['hold'] ),
 				'limits'  => $this->limits(),
 			)
@@ -348,9 +353,16 @@ class ShareController {
 			$slides[] = $slide[0];
 
 			Story::set_slides( $join, $slides );
+			Story::bump_version();
+			\OCS\Core\CacheFlush::pages();
 			ShareLink::touch( $found['id'], true );
 
-			return rest_ensure_response( array( 'story' => $join, 'held' => $hold ) );
+			return rest_ensure_response(
+				array(
+					'story' => $join,
+					'held'  => $hold,
+				) + $this->where_to_see( $placement, $slide[0], $hold )
+			);
 		}
 
 		$story_id = Story::create(
@@ -387,7 +399,60 @@ class ShareController {
 		\OCS\Core\CacheFlush::pages();
 		ShareLink::touch( $found['id'], true );
 
-		return rest_ensure_response( array( 'story' => (int) $story_id, 'held' => $hold ) );
+		return rest_ensure_response(
+			array(
+				'story' => (int) $story_id,
+				'held'  => $hold,
+			) + $this->where_to_see( Placement::get( $found['id'] ), $slide[0], $hold )
+		);
+	}
+
+	/**
+	 * Where this video can now be seen, if it can be seen anywhere.
+	 *
+	 * A gallery set to follow its videos' own product tags shows a video only
+	 * on the products that video names — so one tagged with nothing appears
+	 * nowhere at all. It was still added, and it is still there to fix, but
+	 * saying "it is on the shop now" would be a lie. This is what makes the
+	 * difference sayable.
+	 *
+	 * @param array $placement The gallery.
+	 * @param array $slide     The slide just added.
+	 * @param bool  $hold      Whether it is waiting for approval.
+	 * @return array { url, nowhere }
+	 */
+	protected function where_to_see( $placement, array $slide, $hold ) {
+		if ( $hold || ! $placement ) {
+			return array(
+				'url'     => '',
+				'nowhere' => false,
+			);
+		}
+
+		// Following the videos' tags: the page is one of this video's own
+		// products, and if it named none there is no page.
+		if ( 'tagged' === $placement['stories']['mode'] ) {
+			foreach ( (array) $slide['products'] as $product ) {
+				$link = get_permalink( (int) $product['id'] );
+
+				if ( $link ) {
+					return array(
+						'url'     => $link,
+						'nowhere' => false,
+					);
+				}
+			}
+
+			return array(
+				'url'     => '',
+				'nowhere' => true,
+			);
+		}
+
+		return array(
+			'url'     => (string) \OCS\Display\SpotCheck::sample_url( $placement ),
+			'nowhere' => false,
+		);
 	}
 
 	/**

@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.9.1
+Stable tag: 0.9.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,13 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.9.2 =
+* After adding a video from your phone there is a button that opens the page
+  it appears on.
+* A gallery that follows its videos' product tags now says so on the phone,
+  and asks for at least one product — a video that names none appears nowhere,
+  and the screen used to say it was live.
 
 = 0.9.1 =
 * Uploading through a phone link failed with "cookie check failed". A phone

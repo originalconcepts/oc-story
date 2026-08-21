@@ -1646,3 +1646,11 @@ msgstr "הקישור הזה כבר לא עובד."
 #: includes
 msgid "That video did not arrive in one piece. Try again."
 msgstr "הסרטון לא הגיע שלם. נסה שוב."
+
+#: includes
+msgid "It is in the gallery — but this gallery only shows a video on the products that video names, and this one names none yet. Add a product to it in the admin and it appears there."
+msgstr "הוא בגלריה — אבל הגלריה הזו מציגה סרטון רק במוצרים שהסרטון מתייג, והסרטון הזה עוד לא מתייג אף אחד. הוסף לו מוצר בניהול והוא יופיע שם."
+
+#: includes
+msgid "This gallery shows each video on the products it names, so choose at least one."
+msgstr "הגלריה הזו מציגה כל סרטון במוצרים שהוא מתייג, אז בחר לפחות אחד."

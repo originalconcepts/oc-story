@@ -113,6 +113,9 @@ const state = {
 	stories: [],
 	limits: null,
 	hold: false,
+	needsProducts: false,
+	seeUrl: '',
+	nowhere: false,
 	slide: null,
 	title: '',
 	products: [],
@@ -151,6 +154,7 @@ async function start() {
 			stories: info.stories || [],
 			limits: info.limits,
 			hold: !! info.hold,
+			needsProducts: !! info.needsProducts,
 			joinStory: 0,
 		} );
 	} catch ( error ) {
@@ -248,6 +252,9 @@ async function take( file ) {
 				source: sent.source,
 				ref: sent.ref,
 				poster: sent.poster,
+				// The screen shows this back, so it needs the address and not
+				// only the id. Without it the preview was a grey rectangle.
+				poster_url: sent.poster_url || '',
 				w: sent.w,
 				h: sent.h,
 				duration: sent.duration || seconds,
@@ -365,7 +372,13 @@ async function submit() {
 			} ),
 		} );
 
-		setState( { view: 'done', busy: '', hold: !! answer.held } );
+		setState( {
+			view: 'done',
+			busy: '',
+			hold: !! answer.held,
+			seeUrl: answer.url || '',
+			nowhere: !! answer.nowhere,
+		} );
 	} catch ( error ) {
 		setState( { busy: '', message: error.message || t.failed } );
 	}
@@ -472,10 +485,15 @@ function readyView() {
 
 		productField(),
 
+		state.needsProducts && ! state.products.length
+			? el( 'p', { class: 'ocs-sh__warn', text: t.needProducts } )
+			: null,
+
 		el( 'button', {
 			class: 'ocs-sh__send',
 			type: 'button',
 			text: t.send,
+			disabled: state.needsProducts && ! state.products.length,
 			onClick: submit,
 		} ),
 	] );
@@ -486,9 +504,22 @@ function doneView() {
 		el( 'div', { class: 'ocs-sh__done' }, [
 			el( 'span', { class: 'ocs-sh__tick', text: '✓' } ),
 			el( 'h2', { text: t.done } ),
-			el( 'p', { text: state.hold ? t.doneHeld : t.doneLive } ),
+			el( 'p', {
+				text: state.hold
+					? t.doneHeld
+					: ( state.nowhere ? t.doneNowhere : t.doneLive ),
+			} ),
+			state.seeUrl
+				? el( 'a', {
+					class: 'ocs-sh__send',
+					href: state.seeUrl + ( state.seeUrl.includes( '?' ) ? '&' : '?' ) + 'ocs=' + Date.now(),
+					target: '_blank',
+					rel: 'noopener',
+					text: t.seeIt,
+				} )
+				: null,
 			el( 'button', {
-				class: 'ocs-sh__send',
+				class: 'ocs-sh__send ocs-sh__send--quiet',
 				type: 'button',
 				text: t.another,
 				onClick: () => setState( {

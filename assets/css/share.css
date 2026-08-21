@@ -70,3 +70,6 @@ body.ocs-share{margin:0;background:var(--ocs-sh-bg);color:var(--ocs-sh-ink);font
 .ocs-sh__tick--no{background:#fcf0f1;color:#8a2424}
 
 @media (prefers-reduced-motion:reduce){.ocs-sh__bar i{transition:none}}
+.ocs-sh__send--quiet{background:#fff;color:var(--ocs-sh-accent);border:1px solid var(--ocs-sh-line)}
+.ocs-sh__send[disabled]{opacity:.5}
+a.ocs-sh__send{display:block;text-align:center;text-decoration:none}
