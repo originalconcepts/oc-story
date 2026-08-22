@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.9.5
+Stable tag: 0.10.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,16 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.10.0 =
+* Insights opens on your galleries, not your videos: which gallery is seen,
+  opened, watched and bought from. Switch to the per-video list with the tab
+  above the table.
+* Every view, tap and sale now records which gallery it came from, so that
+  question can be answered at all. Numbers recorded before this release are
+  kept and shown as "before this was measured".
+* The custom date range is behind a "Pick dates" button next to 7 / 30 / 90
+  instead of sitting open under the table.
 
 = 0.9.5 =
 * Insights called its first column "Gallery" and listed videos in it. It says

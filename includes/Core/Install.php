@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
 class Install {
 
 	const DB_VERSION_OPTION = 'ocs_db_version';
-	const DB_VERSION        = 5;
+	const DB_VERSION        = 6;
 
 	/**
 	 * Every table we own, without the prefix. Used by create and by uninstall.
@@ -116,6 +116,11 @@ class Install {
 			wp_schedule_event( time() + MINUTE_IN_SECONDS * 5, 'hourly', 'ocs_hourly_maintenance' );
 		}
 
+		// v6: counters learn which gallery they came from. dbDelta above adds
+		// the column and the new unique key; rows recorded before this keep an
+		// empty placement, and the screen says so rather than pretending they
+		// belong to nothing.
+
 		update_option( self::DB_VERSION_OPTION, self::DB_VERSION );
 	}
 
@@ -154,6 +159,7 @@ class Install {
 			story_id BIGINT UNSIGNED NOT NULL,
 			slide_id VARCHAR(16) NOT NULL DEFAULT '',
 			surface VARCHAR(20) NOT NULL DEFAULT '',
+			placement VARCHAR(32) NOT NULL DEFAULT '',
 			device VARCHAR(10) NOT NULL DEFAULT '',
 			impressions INT UNSIGNED NOT NULL DEFAULT 0,
 			opens INT UNSIGNED NOT NULL DEFAULT 0,
@@ -165,8 +171,9 @@ class Install {
 			orders INT UNSIGNED NOT NULL DEFAULT 0,
 			revenue DECIMAL(18,4) NOT NULL DEFAULT 0,
 			PRIMARY KEY  (id),
-			UNIQUE KEY bucket (day, story_id, slide_id, surface, device),
-			KEY day_story (day, story_id)
+			UNIQUE KEY bucket (day, story_id, slide_id, surface, placement, device),
+			KEY day_story (day, story_id),
+			KEY day_placement (day, placement)
 		) {$charset};";
 
 		// In-flight chunked uploads. Own lifecycle, own expiry, swept daily.

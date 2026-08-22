@@ -70,11 +70,12 @@ class Attribution {
 		Stats::bump(
 			array(
 				array(
-					'story_id' => $claim['story'],
-					'slide_id' => $claim['slide'],
-					'surface'  => '',
-					'device'   => wp_is_mobile() ? 'm' : 'd',
-					'counts'   => array( 'add_to_cart' => 1 ),
+					'story_id'  => $claim['story'],
+					'slide_id'  => $claim['slide'],
+					'surface'   => '',
+					'placement' => isset( $claim['bar'] ) ? (string) $claim['bar'] : '',
+					'device'    => wp_is_mobile() ? 'm' : 'd',
+					'counts'    => array( 'add_to_cart' => 1 ),
 				),
 			)
 		);
@@ -105,6 +106,7 @@ class Attribution {
 		$story   = isset( $claim['story'] ) ? (int) $claim['story'] : 0;
 		$product = isset( $claim['product'] ) ? (int) $claim['product'] : 0;
 		$slide   = isset( $claim['slide'] ) ? (string) $claim['slide'] : '';
+		$bar     = isset( $claim['bar'] ) ? (string) $claim['bar'] : '';
 		$ts      = isset( $claim['ts'] ) ? (int) ( $claim['ts'] / 1000 ) : 0;
 
 		if ( $story < 1 || $product < 1 ) {
@@ -113,6 +115,13 @@ class Attribution {
 
 		if ( '' !== $slide && ! preg_match( '/^s_[a-f0-9]{8}$/', $slide ) ) {
 			return null;
+		}
+
+		// Which gallery the shopper came through, so the sale can be credited
+		// to it. Anything not shaped like a placement id is dropped rather
+		// than carried: this arrives from a form field a shopper can edit.
+		if ( '' !== $bar && ! preg_match( '/^[a-z0-9_\-]{1,32}$/', $bar ) ) {
+			$bar = '';
 		}
 
 		// The tap must be for the product actually added — a claim for one
@@ -129,6 +138,7 @@ class Attribution {
 			'story'   => $story,
 			'slide'   => $slide,
 			'product' => $product,
+			'bar'     => $bar,
 			'ts'      => $ts,
 		);
 	}
@@ -198,15 +208,17 @@ class Attribution {
 
 			$story = (int) $claim['story'];
 			$slide = isset( $claim['slide'] ) ? (string) $claim['slide'] : '';
-			$key   = $story . '|' . $slide;
+			$bar   = isset( $claim['bar'] ) ? (string) $claim['bar'] : '';
+			$key   = $story . '|' . $slide . '|' . $bar;
 
 			if ( ! isset( $per_key[ $key ] ) ) {
 				$per_key[ $key ] = array(
-					'story_id' => $story,
-					'slide_id' => $slide,
-					'surface'  => '',
-					'device'   => '',
-					'counts'   => array(
+					'story_id'  => $story,
+					'slide_id'  => $slide,
+					'surface'   => '',
+					'placement' => $bar,
+					'device'    => '',
+					'counts'    => array(
 						'orders'  => 1,
 						'revenue' => 0,
 					),

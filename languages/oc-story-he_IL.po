@@ -1686,3 +1686,27 @@ msgstr "מוצג %1$s עד %2$s"
 #: includes
 msgid "Numbers are kept for ever. Switching a gallery off, taking a video out of it, or deleting the video does not remove what it already earned."
 msgstr "המספרים נשמרים לתמיד. כיבוי גלריה, הוצאת סרטון ממנה או מחיקת הסרטון לא מוחקים את מה שהוא כבר הרוויח."
+
+#: includes
+msgid "By gallery"
+msgstr "לפי גלריה"
+
+#: includes
+msgid "By video"
+msgstr "לפי סרטון"
+
+#: includes
+msgid "Pick dates"
+msgstr "בחירת תאריכים"
+
+#: includes
+msgid "Seen on screen"
+msgstr "נצפתה על המסך"
+
+#: includes
+msgid "Before this was measured"
+msgstr "לפני שזה נמדד"
+
+#: includes
+msgid "A gallery since removed (%s)"
+msgstr "גלריה שהוסרה (%s)"

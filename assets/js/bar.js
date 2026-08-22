@@ -168,6 +168,10 @@
 			parts[ 0 ].open( stories, index, {
 				cfg: cfg,
 				surface: bar.getAttribute( 'data-ocs-surface' ) || '',
+				// Which gallery this was opened from. Everything the player
+				// counts carries it, so Insights can answer "which gallery is
+				// working" rather than only "which video".
+				bar: bar.getAttribute( 'data-ocs-bar' ) || '',
 				onSeen: markSeen,
 			} );
 		} ).catch( function () {
@@ -215,6 +219,7 @@
 					t: 'i',
 					s: 0,
 					f: entry.target.getAttribute( 'data-ocs-surface' ) || '',
+					b: entry.target.getAttribute( 'data-ocs-bar' ) || '',
 				} );
 			} );
 		}, { threshold: 0.4 } );

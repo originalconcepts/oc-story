@@ -236,6 +236,27 @@ $draft_pl = $w( array( 'surface' => 'circles', 'target' => 'custom', 'position' 
 check( 'a hand-placed gallery can be a draft', false === $draft_pl['enabled'] );
 check( 'and a hand-placed gallery hooks nothing', 'manual' === $draft_pl['hook'] );
 
+echo "\nWhich gallery an event came from\n";
+$n = static function ( $batch ) { return \OCS\Model\Stats::normalize_batch( $batch, array( 'circles', 'slider', 'grid', 'product', 'floating' ) ); };
+
+$from_bar = array_values( $n( array( array( 't' => 'o', 's' => 11, 'f' => 'circles', 'b' => 'pl_47361b37' ) ) ) );
+check( 'an event carries the gallery it came from', 'pl_47361b37' === $from_bar[0]['placement'] );
+
+check( 'a gallery id shaped like an attack is refused', array() === $n( array( array( 't' => 'o', 's' => 11, 'b' => '<script>' ) ) ) );
+check( 'and so is one that is far too long', array() === $n( array( array( 't' => 'o', 's' => 11, 'b' => str_repeat( 'a', 33 ) ) ) ) );
+
+$no_bar = array_values( $n( array( array( 't' => 'o', 's' => 11 ) ) ) );
+check( 'an event with no gallery is still counted', 1 === count( $no_bar ) );
+check( 'under an empty one', '' === $no_bar[0]['placement'] );
+
+// Two galleries showing the same video are two rows, or "which gallery is
+// working" could never be answered.
+$two = $n( array(
+	array( 't' => 'o', 's' => 11, 'b' => 'pl_aaa' ),
+	array( 't' => 'o', 's' => 11, 'b' => 'pl_bbb' ),
+) );
+check( 'the same video in two galleries is two rows', 2 === count( $two ) );
+
 echo "\nInsight date ranges\n";
 $today = gmdate( 'Y-m-d' );
 

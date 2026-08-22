@@ -20,7 +20,7 @@ function track( type, extra ) {
 	const queue = window.__ocsQ;
 
 	if ( queue && state ) {
-		queue.push( Object.assign( { t: type, s: story().i, f: state.surface }, extra || {} ) );
+		queue.push( Object.assign( { t: type, s: story().i, f: state.surface, b: state.bar }, extra || {} ) );
 	}
 }
 
@@ -636,6 +636,9 @@ function attribute( product ) {
 			story: story().i,
 			slide: slide().i,
 			product: product.i,
+			// So a sale can be credited to the gallery it came from, not only
+			// to the video.
+			bar: state.bar,
 			ts: Date.now(),
 		} ) );
 	} catch ( e ) {}
@@ -1454,6 +1457,7 @@ export function open( stories, index, ctx ) {
 		browsing: false,
 		cfg: ctx.cfg || {},
 		surface: ctx.surface || '',
+		bar: ctx.bar || '',
 		onSeen: ctx.onSeen || function () {},
 		returnTo: document.activeElement,
 	};

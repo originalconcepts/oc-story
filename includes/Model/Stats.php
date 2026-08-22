@@ -101,12 +101,22 @@ class Stats {
 				continue;
 			}
 
+			// Which gallery the event came from. Anything that is not the
+			// shape of a placement id is dropped rather than stored, so a
+			// public endpoint cannot be used to write arbitrary strings into
+			// a column the admin screen prints.
+			$placement = isset( $event['b'] ) ? (string) $event['b'] : '';
+			if ( '' !== $placement && ! preg_match( '/^[a-z0-9_\-]{1,32}$/', $placement ) ) {
+				continue;
+			}
+
 			$device = ( isset( $event['d'] ) && 'm' === $event['d'] ) ? 'm' : 'd';
 
-			$key = $story . '|' . $slide . '|' . $surface . '|' . $device;
+			$key = $story . '|' . $slide . '|' . $surface . '|' . $placement . '|' . $device;
 
 			if ( ! isset( $rows[ $key ] ) ) {
 				$rows[ $key ] = array(
+					'placement' => $placement,
 					'story_id' => $story,
 					'slide_id' => $slide,
 					'surface'  => $surface,
@@ -152,9 +162,9 @@ class Stats {
 			$wpdb->query(
 				$wpdb->prepare(
 					"INSERT INTO {$table}
-						(day, story_id, slide_id, surface, device,
+						(day, story_id, slide_id, surface, placement, device,
 						 impressions, opens, completions, product_taps, sparks, likes, add_to_cart, orders, revenue)
-					 VALUES (%s, %d, %s, %s, %s, %d, %d, %d, %d, %d, %d, %d, %d, %f)
+					 VALUES (%s, %d, %s, %s, %s, %s, %d, %d, %d, %d, %d, %d, %d, %d, %f)
 					 ON DUPLICATE KEY UPDATE
 						impressions  = impressions  + VALUES(impressions),
 						opens        = opens        + VALUES(opens),
@@ -169,6 +179,7 @@ class Stats {
 					(int) $row['story_id'],
 					(string) $row['slide_id'],
 					(string) $row['surface'],
+					isset( $row['placement'] ) ? (string) $row['placement'] : '',
 					(string) $row['device'],
 					$values['impressions'],
 					$values['opens'],
@@ -223,6 +234,73 @@ class Stats {
 			static function ( $row ) {
 				return array(
 					'story_id'     => (int) $row['story_id'],
+					'opens'        => (int) $row['opens'],
+					'completions'  => (int) $row['completions'],
+					'product_taps' => (int) $row['product_taps'],
+					'sparks'       => (int) $row['sparks'],
+					'likes'        => (int) $row['likes'],
+					'add_to_cart'  => (int) $row['add_to_cart'],
+					'orders'       => (int) $row['orders'],
+					'revenue'      => (float) $row['revenue'],
+				);
+			},
+			(array) $rows
+		);
+	}
+
+	/**
+	 * The same numbers, gathered by gallery instead of by video.
+	 *
+	 * This is the question a shop owner actually asks — which of my galleries
+	 * is working — and it is answerable only because every event now carries
+	 * the gallery it came from. It could never be worked out from the video:
+	 * one video can sit in several galleries, so crediting its opens to one of
+	 * them would be a guess, and crediting them to all of them would be a lie
+	 * told several times.
+	 *
+	 * Rows recorded before that was measured come back under an empty id. The
+	 * screen names them rather than dropping them, because they are real
+	 * numbers about real views.
+	 *
+	 * @param int|string $from Days back, or Y-m-d.
+	 * @param string     $to   Y-m-d, or '' for today.
+	 * @return array
+	 */
+	public static function by_gallery( $from, $to = '' ) {
+		global $wpdb;
+
+		list( $from, $to ) = self::span( $from, $to );
+
+		$table = Install::table( 'stats_daily' );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT placement,
+						SUM(impressions) AS impressions,
+						SUM(opens) AS opens,
+						SUM(completions) AS completions,
+						SUM(product_taps) AS product_taps,
+						SUM(sparks) AS sparks,
+						SUM(likes) AS likes,
+						SUM(add_to_cart) AS add_to_cart,
+						SUM(orders) AS orders,
+						SUM(revenue) AS revenue
+				 FROM {$table}
+				 WHERE day BETWEEN %s AND %s
+				 GROUP BY placement
+				 ORDER BY revenue DESC, opens DESC, impressions DESC",
+				$from,
+				$to
+			),
+			ARRAY_A
+		);
+
+		return array_map(
+			static function ( $row ) {
+				return array(
+					'placement'    => (string) $row['placement'],
+					'impressions'  => (int) $row['impressions'],
 					'opens'        => (int) $row['opens'],
 					'completions'  => (int) $row['completions'],
 					'product_taps' => (int) $row['product_taps'],

@@ -33,12 +33,21 @@ class InsightsPage {
 		$days     = isset( $_GET['days'] ) ? max( 1, min( 3650, (int) $_GET['days'] ) ) : 30;
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$by = ( isset( $_GET['by'] ) && 'video' === $_GET['by'] ) ? 'video' : 'gallery';
+
 		$dated = '' !== $from_raw || '' !== $to_raw;
 
 		list( $from, $to ) = $dated ? Stats::span( $from_raw, $to_raw ) : Stats::span( $days );
 
-		$rows  = Stats::by_story( $from, $to );
+		$rows  = 'video' === $by ? Stats::by_story( $from, $to ) : Stats::by_gallery( $from, $to );
 		$reach = Stats::reach( $from, $to );
+
+		$labels = array();
+
+		foreach ( \OCS\Model\Placement::all() as $placement ) {
+			$labels[ $placement['id'] ] = $placement['label'] ? $placement['label'] : $placement['id'];
+		}
 
 		// Which galleries currently show each video. The numbers themselves
 		// are per video — one video can be in several galleries, so an open
@@ -54,6 +63,7 @@ class InsightsPage {
 		}
 
 		$totals = array(
+			'impressions'  => 0,
 			'opens'        => 0,
 			'completions'  => 0,
 			'product_taps' => 0,
@@ -66,18 +76,18 @@ class InsightsPage {
 
 		foreach ( $rows as $row ) {
 			foreach ( $totals as $key => $value ) {
-				$totals[ $key ] += $row[ $key ];
+				$totals[ $key ] += isset( $row[ $key ] ) ? $row[ $key ] : 0;
 			}
 		}
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'OC Story insights', 'oc-story' ); ?></h1>
 
-			<p>
+			<p style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
 				<?php
 				foreach ( array( 7, 30, 90 ) as $option ) {
 					printf(
-						'<a href="%s" class="button%s" style="margin-inline-end:6px">%s</a>',
+						'<a href="%s" class="button%s">%s</a>',
 						esc_url( add_query_arg( array( 'days' => $option, 'from' => false, 'to' => false ) ) ),
 						! $dated && $days === $option ? ' button-primary' : '',
 						/* translators: %d: number of days */
@@ -85,16 +95,22 @@ class InsightsPage {
 					);
 				}
 				?>
-			</p>
 
-			<form method="get" style="margin:0 0 14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-				<input type="hidden" name="page" value="<?php echo esc_attr( self::SLUG ); ?>">
-				<label for="ocs-from"><?php esc_html_e( 'From', 'oc-story' ); ?></label>
-				<input type="date" id="ocs-from" name="from" value="<?php echo esc_attr( $from ); ?>" max="<?php echo esc_attr( current_time( 'Y-m-d' ) ); ?>">
-				<label for="ocs-to"><?php esc_html_e( 'To', 'oc-story' ); ?></label>
-				<input type="date" id="ocs-to" name="to" value="<?php echo esc_attr( $to ); ?>" max="<?php echo esc_attr( current_time( 'Y-m-d' ) ); ?>">
-				<button type="submit" class="button"><?php esc_html_e( 'Show', 'oc-story' ); ?></button>
-				<span class="description">
+				<?php // The dates are a fourth choice sitting where a fourth choice belongs, closed until it is wanted. ?>
+				<details class="ocs-range"<?php echo $dated ? ' open' : ''; ?>>
+					<summary class="button<?php echo $dated ? ' button-primary' : ''; ?>"><?php esc_html_e( 'Pick dates', 'oc-story' ); ?></summary>
+					<form method="get" class="ocs-range__form">
+						<input type="hidden" name="page" value="<?php echo esc_attr( self::SLUG ); ?>">
+						<input type="hidden" name="by" value="<?php echo esc_attr( $by ); ?>">
+						<label for="ocs-from"><?php esc_html_e( 'From', 'oc-story' ); ?></label>
+						<input type="date" id="ocs-from" name="from" value="<?php echo esc_attr( $from ); ?>" max="<?php echo esc_attr( current_time( 'Y-m-d' ) ); ?>">
+						<label for="ocs-to"><?php esc_html_e( 'To', 'oc-story' ); ?></label>
+						<input type="date" id="ocs-to" name="to" value="<?php echo esc_attr( $to ); ?>" max="<?php echo esc_attr( current_time( 'Y-m-d' ) ); ?>">
+						<button type="submit" class="button button-primary"><?php esc_html_e( 'Show', 'oc-story' ); ?></button>
+					</form>
+				</details>
+
+				<span class="description" style="margin-inline-start:8px">
 					<?php
 					printf(
 						/* translators: 1: start date, 2: end date */
@@ -104,7 +120,28 @@ class InsightsPage {
 					);
 					?>
 				</span>
-			</form>
+			</p>
+
+			<style>
+				.ocs-range { display: inline-block; position: relative; }
+				.ocs-range > summary { list-style: none; cursor: pointer; }
+				.ocs-range > summary::-webkit-details-marker { display: none; }
+				.ocs-range__form {
+					position: absolute; z-index: 10; inset-inline-start: 0; margin-top: 6px;
+					display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+					background: #fff; border: 1px solid #c3c4c7; border-radius: 6px;
+					padding: 12px; box-shadow: 0 4px 18px rgba( 0, 0, 0, .12 );
+				}
+			</style>
+
+			<h2 class="nav-tab-wrapper" style="margin-bottom:14px">
+				<a href="<?php echo esc_url( add_query_arg( 'by', 'gallery' ) ); ?>" class="nav-tab<?php echo 'gallery' === $by ? ' nav-tab-active' : ''; ?>">
+					<?php esc_html_e( 'By gallery', 'oc-story' ); ?>
+				</a>
+				<a href="<?php echo esc_url( add_query_arg( 'by', 'video' ) ); ?>" class="nav-tab<?php echo 'video' === $by ? ' nav-tab-active' : ''; ?>">
+					<?php esc_html_e( 'By video', 'oc-story' ); ?>
+				</a>
+			</h2>
 
 			<?php if ( ! $rows ) : ?>
 				<div class="notice notice-info inline"><p>
@@ -129,8 +166,13 @@ class InsightsPage {
 			<table class="widefat striped" style="max-width:1100px">
 				<thead>
 					<tr>
-						<th><?php esc_html_e( 'Video', 'oc-story' ); ?></th>
-						<th><?php esc_html_e( 'Shown in', 'oc-story' ); ?></th>
+						<?php if ( 'gallery' === $by ) : ?>
+							<th><?php esc_html_e( 'Gallery', 'oc-story' ); ?></th>
+							<th><?php esc_html_e( 'Seen on screen', 'oc-story' ); ?></th>
+						<?php else : ?>
+							<th><?php esc_html_e( 'Video', 'oc-story' ); ?></th>
+							<th><?php esc_html_e( 'Shown in', 'oc-story' ); ?></th>
+						<?php endif; ?>
 						<th><?php esc_html_e( 'Opens', 'oc-story' ); ?></th>
 						<th><?php esc_html_e( 'Watched to the end', 'oc-story' ); ?></th>
 						<th><?php esc_html_e( 'Likes', 'oc-story' ); ?></th>
@@ -143,6 +185,42 @@ class InsightsPage {
 				</thead>
 				<tbody>
 					<?php foreach ( $rows as $row ) : ?>
+						<?php if ( 'gallery' === $by ) : ?>
+							<?php
+							$id   = $row['placement'];
+							$name = isset( $labels[ $id ] ) ? $labels[ $id ] : '';
+							$rate = $row['opens'] > 0 ? round( ( $row['completions'] / $row['opens'] ) * 100 ) : 0;
+
+							if ( '' === $name ) {
+								// Either a gallery that has since been removed,
+								// or a view counted before galleries were part
+								// of the measurement at all. Both are real
+								// numbers and both say which they are.
+								$name = '' === $id
+									? __( 'Before this was measured', 'oc-story' )
+									/* translators: %s: gallery id */
+									: sprintf( __( 'A gallery since removed (%s)', 'oc-story' ), $id );
+							}
+							?>
+							<tr>
+								<td><strong><?php echo esc_html( $name ); ?></strong></td>
+								<td><?php echo esc_html( number_format_i18n( $row['impressions'] ) ); ?></td>
+								<td><?php echo esc_html( number_format_i18n( $row['opens'] ) ); ?></td>
+								<td>
+									<?php
+									/* translators: %d: percentage of opens watched to the end */
+									echo esc_html( sprintf( __( '%d%%', 'oc-story' ), $rate ) );
+									?>
+								</td>
+								<td><?php echo esc_html( number_format_i18n( $row['likes'] ) ); ?></td>
+								<td><?php echo esc_html( number_format_i18n( $row['sparks'] ) ); ?></td>
+								<td><?php echo esc_html( number_format_i18n( $row['product_taps'] ) ); ?></td>
+								<td><?php echo esc_html( number_format_i18n( $row['add_to_cart'] ) ); ?></td>
+								<td><?php echo esc_html( number_format_i18n( $row['orders'] ) ); ?></td>
+								<td><strong><?php echo wp_kses_post( function_exists( 'wc_price' ) ? wc_price( $row['revenue'] ) : number_format_i18n( $row['revenue'], 2 ) ); ?></strong></td>
+							</tr>
+							<?php continue; ?>
+						<?php endif; ?>
 						<?php
 						$exists = (bool) get_post_status( $row['story_id'] );
 						$title  = $exists ? get_the_title( $row['story_id'] ) : '';
@@ -188,7 +266,13 @@ class InsightsPage {
 				<tfoot>
 					<tr>
 						<th><?php esc_html_e( 'Everything together', 'oc-story' ); ?></th>
-						<th></th>
+						<th>
+							<?php
+							echo 'gallery' === $by
+								? esc_html( number_format_i18n( $totals['impressions'] ) )
+								: '';
+							?>
+						</th>
 						<th><?php echo esc_html( number_format_i18n( $totals['opens'] ) ); ?></th>
 						<th>
 							<?php
