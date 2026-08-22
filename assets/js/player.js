@@ -691,7 +691,39 @@ function buildSheet( product, data ) {
 		}
 	};
 
-	const choices = data.attributes.map( ( attribute ) => {
+	/**
+	 * After a choice is made, show what there is left to choose.
+	 *
+	 * A panel with three attributes answers the first one and then looks
+	 * finished, because the second is below the fold. So the panel comes up
+	 * far enough to put the next group in sight — and no further, and not at
+	 * all when it is already there. Nothing moves that did not need to.
+	 *
+	 * @param {number} index Which group was just answered.
+	 */
+	const revealAfter = ( index ) => {
+		const body = ui.sheetBody;
+		// After the last group the thing worth seeing is the quantity, since
+		// the button itself never leaves the bottom of the panel.
+		const next = choices[ index + 1 ] || tail[ 0 ];
+
+		if ( ! next || body.scrollHeight - body.clientHeight <= 12 ) {
+			return;
+		}
+
+		// Measured against the visible edge rather than the content, so this
+		// is the distance the panel is actually short by — plus a little, so
+		// the next group does not sit flush against the fade.
+		const below = next.getBoundingClientRect().bottom + 14 - body.getBoundingClientRect().bottom;
+
+		if ( below <= 0 ) {
+			return;
+		}
+
+		body.scrollTo( { top: body.scrollTop + below, behavior: CALM() ? 'auto' : 'smooth' } );
+	};
+
+	const choices = data.attributes.map( ( attribute, index ) => {
 			const wrap = el( 'div', 'ocsp__opt-group' );
 			const label = el( 'span', 'ocsp__opt-label', { text: attribute.label } );
 			const picked = el( 'b', 'ocsp__opt-picked' );
@@ -725,6 +757,10 @@ function buildSheet( product, data ) {
 						picked.textContent = '';
 					}
 					resolve();
+
+					if ( option ) {
+						revealAfter( index );
+					}
 				} );
 
 				wrap.append( select );
@@ -760,6 +796,7 @@ function buildSheet( product, data ) {
 						Array.from( row.children ).forEach( ( sibling ) => sibling.setAttribute( 'aria-pressed', 'false' ) );
 						pill.setAttribute( 'aria-pressed', 'true' );
 						resolve();
+						revealAfter( index );
 					} );
 
 					return pill;
