@@ -121,6 +121,9 @@ class Products {
 			'rating'   => round( (float) $product->get_average_rating(), 1 ),
 			'reviews'  => (int) $product->get_review_count(),
 			'variable' => $product->is_type( 'variable' ),
+			// On the card, before anybody opens anything. "Unavailable" only
+			// after a tap is a tap spent learning bad news.
+			'in_stock' => $product->is_in_stock(),
 		);
 	}
 

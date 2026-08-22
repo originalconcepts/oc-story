@@ -59,10 +59,16 @@ class SettingsPage {
 			$cta = 'button';
 		}
 
+		$panel = isset( $post['cart_panel'] ) ? (string) $post['cart_panel'] : 'compact';
+		if ( ! in_array( $panel, array( 'compact', 'full' ), true ) ) {
+			$panel = 'compact';
+		}
+
 		Settings::update(
 			array(
 				'gallery_nav'              => $nav,
 				'cta_style'                => $cta,
+				'cart_panel'               => $panel,
 				'cta_label'                => mb_substr( trim( wp_strip_all_tags( (string) ( $post['cta_label'] ?? '' ) ) ), 0, 24 ),
 				'cta_color'                => sanitize_hex_color( (string) ( $post['cta_color'] ?? '' ) ),
 				'backdrop'                 => empty( $post['backdrop'] ) ? 'solid' : 'dim',
@@ -157,6 +163,16 @@ class SettingsPage {
 								<option value="none" <?php selected( $s['gallery_nav'], 'none' ); ?>><?php esc_html_e( 'Nothing — swipe and keys only', 'oc-story' ); ?></option>
 							</select>
 							<p class="description"><?php esc_html_e( 'Phones always swipe; this is what a desktop shows.', 'oc-story' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="ocs-panel"><?php esc_html_e( 'Tapping a product opens', 'oc-story' ); ?></label></th>
+						<td>
+							<select name="cart_panel" id="ocs-panel">
+								<option value="compact" <?php selected( $s['cart_panel'], 'compact' ); ?>><?php esc_html_e( 'Just the choices and a button', 'oc-story' ); ?></option>
+								<option value="full" <?php selected( $s['cart_panel'], 'full' ); ?>><?php esc_html_e( 'The product itself — photos, price, description, quantity', 'oc-story' ); ?></option>
+							</select>
+							<p class="description"><?php esc_html_e( 'The narrow one keeps the video in view. The wide one saves a trip to the product page.', 'oc-story' ); ?></p>
 						</td>
 					</tr>
 					<tr>

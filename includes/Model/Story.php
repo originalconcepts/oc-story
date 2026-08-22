@@ -642,6 +642,7 @@ class Story {
 						'r' => isset( $product['rating'] ) ? $product['rating'] : 0,
 						'c' => isset( $product['reviews'] ) ? $product['reviews'] : 0,
 						'v' => ! empty( $product['variable'] ) ? 1 : 0,
+						's' => empty( $product['in_stock'] ) ? 0 : 1,
 						'x' => $product['x'],
 						'y' => $product['y'],
 					);

@@ -273,7 +273,18 @@ function paintProducts() {
 				info.append( stars );
 			}
 
-			info.append( el( 'span', 'ocsp__product-price', { text: product.p } ) );
+			// Sold out is said on the card, in red, before a tap is spent
+			// finding out. The price stays: what it costs when it comes back
+			// is still worth knowing.
+			const gone = 0 === product.s;
+
+			info.append(
+				el( 'span', 'ocsp__product-price' + ( gone ? ' is-gone' : '' ), { text: product.p } )
+			);
+
+			if ( gone ) {
+				info.append( el( 'span', 'ocsp__product-gone', { text: ( state.cfg.i18n && state.cfg.i18n.soldOut ) || '' } ) );
+			}
 
 			// A word, or just a plus. Both do the same thing; the plus is for
 			// a shop whose cards are already crowded, and it keeps its label
@@ -285,6 +296,7 @@ function paintProducts() {
 				type: 'button',
 				text: plus ? '+' : label,
 				'aria-label': plus ? label : false,
+				disabled: gone,
 			} );
 
 			cta.addEventListener( 'click', ( e ) => {
@@ -439,7 +451,10 @@ function quickAdd( product, button ) {
 	attribute( product );
 	track( 'p', { l: slide().i } );
 
-	if ( product.v ) {
+	// The wide panel is most of a product page, so it opens for everything.
+	// The narrow one only has something to say when there is a choice to
+	// make — or when the answer is that there is nothing to buy.
+	if ( product.v || 'full' === state.cfg.panel || 0 === product.s ) {
 		openSheet( product );
 		return;
 	}
@@ -454,12 +469,15 @@ function openSheet( product ) {
 
 	state.sheetFor = product;
 
-	ui.sheetTitle.textContent = product.n;
+	// The wide panel prints the name in the body, under the photographs, so
+	// the title bar would be saying it twice.
+	ui.sheetTitle.textContent = 'full' === state.cfg.panel ? '' : product.n;
 	ui.sheetBody.replaceChildren( el( 'p', 'ocsp__sheet-wait', { text: '…' } ) );
 	ui.sheetPrice.textContent = product.p;
 	ui.sheetAdd.textContent = i18n.add || 'Add to cart';
 	ui.sheetAdd.disabled = true;
 
+	ui.sheet.classList.toggle( 'ocsp__sheet--wide', 'full' === state.cfg.panel );
 	ui.sheet.hidden = false;
 	// Both paths are idempotent; rAF gives the transition a painted frame to
 	// start from, the timer covers throttled tabs and battery-saver modes.
@@ -479,8 +497,108 @@ function openSheet( product ) {
 function buildSheet( product, data ) {
 	const i18n = state.cfg.i18n || {};
 	const chosen = {};
+	const wide = 'full' === state.cfg.panel;
+	let quantity = 1;
+
+	// What the wide panel puts above the choices: the photographs, the name,
+	// what people made of it, what it costs, and what it is. None of this is
+	// in the page payload — it is fetched on a tap, by somebody who has
+	// already decided to look.
+	const head = [];
+
+	if ( wide ) {
+		if ( data.images && data.images.length ) {
+			const shots = el( 'div', 'ocsp__shots' );
+			const strip = el( 'div', 'ocsp__shot-strip' );
+
+			data.images.forEach( ( src, i ) => {
+				strip.append( el( 'img', 'ocsp__shot', { src, alt: '', loading: i ? 'lazy' : 'eager' } ) );
+			} );
+
+			shots.append( strip );
+
+			if ( data.images.length > 1 ) {
+				const dots = el( 'div', 'ocsp__shot-dots' );
+
+				data.images.forEach( ( src, i ) => {
+					dots.append( el( 'span', 'ocsp__shot-dot' + ( i ? '' : ' is-on' ) ) );
+				} );
+
+				// Physical, not logical: scrollLeft is a physical offset and
+				// is negative in an RTL panel.
+				strip.addEventListener( 'scroll', () => {
+					const at = Math.round( Math.abs( strip.scrollLeft ) / Math.max( 1, strip.clientWidth ) );
+
+					Array.prototype.forEach.call( dots.children, ( dot, i ) => {
+						dot.classList.toggle( 'is-on', i === at );
+					} );
+				}, { passive: true } );
+
+				shots.append( dots );
+			}
+
+			head.push( shots );
+		}
+
+		head.push( el( 'h2', 'ocsp__sheet-name', { text: data.name || product.n } ) );
+
+		if ( data.reviews > 0 ) {
+			const stars = el( 'span', 'ocsp__stars' );
+			const base = el( 'span', 'ocsp__stars-base', { text: '★★★★★', 'aria-hidden': 'true' } );
+
+			base.append( el( 'span', 'ocsp__stars-fill', {
+				text: '★★★★★',
+				style: 'width:' + Math.min( 100, ( data.rating / 5 ) * 100 ) + '%',
+			} ) );
+
+			stars.append( base, el( 'span', 'ocsp__stars-count', { text: '(' + data.reviews + ')' } ) );
+			head.push( stars );
+		}
+
+		if ( data.excerpt ) {
+			const words = el( 'p', 'ocsp__sheet-text', { text: data.excerpt } );
+			const more = el( 'button', 'ocsp__sheet-more', {
+				type: 'button',
+				text: i18n.readMore || '',
+			} );
+
+			more.addEventListener( 'click', () => {
+				words.classList.add( 'is-open' );
+				more.remove();
+			} );
+
+			head.push( words, more );
+		}
+	}
 
 	const resolve = () => {
+		// Nothing to choose and nothing in stock: say so where the price goes
+		// and leave the button off. This is the whole of what a sold-out
+		// product's panel has to do.
+		if ( ! data.in_stock ) {
+			ui.sheetPrice.textContent = i18n.soldOut || '—';
+			ui.sheetPrice.classList.add( 'is-gone' );
+			ui.sheetAdd.disabled = true;
+			return;
+		}
+
+		ui.sheetPrice.classList.remove( 'is-gone' );
+
+		// A product with no variations to pick has already been resolved: the
+		// wide panel opens for those too, so the button has to work.
+		if ( ! data.attributes.length ) {
+			ui.sheetAdd.disabled = false;
+			ui.sheetAdd.onclick = () => {
+				postCart( { product: product.i, quantity }, ui.sheetAdd ).then( ( ok ) => {
+					if ( ok ) {
+						setTimeout( closeSheet, 900 );
+					}
+				} );
+			};
+
+			return;
+		}
+
 		const complete = data.attributes.every( ( attribute ) => chosen[ attribute.name ] );
 		const match = complete
 			? data.variations.find( ( variation ) => data.attributes.every( ( attribute ) => {
@@ -494,20 +612,22 @@ function buildSheet( product, data ) {
 			ui.sheetPrice.textContent = match.price;
 			ui.sheetAdd.disabled = false;
 			ui.sheetAdd.onclick = () => {
-				postCart( { product: product.i, variation: match.id, attributes: chosen }, ui.sheetAdd ).then( ( ok ) => {
+				postCart( { product: product.i, variation: match.id, attributes: chosen, quantity }, ui.sheetAdd ).then( ( ok ) => {
 					if ( ok ) {
 						setTimeout( closeSheet, 900 );
 					}
 				} );
 			};
 		} else {
-			ui.sheetPrice.textContent = complete ? ( i18n.unavailable || '—' ) : product.p;
+			// A chosen combination that is out of stock is out of stock —
+			// not "unavailable", which reads like a fault at our end.
+			ui.sheetPrice.textContent = complete ? ( i18n.soldOut || '—' ) : product.p;
+			ui.sheetPrice.classList.toggle( 'is-gone', complete );
 			ui.sheetAdd.disabled = true;
 		}
 	};
 
-	ui.sheetBody.replaceChildren(
-		...data.attributes.map( ( attribute ) => {
+	const choices = data.attributes.map( ( attribute ) => {
 			const wrap = el( 'div', 'ocsp__opt-group' );
 			const label = el( 'span', 'ocsp__opt-label', { text: attribute.label } );
 			const picked = el( 'b', 'ocsp__opt-picked' );
@@ -584,8 +704,43 @@ function buildSheet( product, data ) {
 
 			wrap.append( row );
 			return wrap;
-		} )
-	);
+		} );
+
+	const tail = [];
+
+	if ( wide && data.in_stock ) {
+		const count = el( 'b', 'ocsp__qty-n', { text: '1' } );
+
+		const step = ( by ) => {
+			const ceiling = data.max > 0 ? data.max : 999;
+
+			quantity = Math.max( 1, Math.min( ceiling, quantity + by ) );
+			count.textContent = String( quantity );
+		};
+
+		const stepper = el( 'div', 'ocsp__qty' );
+
+		const less = el( 'button', 'ocsp__qty-b', { type: 'button', text: '−', 'aria-label': i18n.quantity || '' } );
+		const more = el( 'button', 'ocsp__qty-b', { type: 'button', text: '+', 'aria-label': i18n.quantity || '' } );
+
+		less.addEventListener( 'click', () => step( -1 ) );
+		more.addEventListener( 'click', () => step( 1 ) );
+
+		stepper.append( less, count, more );
+
+		// A way through to the whole product page, for the questions a panel
+		// cannot answer.
+		const out = el( 'a', 'ocsp__sheet-out', {
+			href: data.url || product.u,
+			'aria-label': i18n.openProduct || '',
+			text: '↗',
+		} );
+
+		tail.push( el( 'div', 'ocsp__qty-row' ) );
+		tail[ 0 ].append( stepper, out );
+	}
+
+	ui.sheetBody.replaceChildren( ...head, ...choices, ...tail );
 
 	resolve();
 }

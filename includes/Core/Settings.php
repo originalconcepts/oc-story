@@ -68,6 +68,10 @@ class Settings {
 			// sells one thing says "Buy"; a shop with a long catalogue often
 			// wants nothing but a plus.
 			'cta_style'              => 'button', // 'button' | 'plus'.
+			// What opens when somebody taps a product inside a video. The
+			// narrow one is a choice of variation and a button; the wide one
+			// is most of a product page.
+			'cart_panel'             => 'compact', // 'compact' | 'full'.
 			'cta_label'              => '',
 			'cta_color'              => '',
 			'ring_style'             => 'gradient', // 'gradient' | 'solid' | 'none'.

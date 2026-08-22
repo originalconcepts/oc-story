@@ -1710,3 +1710,35 @@ msgstr "לפני שזה נמדד"
 #: includes
 msgid "A gallery since removed (%s)"
 msgstr "גלריה שהוסרה (%s)"
+
+#: includes
+msgid "Out of stock"
+msgstr "אזל מהמלאי"
+
+#: includes
+msgid "Quantity"
+msgstr "כמות"
+
+#: includes
+msgid "read more"
+msgstr "קרא עוד"
+
+#: includes
+msgid "Open the product page"
+msgstr "פתח את עמוד המוצר"
+
+#: includes
+msgid "Tapping a product opens"
+msgstr "לחיצה על מוצר פותחת"
+
+#: includes
+msgid "Just the choices and a button"
+msgstr "רק הבחירות וכפתור"
+
+#: includes
+msgid "The product itself — photos, price, description, quantity"
+msgstr "את המוצר עצמו — תמונות, מחיר, תיאור, כמות"
+
+#: includes
+msgid "The narrow one keeps the video in view. The wide one saves a trip to the product page."
+msgstr "הצר משאיר את הווידאו בשדה הראייה. הרחב חוסך מעבר לעמוד המוצר."

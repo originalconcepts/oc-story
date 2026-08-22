@@ -148,6 +148,21 @@ $payload = \OCS\Model\Story::to_payload( array( array(
 check( 'payload marks an image slide', 'i' === $payload[0]['s'][0]['ty'] );
 check( 'payload marks a video slide', 'v' === $payload[0]['s'][1]['ty'] );
 
+// Stock rides in the payload so a card can say "out of stock" without a tap.
+$stocked = \OCS\Model\Story::to_payload( array( array(
+	'id' => 6, 'title' => 'x',
+	'slides' => array( array(
+		'id' => 's_cccc3333', 'type' => 'video', 'url' => 'https://x/a.mp4', 'poster_url' => '', 'w' => 720, 'h' => 1280, 'duration' => 9,
+		'products' => array(
+			array( 'id' => 1, 'name' => 'here', 'price' => '1', 'url' => '', 'thumb' => '', 'x' => null, 'y' => null, 'in_stock' => true ),
+			array( 'id' => 2, 'name' => 'gone', 'price' => '2', 'url' => '', 'thumb' => '', 'x' => null, 'y' => null, 'in_stock' => false ),
+		),
+		'cta' => array( 'text' => '', 'url' => '' ),
+	) ),
+) ) );
+check( 'a product in stock is marked so', 1 === $stocked[0]['s'][0]['pr'][0]['s'] );
+check( 'and one that is out is not', 0 === $stocked[0]['s'][0]['pr'][1]['s'] );
+
 $cta = $n( array( array( 'ref' => '10', 'cta' => array( 'text' => '<b>Shop</b>', 'url' => 'javascript:alert(1)' ) ) ) );
 check( 'strips tags from cta text', $cta[0]['cta']['text'] === 'Shop' );
 check( 'rejects a non-url cta link', $cta[0]['cta']['url'] === '' );

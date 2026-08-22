@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.10.0
+Stable tag: 0.11.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,14 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.11.0 =
+* Tapping a product can now open the product itself — photographs, name,
+  rating, price, description and a quantity stepper — instead of only the
+  choices and a button. Both are kept; pick one under OC Story → Settings.
+* A product that is out of stock says "Out of stock" in red on the card,
+  before anybody taps it, and again in the panel. It used to say
+  "Unavailable", and only after a tap.
 
 = 0.10.0 =
 * Insights opens on your galleries, not your videos: which gallery is seen,

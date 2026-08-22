@@ -63,10 +63,34 @@ class CartController {
 			return new \WP_Error( 'ocs_no_product', __( 'That product is not available.', 'oc-story' ), array( 'status' => 404 ) );
 		}
 
+		// Everything the wide panel shows. The narrow one ignores most of it,
+		// and the page payload carries none of it — this is fetched on a tap,
+		// by somebody who has already decided to look.
+		$gallery = array();
+
+		foreach ( array_merge( array( $product->get_image_id() ), $product->get_gallery_image_ids() ) as $image_id ) {
+			$url = $image_id ? (string) wp_get_attachment_image_url( (int) $image_id, 'woocommerce_single' ) : '';
+
+			if ( '' !== $url ) {
+				$gallery[] = $url;
+			}
+		}
+
 		$out = array(
 			'id'         => $product->get_id(),
 			'type'       => $product->get_type(),
 			'in_stock'   => $product->is_in_stock(),
+			'name'       => html_entity_decode( wp_strip_all_tags( $product->get_name() ), ENT_QUOTES, 'UTF-8' ),
+			'url'        => $product->get_permalink(),
+			'images'     => $gallery,
+			'excerpt'    => html_entity_decode( wp_strip_all_tags( $product->get_short_description() ), ENT_QUOTES, 'UTF-8' ),
+			'price'      => html_entity_decode( wp_strip_all_tags( wc_price( $product->get_price() ) ), ENT_QUOTES, 'UTF-8' ),
+			'was'        => $product->is_on_sale()
+				? html_entity_decode( wp_strip_all_tags( wc_price( $product->get_regular_price() ) ), ENT_QUOTES, 'UTF-8' )
+				: '',
+			'rating'     => round( (float) $product->get_average_rating(), 1 ),
+			'reviews'    => (int) $product->get_review_count(),
+			'max'        => $product->get_max_purchase_quantity() > 0 ? (int) $product->get_max_purchase_quantity() : 0,
 			'attributes' => array(),
 			'variations' => array(),
 		);
@@ -186,6 +210,9 @@ class CartController {
 
 		$product_id   = absint( $request['product'] );
 		$variation_id = absint( $request['variation'] );
+		// The wide panel has a stepper. Clamped rather than trusted, and
+		// WooCommerce still gets the last word on stock.
+		$quantity     = max( 1, min( 999, absint( $request['quantity'] ) ) );
 		$attributes   = array();
 
 		foreach ( (array) $request['attributes'] as $key => $value ) {
@@ -216,7 +243,7 @@ class CartController {
 			$item_data[ Attribution::CART_KEY ] = $claim;
 		}
 
-		$added = WC()->cart->add_to_cart( $product_id, 1, $variation_id, $attributes, $item_data );
+		$added = WC()->cart->add_to_cart( $product_id, $quantity, $variation_id, $attributes, $item_data );
 
 		if ( ! $added ) {
 			// WooCommerce queued the real reason as a notice — "sold
