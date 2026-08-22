@@ -27,10 +27,31 @@ class InsightsPage {
 	 * Render.
 	 */
 	public function render() {
-		$days = isset( $_GET['days'] ) ? max( 1, min( 90, (int) $_GET['days'] ) ) : 30; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		$from_raw = isset( $_GET['from'] ) ? sanitize_text_field( wp_unslash( $_GET['from'] ) ) : '';
+		$to_raw   = isset( $_GET['to'] ) ? sanitize_text_field( wp_unslash( $_GET['to'] ) ) : '';
+		$days     = isset( $_GET['days'] ) ? max( 1, min( 3650, (int) $_GET['days'] ) ) : 30;
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
-		$rows  = Stats::by_story( $days );
-		$reach = Stats::reach( $days );
+		$dated = '' !== $from_raw || '' !== $to_raw;
+
+		list( $from, $to ) = $dated ? Stats::span( $from_raw, $to_raw ) : Stats::span( $days );
+
+		$rows  = Stats::by_story( $from, $to );
+		$reach = Stats::reach( $from, $to );
+
+		// Which galleries currently show each video. The numbers themselves
+		// are per video — one video can be in several galleries, so an open
+		// cannot honestly be credited to one of them — but "where is this
+		// shown" is answerable, and it is the question the word "gallery" in
+		// this screen used to answer wrongly.
+		$shown_in = array();
+
+		foreach ( \OCS\Model\Placement::all() as $placement ) {
+			foreach ( (array) $placement['stories']['ids'] as $story_id ) {
+				$shown_in[ (int) $story_id ][] = $placement['label'] ? $placement['label'] : $placement['id'];
+			}
+		}
 
 		$totals = array(
 			'opens'        => 0,
@@ -57,14 +78,33 @@ class InsightsPage {
 				foreach ( array( 7, 30, 90 ) as $option ) {
 					printf(
 						'<a href="%s" class="button%s" style="margin-inline-end:6px">%s</a>',
-						esc_url( add_query_arg( 'days', $option ) ),
-						$days === $option ? ' button-primary' : '',
+						esc_url( add_query_arg( array( 'days' => $option, 'from' => false, 'to' => false ) ) ),
+						! $dated && $days === $option ? ' button-primary' : '',
 						/* translators: %d: number of days */
 						esc_html( sprintf( __( '%d days', 'oc-story' ), $option ) )
 					);
 				}
 				?>
 			</p>
+
+			<form method="get" style="margin:0 0 14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+				<input type="hidden" name="page" value="<?php echo esc_attr( self::SLUG ); ?>">
+				<label for="ocs-from"><?php esc_html_e( 'From', 'oc-story' ); ?></label>
+				<input type="date" id="ocs-from" name="from" value="<?php echo esc_attr( $from ); ?>" max="<?php echo esc_attr( current_time( 'Y-m-d' ) ); ?>">
+				<label for="ocs-to"><?php esc_html_e( 'To', 'oc-story' ); ?></label>
+				<input type="date" id="ocs-to" name="to" value="<?php echo esc_attr( $to ); ?>" max="<?php echo esc_attr( current_time( 'Y-m-d' ) ); ?>">
+				<button type="submit" class="button"><?php esc_html_e( 'Show', 'oc-story' ); ?></button>
+				<span class="description">
+					<?php
+					printf(
+						/* translators: 1: start date, 2: end date */
+						esc_html__( 'Showing %1$s to %2$s', 'oc-story' ),
+						esc_html( $from ),
+						esc_html( $to )
+					);
+					?>
+				</span>
+			</form>
 
 			<?php if ( ! $rows ) : ?>
 				<div class="notice notice-info inline"><p>
@@ -89,7 +129,8 @@ class InsightsPage {
 			<table class="widefat striped" style="max-width:1100px">
 				<thead>
 					<tr>
-						<th><?php esc_html_e( 'Gallery', 'oc-story' ); ?></th>
+						<th><?php esc_html_e( 'Video', 'oc-story' ); ?></th>
+						<th><?php esc_html_e( 'Shown in', 'oc-story' ); ?></th>
 						<th><?php esc_html_e( 'Opens', 'oc-story' ); ?></th>
 						<th><?php esc_html_e( 'Watched to the end', 'oc-story' ); ?></th>
 						<th><?php esc_html_e( 'Likes', 'oc-story' ); ?></th>
@@ -103,11 +144,31 @@ class InsightsPage {
 				<tbody>
 					<?php foreach ( $rows as $row ) : ?>
 						<?php
-						$title = get_the_title( $row['story_id'] );
-						$rate  = $row['opens'] > 0 ? round( ( $row['completions'] / $row['opens'] ) * 100 ) : 0;
+						$exists = (bool) get_post_status( $row['story_id'] );
+						$title  = $exists ? get_the_title( $row['story_id'] ) : '';
+						$where  = isset( $shown_in[ $row['story_id'] ] ) ? $shown_in[ $row['story_id'] ] : array();
+						$rate   = $row['opens'] > 0 ? round( ( $row['completions'] / $row['opens'] ) * 100 ) : 0;
+
+						if ( '' === $title ) {
+							$title = $exists
+								? __( 'Untitled', 'oc-story' )
+								/* translators: %d: video id */
+								: sprintf( __( 'Deleted video #%d', 'oc-story' ), $row['story_id'] );
+						}
 						?>
 						<tr>
-							<td><strong><?php echo esc_html( '' !== $title ? $title : sprintf( '#%d', $row['story_id'] ) ); ?></strong></td>
+							<td><strong><?php echo esc_html( $title ); ?></strong></td>
+							<td>
+								<?php
+								// Numbers are never removed, so a video can be
+								// here long after it left every gallery — or
+								// after it was deleted. Saying which is the
+								// difference between a stale row and a record.
+								echo $where
+									? esc_html( implode( ', ', $where ) )
+									: '<span class="description">' . esc_html__( 'Not in any gallery now', 'oc-story' ) . '</span>';
+								?>
+							</td>
 							<td><?php echo esc_html( number_format_i18n( $row['opens'] ) ); ?></td>
 							<td>
 								<?php
@@ -127,6 +188,7 @@ class InsightsPage {
 				<tfoot>
 					<tr>
 						<th><?php esc_html_e( 'Everything together', 'oc-story' ); ?></th>
+						<th></th>
 						<th><?php echo esc_html( number_format_i18n( $totals['opens'] ) ); ?></th>
 						<th>
 							<?php
@@ -146,6 +208,10 @@ class InsightsPage {
 			</table>
 
 			<p class="description" style="margin-top:12px">
+				<?php esc_html_e( 'Numbers are kept for ever. Switching a gallery off, taking a video out of it, or deleting the video does not remove what it already earned.', 'oc-story' ); ?>
+			</p>
+
+			<p class="description">
 				<?php
 				printf(
 					/* translators: %d: attribution window in days */

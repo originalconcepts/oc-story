@@ -190,11 +190,12 @@ class Stats {
 	 * @param int $days Days back from today.
 	 * @return array<int,array>
 	 */
-	public static function by_story( $days = 30 ) {
+	public static function by_story( $from, $to = '' ) {
 		global $wpdb;
 
+		list( $from, $to ) = self::span( $from, $to );
+
 		$table = Install::table( 'stats_daily' );
-		$since = gmdate( 'Y-m-d', strtotime( current_time( 'Y-m-d' ) . ' -' . max( 1, (int) $days ) . ' days' ) );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
 		$rows = $wpdb->get_results(
@@ -209,10 +210,11 @@ class Stats {
 						SUM(orders) AS orders,
 						SUM(revenue) AS revenue
 				 FROM {$table}
-				 WHERE day >= %s AND story_id > 0
+				 WHERE day BETWEEN %s AND %s AND story_id > 0
 				 GROUP BY story_id
 				 ORDER BY revenue DESC, opens DESC",
-				$since
+				$from,
+				$to
 			),
 			ARRAY_A
 		);
@@ -289,16 +291,69 @@ class Stats {
 	 * @param int $days Days back from today.
 	 * @return int
 	 */
-	public static function reach( $days = 30 ) {
+	public static function reach( $from, $to = '' ) {
 		global $wpdb;
 
+		list( $from, $to ) = self::span( $from, $to );
+
 		$table = Install::table( 'stats_daily' );
-		$since = gmdate( 'Y-m-d', strtotime( current_time( 'Y-m-d' ) . ' -' . max( 1, (int) $days ) . ' days' ) );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
 		return (int) $wpdb->get_var(
-			$wpdb->prepare( "SELECT SUM(impressions) FROM {$table} WHERE day >= %s AND story_id = 0", $since )
+			$wpdb->prepare(
+				"SELECT SUM(impressions) FROM {$table} WHERE day BETWEEN %s AND %s AND story_id = 0",
+				$from,
+				$to
+			)
 		);
+	}
+
+	/**
+	 * Two dates, in order, whatever was asked for.
+	 *
+	 * Accepts a number of days back — what the quick buttons send — or a pair
+	 * of dates. A pair the wrong way round is swapped rather than refused: it
+	 * is obvious what was meant, and an empty table teaches nobody anything.
+	 *
+	 * @param int|string $from Days back, or Y-m-d.
+	 * @param string     $to   Y-m-d, or '' for today.
+	 * @return string[] { from, to }
+	 */
+	public static function span( $from, $to = '' ) {
+		$today = current_time( 'Y-m-d' );
+
+		if ( is_numeric( $from ) ) {
+			$days = max( 1, min( 3650, (int) $from ) );
+
+			return array(
+				gmdate( 'Y-m-d', strtotime( $today . ' -' . $days . ' days' ) ),
+				'' !== $to ? self::a_day( $to, $today ) : $today,
+			);
+		}
+
+		$start = self::a_day( $from, $today );
+		$end   = '' !== $to ? self::a_day( $to, $today ) : $today;
+
+		return $start <= $end ? array( $start, $end ) : array( $end, $start );
+	}
+
+	/**
+	 * One date, or a sensible one.
+	 *
+	 * @param string $raw      Anything.
+	 * @param string $fallback Used when it is not a date.
+	 * @return string Y-m-d.
+	 */
+	protected static function a_day( $raw, $fallback ) {
+		$raw = trim( (string) $raw );
+
+		if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $raw ) ) {
+			return $fallback;
+		}
+
+		$parts = array_map( 'intval', explode( '-', $raw ) );
+
+		return checkdate( $parts[1], $parts[2], $parts[0] ) ? $raw : $fallback;
 	}
 
 	/**

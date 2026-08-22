@@ -273,6 +273,20 @@ late.
 **The events endpoint answers 204 to everything.** An error body invites
 retries and tells a prober what the filter rejected.
 
+**Nothing ever deletes from `ocs_stats_daily`.** Not switching a gallery off,
+not taking a video out of one, not deleting the video, not uninstalling with
+data deletion off. A shop owner who has been told a video earned three
+thousand shekels must be able to see that a year later, so the Insights screen
+labels rows whose video is gone rather than dropping them. If a prune is ever
+added it needs a decision, not a patch.
+
+**Insights are per video, not per gallery.** The stats rows carry a story id
+and no placement id, and one video can be in several galleries — so an open
+cannot honestly be credited to one of them. The screen said "Gallery" over a
+column of video names for four versions. It now says "Video", with a second
+column naming the galleries that currently show it, which is the question
+that word was reaching for.
+
 **The `.min` files are committed, and CI proves they match.** This plugin is
 deployed by `git pull`, and git does not preserve modification times — so the
 theme's rule, "use the built file only when it is newer than its source",

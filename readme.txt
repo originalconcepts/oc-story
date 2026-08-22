@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.9.4
+Stable tag: 0.9.5
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,13 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.9.5 =
+* Insights called its first column "Gallery" and listed videos in it. It says
+  "Video" now, with a second column naming the galleries each one is shown in.
+* Any date range, not only 7, 30 or 90 days.
+* A video that has left every gallery, or been deleted, keeps its row — with a
+  note saying which. Numbers are never removed.
 
 = 0.9.4 =
 * Everything the storefront downloads is now minified: half the bytes for the

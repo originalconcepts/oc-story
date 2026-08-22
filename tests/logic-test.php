@@ -24,6 +24,7 @@ function add_filter() {}
 function add_action() {}
 function wp_json_encode( $v ) { return json_encode( $v ); }
 function wp_hash( $v ) { return hash( 'sha256', 'test-salt' . $v ); }
+function current_time( $format ) { return gmdate( $format ); }
 function home_url( $path = '/' ) { return 'https://example.test' . $path; }
 function add_query_arg( $key, $value, $url ) { return $url . ( strpos( $url, '?' ) === false ? '?' : '&' ) . $key . '=' . $value; }
 function get_option( $k, $d = false ) { return $GLOBALS['ocs_options'][ $k ] ?? $d; }
@@ -234,6 +235,25 @@ check( 'and still remembers which videos are its own', array( 7, 8 ) === $auto_m
 $draft_pl = $w( array( 'surface' => 'circles', 'target' => 'custom', 'position' => 'custom', 'enabled' => false ) );
 check( 'a hand-placed gallery can be a draft', false === $draft_pl['enabled'] );
 check( 'and a hand-placed gallery hooks nothing', 'manual' === $draft_pl['hook'] );
+
+echo "\nInsight date ranges\n";
+$today = gmdate( 'Y-m-d' );
+
+list( $f, $t ) = \OCS\Model\Stats::span( 7 );
+check( 'a number of days ends today', $today === $t );
+check( 'and starts that many days back', gmdate( 'Y-m-d', strtotime( $today . ' -7 days' ) ) === $f );
+
+list( $f, $t ) = \OCS\Model\Stats::span( '2026-01-05', '2026-02-09' );
+check( 'a pair of dates is taken as given', '2026-01-05' === $f && '2026-02-09' === $t );
+
+list( $f, $t ) = \OCS\Model\Stats::span( '2026-02-09', '2026-01-05' );
+check( 'and a pair the wrong way round is turned around', '2026-01-05' === $f && '2026-02-09' === $t );
+
+list( $f, $t ) = \OCS\Model\Stats::span( 'yesterday-ish', '' );
+check( 'nonsense falls back to today rather than to nothing', $today === $f && $today === $t );
+
+list( $f, $t ) = \OCS\Model\Stats::span( '2026-02-30', '' );
+check( 'and so does a date that never happened', $today === $f );
 
 echo "\nShare links\n";
 check( 'the spans offered are the ones documented', array( 14, 30, 90 ) === \OCS\Model\ShareLink::SPANS );

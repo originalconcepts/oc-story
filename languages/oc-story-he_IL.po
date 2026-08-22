@@ -1654,3 +1654,35 @@ msgstr "הוא בגלריה — אבל הגלריה הזו מציגה סרטון
 #: includes
 msgid "This gallery shows each video on the products it names, so choose at least one."
 msgstr "הגלריה הזו מציגה כל סרטון במוצרים שהוא מתייג, אז בחר לפחות אחד."
+
+#: includes
+msgid "Shown in"
+msgstr "מוצג בגלריות"
+
+#: includes
+msgid "Not in any gallery now"
+msgstr "לא בשום גלריה כרגע"
+
+#: includes
+msgid "Deleted video #%d"
+msgstr "סרטון שנמחק #%d"
+
+#: includes
+msgid "From"
+msgstr "מתאריך"
+
+#: includes
+msgid "To"
+msgstr "עד תאריך"
+
+#: includes
+msgid "Show"
+msgstr "הצג"
+
+#: includes
+msgid "Showing %1$s to %2$s"
+msgstr "מוצג %1$s עד %2$s"
+
+#: includes
+msgid "Numbers are kept for ever. Switching a gallery off, taking a video out of it, or deleting the video does not remove what it already earned."
+msgstr "המספרים נשמרים לתמיד. כיבוי גלריה, הוצאת סרטון ממנה או מחיקת הסרטון לא מוחקים את מה שהוא כבר הרוויח."
