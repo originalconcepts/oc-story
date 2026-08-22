@@ -200,6 +200,17 @@ pageview — a throttled background tab counts nothing, which is correct.
 
 ## Things that will bite you
 
+**Our overlay lives inside the shop's stylesheets, so an image rule needs two
+classes.** WooCommerce ships `.woocommerce img, .woocommerce-page img { height:
+auto }`, and every product, shop, category and cart page carries one of those
+classes on `<body>`. Two classes beat a class and a tag, so any rule of ours
+that gives an image a size is written `.ocsp .ocsp__shot`, `.ocs-bar
+.ocs-circle__img`, `.ocs-slider .ocs-card__img` — never the single class alone.
+This one hid well: the panel looked right on a home page and wrong on a product
+page, because a home page is the one place that stylesheet is not loaded. When
+you raise a rule's specificity this way, raise its modifiers too, or the base
+rule starts winning against them.
+
 **`Display\ElementorWidget` must never be autoloaded.** It extends an Elementor
 base class; the file is `require`d inside the `elementor/widgets/register` hook
 after checking the class exists. Reaching it through the autoloader on a site
