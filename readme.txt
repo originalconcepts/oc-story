@@ -4,7 +4,7 @@ Tags: woocommerce, video, stories, shoppable video, ugc
 Requires at least: 6.2
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.11.0
+Stable tag: 0.11.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,13 @@ WooCommerce 7.0 or newer.
 3. Go to OC Story → Studio and add your first video.
 
 == Changelog ==
+
+= 0.11.1 =
+* Arrows on the product photographs, for a mouse.
+* The wide panel fits without scrolling on most phones: the photograph is
+  contained in a shorter box instead of filling a square one. Where it still
+  does not fit, the panel fades at the edge and nudges once on opening — and
+  where it does fit, neither happens.
 
 = 0.11.0 =
 * Tapping a product can now open the product itself — photographs, name,

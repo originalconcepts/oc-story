@@ -505,6 +505,10 @@ function buildSheet( product, data ) {
 	// in the page payload — it is fetched on a tap, by somebody who has
 	// already decided to look.
 	const head = [];
+	// Anything that has to measure itself. Nothing in `head` is in the
+	// document yet, so a strip asked for its width here answers zero — which
+	// is how both arrows came to be hidden at once.
+	const mounted = [];
 
 	if ( wide ) {
 		if ( data.images && data.images.length ) {
@@ -524,17 +528,56 @@ function buildSheet( product, data ) {
 					dots.append( el( 'span', 'ocsp__shot-dot' + ( i ? '' : ' is-on' ) ) );
 				} );
 
-				// Physical, not logical: scrollLeft is a physical offset and
-				// is negative in an RTL panel.
-				strip.addEventListener( 'scroll', () => {
+				// A mouse has no swipe. Named and placed physically, because
+				// scrollLeft is a physical offset and is negative in RTL —
+				// the same rule the product row underneath already follows.
+				const back = el( 'button', 'ocsp__strip-nav ocsp__strip-nav--l ocsp__shot-nav', {
+					type: 'button',
+					'aria-label': i18n.prev || 'Previous',
+				} );
+				const fwd = el( 'button', 'ocsp__strip-nav ocsp__strip-nav--r ocsp__shot-nav', {
+					type: 'button',
+					'aria-label': i18n.next || 'Next',
+				} );
+
+				// Entirely physical, like the product row below it. The left
+				// button scrolls left and the right button scrolls right; in
+				// an RTL panel the second photograph *is* to the left, so
+				// that is also the one that moves forward. Any cleverness
+				// about direction here would be cleverness applied twice,
+				// because the CSS has already placed them.
+				const span = () => strip.scrollWidth - strip.clientWidth;
+				const edges = () => ( RTL() ? { min: -span(), max: 0 } : { min: 0, max: span() } );
+
+				const paint = () => {
 					const at = Math.round( Math.abs( strip.scrollLeft ) / Math.max( 1, strip.clientWidth ) );
+					const range = edges();
 
 					Array.prototype.forEach.call( dots.children, ( dot, i ) => {
 						dot.classList.toggle( 'is-on', i === at );
 					} );
-				}, { passive: true } );
 
-				shots.append( dots );
+					back.hidden = strip.scrollLeft <= range.min + 2;
+					fwd.hidden = strip.scrollLeft >= range.max - 2;
+				};
+
+				const slideBy = ( physical ) => {
+					const range = edges();
+					const to = strip.scrollLeft + physical * strip.clientWidth;
+
+					strip.scrollTo( {
+						left: Math.max( range.min, Math.min( range.max, to ) ),
+						behavior: CALM() ? 'auto' : 'smooth',
+					} );
+				};
+
+				back.addEventListener( 'click', () => slideBy( -1 ) );
+				fwd.addEventListener( 'click', () => slideBy( 1 ) );
+
+				strip.addEventListener( 'scroll', paint, { passive: true } );
+
+				shots.append( dots, back, fwd );
+				mounted.push( paint );
 			}
 
 			head.push( shots );
@@ -742,7 +785,48 @@ function buildSheet( product, data ) {
 
 	ui.sheetBody.replaceChildren( ...head, ...choices, ...tail );
 
+	mounted.forEach( ( run ) => run() );
+
 	resolve();
+	hintAtMore();
+}
+
+/**
+ * Say that there is more below, but only if there is.
+ *
+ * George's question was whether the panel could avoid scrolling altogether.
+ * For most products it now does — the photograph was the thing pushing
+ * everything down. For the rest, a panel that scrolls without saying so is
+ * a panel whose bottom half does not exist, so: a fade at the edge, and one
+ * short nudge down and back on opening. Both are decided by measuring, so a
+ * panel that fits gets neither and nothing moves.
+ */
+function hintAtMore() {
+	const body = ui.sheetBody;
+
+	// Measured now, not in an animation frame. Reading scrollHeight forces
+	// the layout we need, and the photograph's box has a fixed height, so
+	// nothing here moves once its image arrives. An animation frame would
+	// also be one more thing that does not fire in a tab the browser has
+	// decided to throttle.
+	const over = body.scrollHeight - body.clientHeight;
+
+	ui.sheet.classList.toggle( 'ocsp__sheet--more', over > 12 );
+	ui.sheet.classList.remove( 'is-at-end' );
+
+	if ( over <= 12 || CALM() ) {
+		return;
+	}
+
+	// Far enough to be seen moving, short enough that nothing is read and
+	// lost. It comes straight back.
+	setTimeout( () => {
+		body.scrollTop = Math.min( 28, over );
+
+		setTimeout( () => {
+			body.scrollTop = 0;
+		}, 420 );
+	}, 260 );
 }
 
 function closeSheet( instant ) {
@@ -1495,6 +1579,14 @@ function bindGestures() {
 			react( pair[ 1 ], at.x, at.y );
 		} );
 	} );
+
+	// The fade goes out at the bottom, which is the only place it would be
+	// telling a lie.
+	ui.sheetBody.addEventListener( 'scroll', () => {
+		const left = ui.sheetBody.scrollHeight - ui.sheetBody.clientHeight - ui.sheetBody.scrollTop;
+
+		ui.sheet.classList.toggle( 'is-at-end', left < 8 );
+	}, { passive: true } );
 
 	ui.sheetClose.addEventListener( 'click', () => closeSheet() );
 
