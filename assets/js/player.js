@@ -473,6 +473,10 @@ function openSheet( product ) {
 	// the title bar would be saying it twice.
 	ui.sheetTitle.textContent = 'full' === state.cfg.panel ? '' : product.n;
 	ui.sheetBody.replaceChildren( el( 'p', 'ocsp__sheet-wait', { text: '…' } ) );
+	// The next product is not the last one: start at the top, with no fade
+	// left over from a panel that did have more to show.
+	ui.sheetBody.scrollTop = 0;
+	ui.sheet.classList.remove( 'ocsp__sheet--more', 'is-at-end' );
 	ui.sheetPrice.textContent = product.p;
 	ui.sheetAdd.textContent = i18n.add || 'Add to cart';
 	ui.sheetAdd.disabled = true;
@@ -561,14 +565,31 @@ function buildSheet( product, data ) {
 					fwd.hidden = strip.scrollLeft >= range.max - 2;
 				};
 
+				// Snap and a smooth scroll fight: asked to glide somewhere it
+				// must also snap to, a browser frequently gives up and jumps —
+				// which is what that looked like. So the snap is lifted for
+				// the length of the glide and put back once the strip has
+				// stopped. A glide is exactly one photograph wide from a
+				// snapped position, so it lands on a snap point either way and
+				// nothing corrects itself when the snap returns.
+				let settle = 0;
+
 				const slideBy = ( physical ) => {
 					const range = edges();
-					const to = strip.scrollLeft + physical * strip.clientWidth;
+					const to = Math.max( range.min, Math.min( range.max, strip.scrollLeft + physical * strip.clientWidth ) );
 
-					strip.scrollTo( {
-						left: Math.max( range.min, Math.min( range.max, to ) ),
-						behavior: CALM() ? 'auto' : 'smooth',
-					} );
+					if ( CALM() ) {
+						strip.scrollLeft = to;
+						return;
+					}
+
+					clearTimeout( settle );
+					strip.style.scrollSnapType = 'none';
+					strip.scrollTo( { left: to, behavior: 'smooth' } );
+
+					settle = setTimeout( () => {
+						strip.style.scrollSnapType = '';
+					}, 700 );
 				};
 
 				back.addEventListener( 'click', () => slideBy( -1 ) );
@@ -788,45 +809,29 @@ function buildSheet( product, data ) {
 	mounted.forEach( ( run ) => run() );
 
 	resolve();
-	hintAtMore();
+	paintMore();
 }
 
 /**
- * Say that there is more below, but only if there is.
+ * Say that there is more below, but only when there is.
  *
  * George's question was whether the panel could avoid scrolling altogether.
  * For most products it now does — the photograph was the thing pushing
- * everything down. For the rest, a panel that scrolls without saying so is
- * a panel whose bottom half does not exist, so: a fade at the edge, and one
- * short nudge down and back on opening. Both are decided by measuring, so a
- * panel that fits gets neither and nothing moves.
+ * everything down. For the rest there is a fade at the edge of the reading
+ * area, and nothing else: the panel opened with a small scroll down and back,
+ * and a panel that moves by itself on opening reads as a fault rather than as
+ * an invitation.
  */
-function hintAtMore() {
+function paintMore() {
 	const body = ui.sheetBody;
 
-	// Measured now, not in an animation frame. Reading scrollHeight forces
-	// the layout we need, and the photograph's box has a fixed height, so
-	// nothing here moves once its image arrives. An animation frame would
-	// also be one more thing that does not fire in a tab the browser has
-	// decided to throttle.
+	// Measured, not guessed. Reading scrollHeight forces the layout we need,
+	// and this runs again whenever a picture inside finishes arriving, so a
+	// panel that grows late still tells the truth.
 	const over = body.scrollHeight - body.clientHeight;
 
 	ui.sheet.classList.toggle( 'ocsp__sheet--more', over > 12 );
-	ui.sheet.classList.remove( 'is-at-end' );
-
-	if ( over <= 12 || CALM() ) {
-		return;
-	}
-
-	// Far enough to be seen moving, short enough that nothing is read and
-	// lost. It comes straight back.
-	setTimeout( () => {
-		body.scrollTop = Math.min( 28, over );
-
-		setTimeout( () => {
-			body.scrollTop = 0;
-		}, 420 );
-	}, 260 );
+	ui.sheet.classList.toggle( 'is-at-end', over - body.scrollTop < 8 );
 }
 
 function closeSheet( instant ) {
@@ -1582,11 +1587,12 @@ function bindGestures() {
 
 	// The fade goes out at the bottom, which is the only place it would be
 	// telling a lie.
-	ui.sheetBody.addEventListener( 'scroll', () => {
-		const left = ui.sheetBody.scrollHeight - ui.sheetBody.clientHeight - ui.sheetBody.scrollTop;
+	ui.sheetBody.addEventListener( 'scroll', paintMore, { passive: true } );
 
-		ui.sheet.classList.toggle( 'is-at-end', left < 8 );
-	}, { passive: true } );
+	// A picture arriving makes the panel taller after it was measured. `load`
+	// does not bubble, so this listens on the way down instead — one listener
+	// for every image the panel will ever hold.
+	ui.sheetBody.addEventListener( 'load', paintMore, true );
 
 	ui.sheetClose.addEventListener( 'click', () => closeSheet() );
 

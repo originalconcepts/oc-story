@@ -49,7 +49,7 @@
    the next card's edge in frame, the sliver that says "this scrolls". */
 .ocsp__products:not(.ocsp__products--multi) .ocsp__product{flex:1 1 100%;max-width:100%}
 .ocsp__products--multi .ocsp__product{flex:0 0 80%;max-width:80%}
-.ocsp__product-thumb{width:64px;height:64px;border-radius:12px;object-fit:cover;background:#eee;flex:0 0 auto}
+.ocsp .ocsp__product-thumb{width:64px;height:64px;border-radius:12px;object-fit:cover;background:#eee;flex:0 0 auto}
 .ocsp__product-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
 .ocsp__product-info b{font-weight:500;font-size:14px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ocsp__product-price{font-weight:700;font-size:16px;color:#111}
@@ -69,11 +69,11 @@
    the sound. Aligned under the close button. */
 .ocsp__unmute{position:absolute;top:64px;inset-inline-end:8px;z-index:5}
 
-.ocsp__image{position:relative;z-index:1;width:100%;height:100%;object-fit:contain;background:transparent;display:block}
+.ocsp .ocsp__image{position:relative;z-index:1;width:100%;height:100%;object-fit:contain;background:transparent;display:block}
 .ocsp__image[hidden],.ocsp__video[hidden]{display:none}
 .ocsp__video{position:relative;z-index:1;background:transparent}
 .ocsp__video.is-cover,.ocsp__image.is-cover{object-fit:cover}
-.ocsp__blur{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;filter:blur(35px) brightness(.65);transform:scale(1.15)}
+.ocsp .ocsp__blur{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;filter:blur(35px) brightness(.65);transform:scale(1.15)}
 .ocsp__blur[hidden]{display:none}
 
 .ocsp__sheet{position:absolute;inset-inline:0;bottom:0;z-index:6;background:#fff;color:#111;border-radius:18px 18px 0 0;transform:translateY(100%);transition:transform .22s ease;max-height:72%;display:flex;flex-direction:column;padding-bottom:max(10px,env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.35)}
@@ -111,7 +111,7 @@
 .ocsp__thumbs{display:flex;flex-direction:column;gap:8px;max-height:70vh;overflow-y:auto;scrollbar-width:none;padding:2px}
 .ocsp__thumbs::-webkit-scrollbar{display:none}
 .ocsp__thumb{width:44px;height:60px;flex:0 0 auto;border:0;border-radius:8px;padding:0;overflow:hidden;background:rgba(255,255,255,.15);cursor:pointer;opacity:.55;outline:2px solid transparent;transition:opacity .15s ease,outline-color .15s ease}
-.ocsp__thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.ocsp .ocsp__thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .ocsp__thumb:hover{opacity:.85}
 .ocsp__thumb.is-on{opacity:1;outline-color:#ffd23f}
 @media (max-width:781px){.ocsp__rail{display:none}}
@@ -154,6 +154,12 @@ html[data-ocsp-open]{overflow:hidden;touch-action:none}
 .ocsp__sheet--wide{max-height:92%}
 .ocsp__sheet--wide .ocsp__sheet-head{padding:8px 12px 0}
 .ocsp__shots{margin:0 0 10px}
+/* Every rule below that gives one of our images a height is written with
+   the overlay in front of it. WooCommerce ships `.woocommerce img{height:auto}`
+   and a shop's product, category and cart pages all carry that class on the
+   body — which outranks a plain class of ours and quietly un-sizes every
+   picture in the player. It is why the panel looked right on the home page
+   and wrong on a product page. */
 /* The photograph is contained in a short box rather than filling a square
    one. A full-width square was the single biggest thing pushing everything
    else below the fold — and `contain` means a portrait product simply gets
@@ -161,10 +167,13 @@ html[data-ocsp-open]{overflow:hidden;touch-action:none}
    invisible. The reference George sent does exactly this. */
 .ocsp__shot-strip{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;gap:0;border-radius:12px}
 .ocsp__shot-strip::-webkit-scrollbar{display:none}
-.ocsp__shot{flex:0 0 100%;width:100%;height:min(34vh,280px);object-fit:contain;scroll-snap-align:center;background:#fff;border-radius:12px}
+.ocsp .ocsp__shot{flex:0 0 100%;width:100%;height:min(34vh,280px);object-fit:contain;scroll-snap-align:center;background:#fff;border-radius:12px}
 .ocsp__shots{position:relative}
-.ocsp__shot-nav{opacity:0}
-@media (hover:hover){.ocsp__shots:hover .ocsp__shot-nav{opacity:1}}
+.ocsp__shot-nav{opacity:0;background:#f0f0f0;color:#111;box-shadow:0 1px 5px rgba(0,0,0,.18)}
+.ocsp__shot-nav::after{border-right-color:#111;border-bottom-color:#111}
+/* Shown outright rather than on hover: light grey and small enough not to be
+   in the way, and the close button they match is not hidden either. */
+@media (hover:hover){.ocsp__shots .ocsp__shot-nav{opacity:1}}
 .ocsp__shot-dots{display:flex;gap:5px;justify-content:center;margin-top:6px}
 .ocsp__shot-dot{width:6px;height:6px;border-radius:50%;background:#d5d8dc}
 .ocsp__shot-dot.is-on{background:#1d2327}
@@ -184,15 +193,17 @@ html[data-ocsp-open]{overflow:hidden;touch-action:none}
    both switched on by measuring the panel after it is built, so a product
    whose panel already fits gets neither — which is the whole point of
    shortening the photograph. */
-.ocsp__sheet-body{position:relative}
-.ocsp__sheet--wide .ocsp__sheet-body{scroll-behavior:smooth}
-.ocsp__sheet--more::after{
-	content:"";position:absolute;inset-inline:0;bottom:0;height:56px;pointer-events:none;z-index:2;
+/* Hung off the top of the price row rather than the bottom of the panel:
+   the pseudo-element of a scrolling box scrolls away with its content, and
+   the panel's own bottom edge is the price and the button — which is where
+   this was lying across. */
+.ocsp__sheet-foot{position:relative}
+.ocsp__sheet--more .ocsp__sheet-foot::before{
+	content:"";position:absolute;inset-inline:0;bottom:100%;height:48px;pointer-events:none;z-index:2;
 	background:linear-gradient(to top,#fff,rgba(255,255,255,0));
 	opacity:1;transition:opacity .2s ease
 }
-.ocsp__sheet--more.is-at-end::after{opacity:0}
+.ocsp__sheet--more.is-at-end .ocsp__sheet-foot::before{opacity:0}
 @media (prefers-reduced-motion:reduce){
-	.ocsp__sheet--wide .ocsp__sheet-body{scroll-behavior:auto}
-	.ocsp__sheet--more::after{transition:none}
+	.ocsp__sheet--more .ocsp__sheet-foot::before{transition:none}
 }
